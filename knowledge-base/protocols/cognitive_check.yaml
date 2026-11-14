@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "protocol_id": "cognitive_check",
+  "name": "Registro de atenção",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-CNS",
+  "subsystems": [
+    "NEUROBEHAVIORAL_RADIATION"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "tarefa de atenção autorizada"
+  ],
+  "steps": [
+    "Registrar sono e carga de trabalho recentes.",
+    "Aplicar a tarefa autorizada no contexto de missão.",
+    "Registrar resultado e comparar ao histórico individual sem diagnosticar a causa."
+  ],
+  "rich_steps": [
+    {
+      "text": "Registrar sono e carga de trabalho recentes.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Aplicar a tarefa autorizada no contexto de missão.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Registrar resultado e comparar ao histórico individual sem diagnosticar a causa.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "pvt_lapses": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "COGNITIVE_FATIGUE",
+    "RADIATION_CNS"
+  ],
+  "requires_trained_operator": false
+}

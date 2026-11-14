@@ -1,0 +1,59 @@
+{
+  "schema_version": 1,
+  "protocol_id": "post_eva_review",
+  "name": "Revisão de sintomas pós-EVA",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-DCS",
+  "subsystems": [
+    "CARDIOVASCULAR_FLUIDS"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "registro de EVA"
+  ],
+  "steps": [
+    "Registrar horários e transições de pressão disponíveis.",
+    "Registrar dor, alterações de sensibilidade e sintomas respiratórios.",
+    "Acionar a avaliação de emergência autorizada se houver suspeita de doença descompressiva."
+  ],
+  "rich_steps": [
+    {
+      "text": "Registrar horários e transições de pressão disponíveis.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Registrar dor, alterações de sensibilidade e sintomas respiratórios.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Acionar a avaliação de emergência autorizada se houver suspeita de doença descompressiva.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "eva_end_us": {
+        "type": [
+          "integer",
+          "null"
+        ]
+      },
+      "joint_pain": {
+        "type": "boolean"
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "DECOMPRESSION_SICKNESS"
+  ],
+  "requires_trained_operator": false
+}

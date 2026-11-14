@@ -1,0 +1,162 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-NUTRITION_DEFICIT",
+  "source_id": "NASA-NUTRITION",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Nutrição inadequada",
+  "problem": "Adequação e aceitabilidade da alimentação são relevantes para saúde e desempenho durante missões longas.",
+  "primary_symptoms": [
+    "redução de ingestão"
+  ],
+  "secondary_symptoms": [
+    "perda de massa corporal",
+    "fadiga"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "LONGITUDINAL quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "NUTRITION_DEFICIT",
+      "name": "Nutrição inadequada",
+      "source_id": "NASA-NUTRITION",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "redução de ingestão",
+        "perda de massa corporal",
+        "fadiga"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "nutrition_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "energy_7d_mean_kcal",
+          "op": "LT",
+          "threshold_value": 1800,
+          "source_sensor": "LONGITUDINAL",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        },
+        {
+          "metric": "nutrition_days_observed",
+          "op": "GE",
+          "threshold_value": 7,
+          "source_sensor": "LONGITUDINAL",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "A ingestão reduzida persistiu por sete dias e há perda de massa corporal?",
+          "positive_concepts": [
+            "redução de ingestão"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "nutrition_review"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "CHANGE_ELECTROLYTE_SUPPLEMENTS",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    },
+    {
+      "prior": 0.05,
+      "default_escalation": "LOCAL",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "alteração contextual"
+      ],
+      "countermeasures": [
+        "Registrar e revisar contexto antes de atribuir patologia."
+      ],
+      "actions": [
+        "RECORD_CONTEXT"
+      ],
+      "linked_protocols": [
+        "nutrition_review"
+      ],
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "questions": [
+        {
+          "prompt": "Houve exercício ARED recente?",
+          "positive_concepts": [
+            "ARED",
+            "exercício"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "blood_pressure"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Não iniciar tratamento a partir de um cenário sintético."
+        }
+      ],
+      "condition_id": "DEHYDRATION",
+      "name": "Hidratação reduzida por sete dias",
+      "sensor_rules": [
+        {
+          "metric": "water_7d_mean_ml",
+          "op": "LT",
+          "threshold_value": 1200,
+          "values_json": {},
+          "source_sensor": "CONTEXT_AND_BASELINE",
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+        },
+        {
+          "metric": "nutrition_days_observed",
+          "op": "GE",
+          "threshold_value": 7,
+          "values_json": {},
+          "source_sensor": "CONTEXT_AND_BASELINE",
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+        }
+      ],
+      "source_id": "NASA-NUTRITION",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "match_policy": "ALL"
+    }
+  ]
+}

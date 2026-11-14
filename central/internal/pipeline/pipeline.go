@@ -732,6 +732,7 @@ func (p *Pipeline) emit1Hz(now time.Time) {
 		if len(meta) > 0 {
 			if p.deps.Store.EmitPeripherals1Hz(StorePeripheralRecord{
 				TsUs:     tsUs,
+				CrewID:   crewPtr,
 				Readings: meta,
 			}) {
 				p.storeRecords.Add(1)

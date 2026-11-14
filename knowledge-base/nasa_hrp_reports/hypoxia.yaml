@@ -1,0 +1,97 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-HYPOXIA",
+  "source_id": "NASA-HYPOXIA",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "PHYSIOLOGICAL",
+  "title": "Hipóxia suspeita",
+  "problem": "Disponibilidade reduzida de oxigênio exige conferir instrumento, atmosfera e sinais; o limiar aqui é um cenário de teste.",
+  "primary_symptoms": [
+    "dispneia",
+    "falta de ar"
+  ],
+  "secondary_symptoms": [
+    "confusão",
+    "cianose"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "MAX30102 quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "HYPOXIA",
+      "name": "Hipóxia suspeita",
+      "source_id": "NASA-HYPOXIA",
+      "subsystem": "RESPIRATORY_ATMOSPHERE",
+      "prior": 0.05,
+      "default_escalation": "STORE_AND_FORWARD",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "dispneia",
+        "falta de ar",
+        "confusão",
+        "cianose"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "oxygen_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "spo2_pct",
+          "op": "LT",
+          "threshold_value": 90,
+          "source_sensor": "MAX30102",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "RED",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        },
+        {
+          "metric": "dyspnea",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "RED",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "A medida foi repetida com sinal adequado e há falta de ar?",
+          "positive_concepts": [
+            "dispneia",
+            "falta de ar"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "oxygen_check"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "DISMISS_AS_ANXIETY",
+          "guard_metric": "spo2_pct",
+          "guard_op": "LT",
+          "guard_value": 90,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}

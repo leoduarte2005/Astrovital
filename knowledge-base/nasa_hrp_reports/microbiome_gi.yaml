@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-MICROBIOME_GI",
+  "source_id": "NASA-MICROBIOME",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Microbioma e sintomas gastrointestinais",
+  "problem": "Mudanças do microbioma e interação hospedeiro-microrganismo são áreas de pesquisa; sintomas não identificam uma composição microbiana.",
+  "primary_symptoms": [
+    "diarreia",
+    "desconforto gastrointestinal"
+  ],
+  "secondary_symptoms": [
+    "distensão abdominal"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "MICROBIOME_GI",
+      "name": "Microbioma e sintomas gastrointestinais",
+      "source_id": "NASA-MICROBIOME",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "diarreia",
+        "desconforto gastrointestinal",
+        "distensão abdominal"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "diarrhea",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Houve mudança alimentar, medicamento recente ou sintomas em outro tripulante?",
+          "positive_concepts": [
+            "diarreia",
+            "desconforto gastrointestinal"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "symptom_review"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "START_ANTIBIOTIC",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}

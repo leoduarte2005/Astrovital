@@ -1,0 +1,95 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-RADIATION_CNS",
+  "source_id": "NASA-CNS",
+  "hazard_id": "SPACE_RADIATION",
+  "category": "PHYSIOLOGICAL",
+  "title": "Radiação e efeitos no SNC",
+  "problem": "Riscos neurocognitivos da radiação incluem incertezas de pesquisa. Sensores comuns não diagnosticam lesão do SNC.",
+  "primary_symptoms": [
+    "alteração cognitiva"
+  ],
+  "secondary_symptoms": [
+    "redução de desempenho"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "MISSION_CONTEXT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "RADIATION_CNS",
+      "name": "Radiação e efeitos no SNC",
+      "source_id": "NASA-CNS",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "STORE_AND_FORWARD",
+      "recommended_mission_mode": "MODE_RADIATION_ALERT",
+      "symptoms": [
+        "alteração cognitiva",
+        "redução de desempenho"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "cognitive_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "radiation_event",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "MISSION_CONTEXT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        },
+        {
+          "metric": "cognitive_change",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há evento radiativo registrado e mudança cognitiva persistente?",
+          "positive_concepts": [
+            "alteração cognitiva"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "cognitive_check"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "LEAVE_SHELTER",
+          "guard_metric": "radiation_event",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ],
+  "supporting_source_ids": [
+    "CSA-RADIATION"
+  ]
+}

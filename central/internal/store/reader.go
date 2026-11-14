@@ -35,6 +35,9 @@ func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
 	}
 	out := []contracts.CrewSummary{}
 	if cols < 2 {
+		if s.operational {
+			return nil, s.schemaError("crew_profiles", nil)
+		}
 		return s.fallback.listCrew(), nil
 	}
 	rows, err := s.readerDB.QueryContext(ctx, `SELECT crew_id, name FROM crew_profiles ORDER BY crew_id`)

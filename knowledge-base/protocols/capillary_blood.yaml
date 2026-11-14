@@ -1,0 +1,64 @@
+{
+  "schema_version": 1,
+  "protocol_id": "capillary_blood",
+  "name": "Registro de amostra capilar",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-IRON",
+  "subsystems": [
+    "IMMUNE_HEMATO_NUTRITION"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "kit validado da missão",
+    "operador habilitado"
+  ],
+  "steps": [
+    "Confirmar operador habilitado e procedimento autorizado da missão.",
+    "Seguir o procedimento aprovado do dispositivo; não substituir o treinamento por este roteiro.",
+    "Registrar identificação da amostra, método, unidade e resultado laboratorial disponível."
+  ],
+  "rich_steps": [
+    {
+      "text": "Confirmar operador habilitado e procedimento autorizado da missão.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": "Requer profissional habilitado e autorização."
+    },
+    {
+      "text": "Seguir o procedimento aprovado do dispositivo; não substituir o treinamento por este roteiro.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": "Requer profissional habilitado e autorização."
+    },
+    {
+      "text": "Registrar identificação da amostra, método, unidade e resultado laboratorial disponível.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": "Requer profissional habilitado e autorização."
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "hemoglobin_g_dl": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "ferritin_ug_l": {
+        "type": [
+          "number",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "INFLIGHT_ANEMIA",
+    "IRON_OVERLOAD"
+  ],
+  "requires_trained_operator": true
+}

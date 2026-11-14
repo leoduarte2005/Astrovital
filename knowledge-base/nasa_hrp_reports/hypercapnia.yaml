@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-HYPERCAPNIA",
+  "source_id": "NASA-EVA",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "PHYSIOLOGICAL",
+  "title": "Exposição elevada a CO2",
+  "problem": "CO2 ambiental elevado pode exigir avaliação do sistema de suporte de vida e contexto de sintomas.",
+  "primary_symptoms": [
+    "cefaleia",
+    "headache"
+  ],
+  "secondary_symptoms": [
+    "mal-estar",
+    "dificuldade de concentração"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SCD40 quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "HYPERCAPNIA",
+      "name": "Exposição elevada a CO2",
+      "source_id": "NASA-EVA",
+      "subsystem": "RESPIRATORY_ATMOSPHERE",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "cefaleia",
+        "headache",
+        "mal-estar",
+        "dificuldade de concentração"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "environment_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "co2_ppm",
+          "op": "GT",
+          "threshold_value": 3500,
+          "source_sensor": "SCD40",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "A cefaleia acompanha CO2 elevado e melhora ao sair da área?",
+          "positive_concepts": [
+            "cefaleia",
+            "headache"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "environment_check"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "CLOSE_VENTILATION",
+          "guard_metric": "co2_ppm",
+          "guard_op": "GT",
+          "guard_value": 3500,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}

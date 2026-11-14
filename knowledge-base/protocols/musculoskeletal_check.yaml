@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "protocol_id": "musculoskeletal_check",
+  "name": "Registro funcional musculoesquelético",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-FITNESS",
+  "subsystems": [
+    "MUSCULOSKELETAL_POSTURE"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "formulário funcional"
+  ],
+  "steps": [
+    "Registrar atividade recente, dor e limitações.",
+    "Usar apenas testes funcionais autorizados.",
+    "Registrar resultado e método, interrompendo esforço se houver suspeita de lesão."
+  ],
+  "rich_steps": [
+    {
+      "text": "Registrar atividade recente, dor e limitações.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Usar apenas testes funcionais autorizados.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Registrar resultado e método, interrompendo esforço se houver suspeita de lesão.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "pain_score": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "strength_decline_pct": {
+        "type": [
+          "number",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "BONE_LOSS",
+    "MUSCLE_DECONDITIONING"
+  ],
+  "requires_trained_operator": false
+}

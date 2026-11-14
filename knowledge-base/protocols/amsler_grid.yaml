@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "protocol_id": "amsler_grid",
+  "name": "Grade de Amsler",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-SANS",
+  "subsystems": [
+    "NEURO_OCULAR_SANS"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "grade de Amsler",
+    "correção visual habitual"
+  ],
+  "steps": [
+    "Preparar iluminação uniforme e usar a correção visual habitual.",
+    "Observar a grade com um olho por vez conforme instrução aprovada.",
+    "Registrar distorções ou áreas ausentes por olho."
+  ],
+  "rich_steps": [
+    {
+      "text": "Preparar iluminação uniforme e usar a correção visual habitual.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Observar a grade com um olho por vez conforme instrução aprovada.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Registrar distorções ou áreas ausentes por olho.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "right_abnormal": {
+        "type": "boolean"
+      },
+      "left_abnormal": {
+        "type": "boolean"
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "SANS"
+  ],
+  "requires_trained_operator": false
+}

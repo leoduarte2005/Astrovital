@@ -1,0 +1,84 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-INFLIGHT_ANEMIA",
+  "source_id": "NASA-IRON",
+  "hazard_id": "GRAVITY_FIELDS",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Alterações hematológicas e anemia",
+  "problem": "Mudanças de massa eritrocitária e metabolismo do ferro exigem hemograma e interpretação clínica.",
+  "primary_symptoms": [
+    "fadiga",
+    "intolerância ao esforço"
+  ],
+  "secondary_symptoms": [
+    "palidez"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "LAB quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "INFLIGHT_ANEMIA",
+      "name": "Alterações hematológicas e anemia",
+      "source_id": "NASA-IRON",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "fadiga",
+        "intolerância ao esforço",
+        "palidez"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "capillary_blood"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "hemoglobin_drop_g_dl",
+          "op": "GT",
+          "threshold_value": 2,
+          "source_sensor": "LAB",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há hemograma recente comparável à linha de base e ferritina conhecida?",
+          "positive_concepts": [
+            "fadiga",
+            "intolerância ao esforço"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "capillary_blood"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "SUPPLEMENT_IRON",
+          "guard_metric": "ferritin_ug_l",
+          "guard_op": "GT",
+          "guard_value": 500,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}

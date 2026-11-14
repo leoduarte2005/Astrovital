@@ -301,11 +301,16 @@ type TelemetryBucket struct {
 
 // ProtocolDTO represents one clinical protocol/guideline.
 type ProtocolDTO struct {
-	ProtocolID  string      `json:"protocol_id"`
-	Name        string      `json:"name"`
-	Subsystems  []Subsystem `json:"subsystems"`
-	Description string      `json:"description,omitempty"`
-	Steps       []string    `json:"steps,omitempty"`
+	ProtocolID   string          `json:"protocol_id"`
+	Name         string          `json:"name"`
+	Subsystems   []Subsystem     `json:"subsystems"`
+	Description  string          `json:"description,omitempty"`
+	Steps        []string        `json:"steps,omitempty"`
+	DurationS    *int64          `json:"duration_s,omitempty"`
+	Materials    []string        `json:"materials,omitempty"`
+	RichSteps    json.RawMessage `json:"rich_steps,omitempty"`
+	ResultSchema json.RawMessage `json:"result_schema,omitempty"`
+	LinkedRisks  []string        `json:"linked_risks,omitempty"`
 }
 
 // AlertRecord is one alert event from the audit log.

@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-RENAL_STONES",
+  "source_id": "NASA-URINARY",
+  "hazard_id": "GRAVITY_FIELDS",
+  "category": "PHYSIOLOGICAL",
+  "title": "Risco de cálculo renal",
+  "problem": "Hidratação, alterações urinárias e metabolismo ósseo participam do risco de cálculos em voo.",
+  "primary_symptoms": [
+    "dor no flanco",
+    "cólica"
+  ],
+  "secondary_symptoms": [
+    "hematúria",
+    "náusea"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "RENAL_STONES",
+      "name": "Risco de cálculo renal",
+      "source_id": "NASA-URINARY",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "dor no flanco",
+        "cólica",
+        "hematúria",
+        "náusea"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "flank_pain",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Existe dor no flanco, sangue na urina ou dificuldade para urinar?",
+          "positive_concepts": [
+            "dor no flanco",
+            "cólica"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "symptom_review"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "POTASSIUM_CITRATE",
+          "guard_metric": "renal_impairment",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}

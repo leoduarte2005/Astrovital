@@ -1,0 +1,86 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-SLEEP_CIRCADIAN",
+  "source_id": "NASA-SLEEP",
+  "hazard_id": "ISOLATION_CONFINEMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Sono e desalinhamento circadiano",
+  "problem": "Sono insuficiente, turnos irregulares e sobrecarga podem reduzir desempenho e devem ser avaliados longitudinalmente.",
+  "primary_symptoms": [
+    "sonolência",
+    "insônia"
+  ],
+  "secondary_symptoms": [
+    "irritabilidade",
+    "cefaleia"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "LONGITUDINAL quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "SLEEP_CIRCADIAN",
+      "name": "Sono e desalinhamento circadiano",
+      "source_id": "NASA-SLEEP",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "sonolência",
+        "insônia",
+        "irritabilidade",
+        "cefaleia"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "sleep_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "sleep_duration_h",
+          "op": "LT",
+          "threshold_value": 5,
+          "source_sensor": "LONGITUDINAL",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "O horário de sono ou iluminação mudou nos últimos dias?",
+          "positive_concepts": [
+            "sonolência",
+            "insônia"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "sleep_review"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_SEDATIVE",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}

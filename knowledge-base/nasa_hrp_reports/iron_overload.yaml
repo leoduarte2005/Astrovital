@@ -1,0 +1,81 @@
+{
+  "schema_version": 1,
+  "report_id": "HRP-PROJECT-IRON_OVERLOAD",
+  "source_id": "NASA-IRON",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Sinal laboratorial para revisão de ferro",
+  "problem": "A dinâmica do ferro em voo pode alterar estoques; ferritina isolada não confirma sobrecarga e deve ser contextualizada.",
+  "primary_symptoms": [
+    "ferritina elevada"
+  ],
+  "secondary_symptoms": [
+    "fadiga"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "LAB quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "IRON_OVERLOAD",
+      "name": "Sinal laboratorial para revisão de ferro",
+      "source_id": "NASA-IRON",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "ferritina elevada",
+        "fadiga"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "capillary_blood"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "ferritin_ug_l",
+          "op": "GT",
+          "threshold_value": 500,
+          "source_sensor": "LAB",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há inflamação, suplementos em uso ou outro marcador do metabolismo do ferro?",
+          "positive_concepts": [
+            "ferritina elevada"
+          ],
+          "yes_likelihood": 3.0,
+          "no_likelihood": 0.5,
+          "linked_protocol_id": "capillary_blood"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "SUPPLEMENT_IRON",
+          "guard_metric": "ferritin_ug_l",
+          "guard_op": "GT",
+          "guard_value": 500,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}
