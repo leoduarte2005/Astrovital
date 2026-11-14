@@ -1,0 +1,560 @@
+{
+  "generated_at_utc": "2026-11-14T19:33:04+00:00",
+  "database": "space_health.db",
+  "database_bytes": 496971776,
+  "integrity_check": "ok",
+  "foreign_key_violations": [],
+  "counts": {
+    "data_sources": 8,
+    "datasets": 13,
+    "dataset_fields": 26,
+    "import_batches": 5,
+    "missions": 22,
+    "scientific_references": 12,
+    "risk_catalog": 15,
+    "environmental_measurements": 1269126,
+    "radiation_measurements": 6342,
+    "biomedical_samples": 13,
+    "gene_expression_measurements": 3159,
+    "differential_expression_results": 243,
+    "synthetic_subjects": 3,
+    "synthetic_checkins": 90,
+    "reference_parameters": 0,
+    "source_snapshots": 6,
+    "iss_physiology_study_catalog": 5,
+    "physiology_publications": 18,
+    "published_physiology_aggregates": 161,
+    "missing_reason_codes": 7,
+    "field_quality_events": 781198,
+    "dataset_field_completeness": 124,
+    "source_row_exclusions": 0,
+    "field_availability_registry": 10,
+    "temporal_coverage_summary": 44,
+    "field_transformation_registry": 3
+  },
+  "datasets": [
+    {
+      "accession": "EDA-TELEMETRY",
+      "title": "NASA EDA downloadable telemetry tables, missions in source snapshot",
+      "data_kind": "REAL",
+      "status": "IMPORTED",
+      "env_rows": 1269126,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "EDA-RADIATION",
+      "title": "NASA EDA mission radiation dose tables",
+      "data_kind": "REAL",
+      "status": "IMPORTED",
+      "env_rows": 0,
+      "radiation_rows": 1564,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "RADLAB-DOSTEL-2022-04-01",
+      "title": "NASA RadLab ISS DosTel instrument radiation readings for 2022-04-01 UTC date window",
+      "data_kind": "REAL",
+      "status": "IMPORTED",
+      "env_rows": 0,
+      "radiation_rows": 4778,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "NASA-HRP-RISKS",
+      "title": "NASA Human Research Program spaceflight risk catalog",
+      "data_kind": "CATALOG",
+      "status": "IMPORTED",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "NASA-OSDR-CATALOG",
+      "title": "NASA Open Science Data Repository",
+      "data_kind": "REFERENCE",
+      "status": "METADATA_ONLY",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "VITALDB-CATALOG",
+      "title": "VitalDB public perioperative biosignal dataset",
+      "data_kind": "REFERENCE",
+      "status": "METADATA_ONLY",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "SYNTHETIC-CHECKINS-V1",
+      "title": "Synthetic daily avatar check-in fixtures",
+      "data_kind": "SYNTHETIC",
+      "status": "GENERATED",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 90
+    },
+    {
+      "accession": "OSD-53",
+      "title": "Spaceflight Modulates Gene Expression in Astronauts (OSD-53 / E-GEOD-47126)",
+      "data_kind": "REAL",
+      "status": "IMPORTED",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 3159,
+      "differential_rows": 243,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "HREDA-BMI-ISS",
+      "title": "BMI - Blood Pressure Circadian Rhythms in Weightlessness",
+      "data_kind": "CATALOG",
+      "status": "METADATA_ONLY",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "HREDA-CIRCA-ISS",
+      "title": "CIRCA - One-day (24-hour) Pattern of Blood Pressure and Heart Rate in Weightlessness",
+      "data_kind": "CATALOG",
+      "status": "METADATA_ONLY",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "HREDA-AORTA-ISS",
+      "title": "AORTA - Physiological Parameters that predict Orthostatic Intolerance after Spaceflight",
+      "data_kind": "CATALOG",
+      "status": "METADATA_ONLY",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "HREDA-CARDIOCOG1-ISS",
+      "title": "Cardiocog 1 - Cognitive Cardiovascular Experiment 1",
+      "data_kind": "CATALOG",
+      "status": "METADATA_ONLY",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    },
+    {
+      "accession": "HREDA-BONEHEALTH-ISS",
+      "title": "Bone Health - Post reambulatory bone loss after short duration mission",
+      "data_kind": "CATALOG",
+      "status": "METADATA_ONLY",
+      "env_rows": 0,
+      "radiation_rows": 0,
+      "gene_expression_rows": 0,
+      "differential_rows": 0,
+      "synthetic_rows": 0
+    }
+  ],
+  "import_batches": [
+    {
+      "batch_id": 1,
+      "dataset_id": 1,
+      "accession": "EDA-TELEMETRY",
+      "title": "NASA EDA downloadable telemetry tables, missions in source snapshot",
+      "status": "SUCCESS",
+      "source_records": 1269126,
+      "inserted_records": 1269126,
+      "skipped_records": 0,
+      "sha256": "eb5c102fd54f37a124fe166b34f7805301162550780b7c4589bea043c8428a1d",
+      "details": "Fetched complete EDA data_tables HTML snapshot. All-empty rows initially skipped by the importer: 128175; subsequently restored from snapshot as NULL records: 128175; duplicate dataset/source-record keys ignored: 0. Timestamps retain source text; timestamp_utc is normalized from the EDA GMT label. Missing source values remain NULL; out-of-range RH is preserved and flagged. Restored 128175 all-empty source rows from snapshot as timestamped REAL records with NULL measures."
+    },
+    {
+      "batch_id": 2,
+      "dataset_id": 2,
+      "accession": "EDA-RADIATION",
+      "title": "NASA EDA mission radiation dose tables",
+      "status": "SUCCESS",
+      "source_records": 1564,
+      "inserted_records": 1564,
+      "skipped_records": 0,
+      "sha256": "eb5c102fd54f37a124fe166b34f7805301162550780b7c4589bea043c8428a1d",
+      "details": "Daily mission radiation series from EDA; NASA interface labels columns mGy/day. Values retained as published, including any unusual source values."
+    },
+    {
+      "batch_id": 3,
+      "dataset_id": 3,
+      "accession": "RADLAB-DOSTEL-2022-04-01",
+      "title": "NASA RadLab ISS DosTel instrument radiation readings for 2022-04-01 UTC date window",
+      "status": "SUCCESS",
+      "source_records": 2389,
+      "inserted_records": 4778,
+      "skipped_records": 2389,
+      "sha256": "cedbfad6607ddf85790b1a477e38f44f9dea2f3dbf89b3b05335297ae2894c2b",
+      "details": "24-hour ISS DosTel API window 2022-04-01 <= timestamp < 2022-04-02. Empty fields are not converted to zero. Source timestamps preserved as returned."
+    },
+    {
+      "batch_id": 4,
+      "dataset_id": 7,
+      "accession": "SYNTHETIC-CHECKINS-V1",
+      "title": "Synthetic daily avatar check-in fixtures",
+      "status": "SUCCESS",
+      "source_records": 90,
+      "inserted_records": 90,
+      "skipped_records": 0,
+      "sha256": null,
+      "details": "30 daily records per synthetic profile; fixed seed; no real personal data."
+    },
+    {
+      "batch_id": 5,
+      "dataset_id": 8,
+      "accession": "OSD-53",
+      "title": "Spaceflight Modulates Gene Expression in Astronauts (OSD-53 / E-GEOD-47126)",
+      "status": "SUCCESS",
+      "source_records": 3415,
+      "inserted_records": 3415,
+      "skipped_records": 0,
+      "sha256": "5e4a587bdd3422bf1e1931d34b245066277cfd48549af52f782c8eaa398c7cd8",
+      "details": "Imported 13 sample metadata rows, 3159 sample-level feature values (blank source values retained as NULL), and 243 aggregate preflight/postflight differential-expression rows. Used public processed files only; no controlled-access sequence data."
+    }
+  ],
+  "environmental_summary": {
+    "rows": 1269126,
+    "missions": 19,
+    "first_source_timestamp": "2014-04-18 00:15",
+    "last_source_timestamp": "2024-05-06 13:16",
+    "temp_values": 1115360,
+    "rh_values": 1115360,
+    "co2_values": 817859,
+    "flagged_rh_values": 1434
+  },
+  "environmental_by_zone": [
+    {
+      "zone": "GROUND_CONTROL",
+      "rows": 634563
+    },
+    {
+      "zone": "ISS_HARDWARE",
+      "rows": 634563
+    }
+  ],
+  "environmental_by_mission": [
+    {
+      "mission_code": "APEX-03-1",
+      "rows": 5434,
+      "first_source_timestamp": "2015-01-10 00:10",
+      "last_source_timestamp": "2015-01-28 23:50",
+      "temp_values": 5434,
+      "rh_values": 5434,
+      "co2_values": 0
+    },
+    {
+      "mission_code": "APEX-03-2",
+      "rows": 4860,
+      "first_source_timestamp": "2015-01-26 00:20",
+      "last_source_timestamp": "2015-02-11 23:50",
+      "temp_values": 4860,
+      "rh_values": 4860,
+      "co2_values": 0
+    },
+    {
+      "mission_code": "APEX-04",
+      "rows": 7082,
+      "first_source_timestamp": "2017-02-26 00:00",
+      "last_source_timestamp": "2017-03-22 13:28",
+      "temp_values": 7073,
+      "rh_values": 7073,
+      "co2_values": 0
+    },
+    {
+      "mission_code": "RR-1",
+      "rows": 24174,
+      "first_source_timestamp": "2014-09-20 03:59",
+      "last_source_timestamp": "2014-11-01 03:54",
+      "temp_values": 24174,
+      "rh_values": 24174,
+      "co2_values": 24174
+    },
+    {
+      "mission_code": "RR-10",
+      "rows": 86206,
+      "first_source_timestamp": "2020-12-04 07:30",
+      "last_source_timestamp": "2021-01-13 00:00",
+      "temp_values": 84502,
+      "rh_values": 84502,
+      "co2_values": 74637
+    },
+    {
+      "mission_code": "RR-12",
+      "rows": 23570,
+      "first_source_timestamp": "2019-04-17 19:19",
+      "last_source_timestamp": "2019-05-28 18:19",
+      "temp_values": 23570,
+      "rh_values": 23570,
+      "co2_values": 23570
+    },
+    {
+      "mission_code": "RR-18",
+      "rows": 201602,
+      "first_source_timestamp": "2021-12-20 00:01",
+      "last_source_timestamp": "2022-08-20 00:00",
+      "temp_values": 100800,
+      "rh_values": 100800,
+      "co2_values": 0
+    },
+    {
+      "mission_code": "RR-19",
+      "rows": 20388,
+      "first_source_timestamp": "2019-12-03 10:24",
+      "last_source_timestamp": "2020-01-07 20:10",
+      "temp_values": 20386,
+      "rh_values": 20386,
+      "co2_values": 20386
+    },
+    {
+      "mission_code": "RR-20",
+      "rows": 135952,
+      "first_source_timestamp": "2023-11-10 00:00",
+      "last_source_timestamp": "2024-04-30 00:00",
+      "temp_values": 129270,
+      "rh_values": 129270,
+      "co2_values": 129270
+    },
+    {
+      "mission_code": "RR-23",
+      "rows": 105200,
+      "first_source_timestamp": "2020-12-06 00:00",
+      "last_source_timestamp": "2021-01-15 00:22",
+      "temp_values": 100956,
+      "rh_values": 100956,
+      "co2_values": 91141
+    },
+    {
+      "mission_code": "RR-25",
+      "rows": 187526,
+      "first_source_timestamp": "2022-11-29 09:15",
+      "last_source_timestamp": "2023-02-02 11:57",
+      "temp_values": 165419,
+      "rh_values": 165419,
+      "co2_values": 165419
+    },
+    {
+      "mission_code": "RR-28",
+      "rows": 122976,
+      "first_source_timestamp": "2024-03-21 00:00",
+      "last_source_timestamp": "2024-05-06 13:16",
+      "temp_values": 122974,
+      "rh_values": 122974,
+      "co2_values": 122974
+    },
+    {
+      "mission_code": "RR-3",
+      "rows": 28770,
+      "first_source_timestamp": "2016-04-08 04:00",
+      "last_source_timestamp": "2016-05-28 03:55",
+      "temp_values": 28770,
+      "rh_values": 28770,
+      "co2_values": 28770
+    },
+    {
+      "mission_code": "RR-5",
+      "rows": 38320,
+      "first_source_timestamp": "2017-06-01 05:00",
+      "last_source_timestamp": "2017-08-08 12:57",
+      "temp_values": 38320,
+      "rh_values": 38320,
+      "co2_values": 38320
+    },
+    {
+      "mission_code": "RR-6",
+      "rows": 35144,
+      "first_source_timestamp": "2017-12-06 15:06",
+      "last_source_timestamp": "2018-02-06 14:39",
+      "temp_values": 35144,
+      "rh_values": 35144,
+      "co2_values": 35144
+    },
+    {
+      "mission_code": "RR-7",
+      "rows": 43898,
+      "first_source_timestamp": "2018-06-29 00:00",
+      "last_source_timestamp": "2018-09-18 13:58",
+      "temp_values": 43896,
+      "rh_values": 43896,
+      "co2_values": 43896
+    },
+    {
+      "mission_code": "RR-9",
+      "rows": 20158,
+      "first_source_timestamp": "2018-08-14 04:53",
+      "last_source_timestamp": "2018-09-18 04:48",
+      "temp_values": 20158,
+      "rh_values": 20158,
+      "co2_values": 20158
+    },
+    {
+      "mission_code": "VEG-01A",
+      "rows": 17090,
+      "first_source_timestamp": "2014-04-18 00:15",
+      "last_source_timestamp": "2014-06-11 23:50",
+      "temp_values": 8545,
+      "rh_values": 8545,
+      "co2_values": 0
+    },
+    {
+      "mission_code": "VEG-01C",
+      "rows": 160776,
+      "first_source_timestamp": "2015-11-12 08:52",
+      "last_source_timestamp": "2016-01-31 23:55",
+      "temp_values": 151109,
+      "rh_values": 151109,
+      "co2_values": 0
+    }
+  ],
+  "radiation_summary": [
+    {
+      "accession": "EDA-RADIATION",
+      "radiation_metric": "ACCUMULATED",
+      "unit": "mGy/day",
+      "rows": 391,
+      "first_source_timestamp": "2014-09-21",
+      "last_source_timestamp": "2021-01-13",
+      "min_value": 0.20553000000000002,
+      "max_value": 18.65147
+    },
+    {
+      "accession": "EDA-RADIATION",
+      "radiation_metric": "GCR",
+      "unit": "mGy/day",
+      "rows": 391,
+      "first_source_timestamp": "2014-09-21",
+      "last_source_timestamp": "2021-01-13",
+      "min_value": 0.12099000000000001,
+      "max_value": 0.39001
+    },
+    {
+      "accession": "EDA-RADIATION",
+      "radiation_metric": "SAA",
+      "unit": "mGy/day",
+      "rows": 391,
+      "first_source_timestamp": "2014-09-21",
+      "last_source_timestamp": "2021-01-13",
+      "min_value": 0.059230000000000005,
+      "max_value": 0.2657
+    },
+    {
+      "accession": "EDA-RADIATION",
+      "radiation_metric": "TOTAL",
+      "unit": "mGy/day",
+      "rows": 391,
+      "first_source_timestamp": "2014-09-21",
+      "last_source_timestamp": "2021-01-13",
+      "min_value": 0.18938000000000002,
+      "max_value": 0.54545
+    },
+    {
+      "accession": "RADLAB-DOSTEL-2022-04-01",
+      "radiation_metric": "ABSORBED_DOSE_RATE",
+      "unit": "µGy/hour",
+      "rows": 2389,
+      "first_source_timestamp": "2022-04-01T00:00:00",
+      "last_source_timestamp": "2022-04-01T23:59:55",
+      "min_value": 1.425631,
+      "max_value": 731.333047
+    },
+    {
+      "accession": "RADLAB-DOSTEL-2022-04-01",
+      "radiation_metric": "PARTICLE_FLUX",
+      "unit": "cm^-2 sr^-1 s^-1",
+      "rows": 2389,
+      "first_source_timestamp": "2022-04-01T00:00:00",
+      "last_source_timestamp": "2022-04-01T23:59:55",
+      "min_value": 0.0886757063,
+      "max_value": 20.14270966
+    }
+  ],
+  "radlab_context_fields": {
+    "timestamps": 1942,
+    "b_values": 2389,
+    "l_values": 2389,
+    "latitude_values": 2389,
+    "longitude_values": 2389,
+    "altitude_values": 2389
+  },
+  "published_physiology_by_domain": [
+    {
+      "domain": "BLOOD_PRESSURE",
+      "rows": 60
+    },
+    {
+      "domain": "BONE_HEALTH",
+      "rows": 33
+    },
+    {
+      "domain": "CARDIOVASCULAR_RESPONSE",
+      "rows": 41
+    },
+    {
+      "domain": "HEART_RATE",
+      "rows": 20
+    },
+    {
+      "domain": "ORTHOSTATIC_INTOLERANCE",
+      "rows": 7
+    }
+  ],
+  "published_physiology_orphan_rows": 0,
+  "missing_quality_events": 781198,
+  "missing_quality_provenance_errors": 0,
+  "missing_event_nonnull_or_unresolved": 0,
+  "completeness_summary_rows": 124,
+  "temporal_coverage_series": 44,
+  "documented_source_row_exclusions": 0,
+  "imputed_value_count": 0,
+  "iss_physiology_catalog_rows": 5,
+  "iss_physiology_catalog_invalid_rows": 0,
+  "additional_checks": {
+    "missingness_reasons_and_provenance": "PASS",
+    "completeness_thresholds_and_denominators": "PASS",
+    "temporal_expected_counts_require_frequency": "PASS",
+    "no_unlabeled_imputation": "PASS",
+    "synthetic_origin_labeled": "PASS",
+    "published_physiology_sources_and_aggregates": "PASS",
+    "sqlite_integrity_check": "PASS",
+    "foreign_key_check": "PASS",
+    "environmental_provenance_duplicates": "PASS",
+    "radiation_provenance_duplicates": "PASS",
+    "synthetic_label_and_scale": "PASS",
+    "real_measurement_provenance": "PASS",
+    "physiology_catalog_separated_from_observations": "PASS"
+  },
+  "limitations": [
+    "NASA EDA environmental rows are experiment hardware/cage and ground-control telemetry; they are not astronaut clinical or personal data.",
+    "NASA RadLab readings are instrument measurements, not individual dosimeter records or clinical outcomes.",
+    "Missing numeric values are stored as NULL and classified in field_quality_events; no automatic statistical imputation has been applied. Completeness percentages for source tables use returned rows plus documented all-empty excluded rows; they do not imply time-series schedule coverage. Temporal gaps are summarized, but expected sample counts remain NULL because no validated sampling schedule was established. Sensor-failure and below-detection-limit codes are available but are not assigned without source evidence.",
+    "Physiology article values are public study/group aggregates, not astronaut-level records. Five catalogued public articles did not have their numeric tables transcribed in this pass; this publication inventory is a research snapshot and not a claim of exhaustive discovery worldwide. OSD-53 is molecular gene-expression research data. ESA HREDA entries in iss_physiology_study_catalog are discovery metadata. Synthetic check-ins are fictional fixtures, not validated scales.",
+    "The NASA EDA page labels time Controller_Time_GMT; source timestamps are retained and normalized to UTC form. Other source timestamps remain as returned.",
+    "Dataset-specific reuse terms must be rechecked before redistribution or operational use."
+  ]
+}

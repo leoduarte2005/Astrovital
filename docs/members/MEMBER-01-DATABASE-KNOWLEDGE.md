@@ -2,7 +2,7 @@
 
 **Pastas sob responsabilidade exclusiva:**
 - `knowledge-base/` (`nasa_hrp_reports/`, `protocols/`, `datasets/`)
-- `database/` (`migrations/`, `seeds/`)
+- `database/` (`space_health_sqlite/`, `tools/`, `tests/`)
 
 ---
 
@@ -32,8 +32,13 @@ Documentar em arquivos JSON/YAML validáveis os **5 Perigos Espaciais**, **11 Ri
    - Protocolos guiados passo a passo (`knowledge-base/protocols/`): **coleta de sangue capilar / glicemia na ponta do dedo**, **Grade de Amsler**, **ultrassom point-of-care**, **pressão arterial** e **temperatura**.
    - Regras de escalonamento: **1) Autônomo local**, **2) Acionar outro tripulante**, **3) Store-and-Forward** (pacote assíncrono em fila para cirurgiões de voo na Terra).
 
-### 2.2 Modelagem SQLite (`database/migrations/` e `database/seeds/`)
-- Configurar obrigatoriamente:
+### 2.2 Modelagem SQLite (`database/`)
+
+A base de pesquisa disponível usa `database/space_health_sqlite/schema.sql`, com scripts em `scripts/`, consultas em `queries/` e testes em `database/tests/`. O [guia de integração](../../database/space_health_sqlite/docs/INTEGRATION.md) descreve construção, importação, auditoria e validação.
+
+Os requisitos abaixo são para a futura base operacional `var/edgespace.db`, cujo schema e carga inicial ainda não foram implementados:
+
+- Configurar obrigatoriamente na conexão operacional:
   - `PRAGMA journal_mode = WAL;`
   - `PRAGMA synchronous = NORMAL;`
   - `PRAGMA foreign_keys = ON;`
@@ -58,7 +63,8 @@ Documentar em arquivos JSON/YAML validáveis os **5 Perigos Espaciais**, **11 Ri
 ## 3. Entradas, Saídas e Critérios de Aceite
 
 - **Consome:** `contracts/enums/` (códigos de subsistemas, modos de missão, níveis de severidade).
-- **Entrega para Leonardo (M4):** migrations SQL idempotentes (`make db-migrate`) e seeds (`make db-seed`).
+- **Entrega disponível para Leonardo (M4):** snapshot de pesquisa, schema e scripts em `database/space_health_sqlite/`; inventário com `make db-research-inventory`, validação com `make db-research-validate` e testes com `make db-research-test`. `make db-research-demo` cria uma demonstração offline separada, sem reconstruir as medições NASA do snapshot completo.
+- **Entrega operacional pendente para Leonardo (M4):** schema e carga inicial idempotentes para `var/edgespace.db`.
 - **Entrega para Rafael (M3):** textos e passos estruturados dos tutoriais (`knowledge-base/protocols/`).
 - **Entrega para Santiago/Leonardo (M5):** base FTS5 populada + datasets + *golden cases* rotulados.
-- **Critério de aceite:** banco sobe do zero em `< 2 s`, consulta `MATCH` no FTS5 retorna em `< 5 ms` na Orange Pi 4 Pro e cobre 100% dos 5 Perigos, 11 Riscos Fisiológicos e 8 Riscos Comportamentais/Bioquímicos.
+- **Critério de aceite operacional planejado:** banco sobe do zero em `< 2 s`, consulta `MATCH` no FTS5 retorna em `< 5 ms` na Orange Pi 4 Pro e cobre 100% dos 5 Perigos, 11 Riscos Fisiológicos e 8 Riscos Comportamentais/Bioquímicos. Esses critérios ainda não foram medidos na base operacional.

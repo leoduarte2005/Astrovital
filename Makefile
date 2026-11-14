@@ -10,16 +10,25 @@ GOARCH_TARGET  ?= arm64
 CENTRAL_BIN    ?= ./build/edgespace-central
 IDF_TARGET     ?= esp32s3
 PYTHON         ?= python3
+RESEARCH_DB_PATH ?= ./database/space_health_sqlite/space_health.db
+RESEARCH_REPORT_PATH ?= ./var/research/validation_report.json
+RESEARCH_DEMO_PATH ?= ./var/space_health_demo.db
 
-.PHONY: help contracts-validate db-migrate db-seed firmware-build firmware-flash \
+.PHONY: help contracts-validate firmware-build firmware-flash \
         frontend-build central-build central-run-mock edge-ai-setup edge-ai-run \
-        all clean
+        db-research-inventory db-research-queries db-research-validate \
+        db-research-demo db-research-import-physiology db-research-missingness db-research-test all clean
 
 help:
 	@echo "EdgeSpace — alvos disponíveis:"
 	@echo "  contracts-validate  Valida fixtures contra JSON Schemas (tools/)          [Leonardo/M4]"
-	@echo "  db-migrate          Aplica database/migrations em $(DB_PATH)              [Selliny/M1]"
-	@echo "  db-seed             Carrega database/seeds (astronautas + base NASA)      [Selliny/M1]"
+	@echo "  db-research-inventory  Lista os datasets do pacote Space Health (offline) [Selliny/M1]"
+	@echo "  db-research-queries    Executa as consultas de exemplo em leitura         [Selliny/M1]"
+	@echo "  db-research-validate   Valida a base e gera relatórios em var/research/    [Selliny/M1]"
+	@echo "  db-research-demo       Gera catálogo, fixtures e agregados offline         [Selliny/M1]"
+	@echo "  db-research-import-physiology  Importa o corpus no banco de demonstração    [Selliny/M1]"
+	@echo "  db-research-missingness  Aplica a política de ausências na demonstração    [Selliny/M1]"
+	@echo "  db-research-test       Verifica importação, repetição e rollback           [Selliny/M1]"
 	@echo "  firmware-build      idf.py build para $(IDF_TARGET)                        [Nicolas/M2]"
 	@echo "  firmware-flash      idf.py flash (PORT=COMx ou /dev/ttyUSBx)               [Nicolas/M2]"
 	@echo "  frontend-build      Vite build e cópia para central/internal/httpws/ui     [Rafael/M3]"
@@ -33,15 +42,29 @@ contracts-validate:
 	@if [ -f tools/validate_contracts.py ]; then $(PYTHON) tools/validate_contracts.py; \
 	else echo "[pendente] tools/validate_contracts.py ausente (restaurar Sprint 0)"; fi
 
-db-migrate:
-	@if ls database/migrations/*.sql >/dev/null 2>&1; then mkdir -p $(dir $(DB_PATH)); \
-	for f in database/migrations/*.sql; do echo "-> $$f"; sqlite3 $(DB_PATH) < $$f || exit 1; done; \
-	else echo "[pendente] nenhuma migration em database/migrations/"; fi
+db-research-inventory:
+	$(PYTHON) database/tools/research.py --db "$(RESEARCH_DB_PATH)"
 
-db-seed:
-	@if ls database/seeds/*.sql >/dev/null 2>&1; then \
-	for f in database/seeds/*.sql; do echo "-> $$f"; sqlite3 $(DB_PATH) < $$f || exit 1; done; \
-	else echo "[pendente] nenhum seed em database/seeds/"; fi
+db-research-queries:
+	$(PYTHON) database/tools/research.py --db "$(RESEARCH_DB_PATH)" --queries database/space_health_sqlite/queries/queries.sql
+
+db-research-validate:
+	$(PYTHON) database/space_health_sqlite/scripts/validate_db.py --db "$(RESEARCH_DB_PATH)" --out "$(RESEARCH_REPORT_PATH)" --quiet
+
+db-research-demo:
+	$(PYTHON) database/space_health_sqlite/scripts/build_db.py --db "$(RESEARCH_DEMO_PATH)" --skip-network
+	$(PYTHON) database/space_health_sqlite/scripts/import_published_physiology.py --db "$(RESEARCH_DEMO_PATH)"
+	$(PYTHON) database/space_health_sqlite/scripts/apply_missingness_policy.py --db "$(RESEARCH_DEMO_PATH)"
+
+db-research-import-physiology:
+	$(PYTHON) database/space_health_sqlite/scripts/import_published_physiology.py --db "$(RESEARCH_DEMO_PATH)"
+	$(PYTHON) database/space_health_sqlite/scripts/apply_missingness_policy.py --db "$(RESEARCH_DEMO_PATH)"
+
+db-research-missingness:
+	$(PYTHON) database/space_health_sqlite/scripts/apply_missingness_policy.py --db "$(RESEARCH_DEMO_PATH)"
+
+db-research-test:
+	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) -m unittest discover -s database/tests -p 'test_*.py' -v
 
 firmware-build:
 	@if [ -f firmware/CMakeLists.txt ]; then cd firmware && idf.py set-target $(IDF_TARGET) build; \
