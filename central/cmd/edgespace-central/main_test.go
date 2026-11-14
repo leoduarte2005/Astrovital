@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -27,6 +28,25 @@ func (s *syncBuffer) String() string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.buf.String()
+}
+
+// tempDir retries cleanup briefly: on Windows NTFS a just-closed SQLite file can
+// stay locked for a few ms (same approach as store tests).
+func tempDir(t *testing.T) string {
+	t.Helper()
+	dir, err := os.MkdirTemp("", "central-main-")
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() {
+		for i := 0; i < 40; i++ {
+			if err := os.RemoveAll(dir); err == nil {
+				return
+			}
+			time.Sleep(25 * time.Millisecond)
+		}
+	})
+	return dir
 }
 
 func TestParseFlagsDefaultsAndValidation(t *testing.T) {
@@ -68,6 +88,26 @@ func TestParseFlagsDefaultsAndValidation(t *testing.T) {
 		t.Fatalf("--mock-cluster=udp = %q, want udp", cfgUDP.mockCluster)
 	}
 
+	// --mock-cluster inproc (space-separated) must not break --mock-ai or --scenario.
+	cfgSpace, err := parseFlags([]string{
+		"--mock-cluster", "inproc",
+		"--mock-ai",
+		"--scenario", "hypercapnia",
+		"--sim-loss", "0.05",
+		"--sim-jitter-ms", "5",
+		"--mock-ai-latency-ms", "10",
+		"--mock-ai-drop-ack",
+		"--mock-ai-crash-after", "2s",
+	}, io.Discard)
+	if err != nil {
+		t.Fatalf("--mock-cluster inproc + chaos flags: %v", err)
+	}
+	if cfgSpace.mockCluster != "inproc" || !cfgSpace.mockAI || cfgSpace.scenario != "hypercapnia" ||
+		cfgSpace.simLoss != 0.05 || cfgSpace.simJitterMs != 5 || cfgSpace.mockAILatencyMs != 10 ||
+		!cfgSpace.mockAIDropAck || cfgSpace.mockAICrashAfter != 2*time.Second {
+		t.Fatalf("parsed flags mismatch: %+v", cfgSpace)
+	}
+
 	// Invalid cases
 	invalidCases := []struct {
 		name string
@@ -76,6 +116,10 @@ func TestParseFlagsDefaultsAndValidation(t *testing.T) {
 		{"ws-hz 11", []string{"--ws-hz", "11"}},
 		{"ws-hz 1", []string{"--ws-hz", "1"}},
 		{"mock-cluster foo", []string{"--mock-cluster=foo"}},
+		{"mock-cluster space foo", []string{"--mock-cluster", "foo"}},
+		{"positional extra", []string{"--mock-cluster", "inproc", "stray-arg"}},
+		{"sim-loss out of range", []string{"--sim-loss", "1.5"}},
+		{"scenario invalid", []string{"--scenario", "unknown_scen"}},
 		{"log-level invalid", []string{"--log-level=trace"}},
 	}
 	for _, tc := range invalidCases {
@@ -90,8 +134,8 @@ func TestParseFlagsDefaultsAndValidation(t *testing.T) {
 	}
 }
 
-func TestRunGracefulShutdownOrderAndLeva2Warn(t *testing.T) {
-	dir := t.TempDir()
+func TestRunGracefulShutdownOrder(t *testing.T) {
+	dir := tempDir(t)
 	dbPath := filepath.Join(dir, "central.db")
 	migDir := filepath.Join(dir, "migrations")
 
@@ -104,8 +148,10 @@ func TestRunGracefulShutdownOrderAndLeva2Warn(t *testing.T) {
 		"--db", dbPath,
 		"--migrations", migDir,
 		"--http-addr", "127.0.0.1:0",
+		"--ipc-addr", "127.0.0.1:0",
 		"--ws-hz", "2",
-		"--mock-cluster",
+		"--mock-cluster", "inproc",
+		"--mock-ai",
 		"--log-level", "info",
 	}
 
@@ -114,7 +160,7 @@ func TestRunGracefulShutdownOrderAndLeva2Warn(t *testing.T) {
 	}()
 
 	// Wait until httpws is listening before cancelling ctx.
-	deadline := time.Now().Add(3 * time.Second)
+	deadline := time.Now().Add(4 * time.Second)
 	for !strings.Contains(logBuf.String(), `"msg":"httpws listening"`) {
 		if time.Now().After(deadline) {
 			cancel()
@@ -136,10 +182,6 @@ func TestRunGracefulShutdownOrderAndLeva2Warn(t *testing.T) {
 	}
 
 	logs := logBuf.String()
-	if !strings.Contains(logs, `"msg":"not implemented in Leva 1"`) {
-		t.Fatalf("expected Leva 2 warn log, got:\n%s", logs)
-	}
-
 	lines := strings.Split(strings.TrimSpace(logs), "\n")
 	httpIdx, storeIdx := -1, -1
 	for i, line := range lines {

@@ -1,7 +1,10 @@
 package contracts
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
+	"math"
 	"strings"
 	"testing"
 )
@@ -321,4 +324,369 @@ func TestUDPHeaderRoundTripWithCycleSeq(t *testing.T) {
 	if err := decoded.Validate(); err == nil {
 		t.Fatal("expected version validation error")
 	}
+}
+
+func TestP6UDPDatagramWithCSIPayload(t *testing.T) {
+	hdr := UDPHeader{
+		V:           1,
+		Type:        UDPMsgCSIFrame,
+		NodeID:      1,
+		SlotID:      0,
+		Mode:        ModeCabinTomography,
+		TimestampUs: 1700000000000000,
+		CycleSeq:    100,
+		MAC:         "02:ED:6E:00:00:01",
+		RSSIDbm:     -45,
+	}
+
+	samples := []IQSample{
+		{Real: 0.123, Imaginary: -0.456},
+		{Real: 0.789, Imaginary: 0.012},
+	}
+	csiPart := EncodeCSIBinary(nil, 0, 1, -45, -90.5, samples)
+
+	// Encode to UDP datagram
+	datagram, err := EncodeUDPDatagram(nil, hdr, csiPart)
+	if err != nil {
+		t.Fatalf("EncodeUDPDatagram error: %v", err)
+	}
+
+	// Decode back
+	decHdr, decCSI, err := DecodeUDPDatagram(datagram)
+	if err != nil {
+		t.Fatalf("DecodeUDPDatagram error: %v", err)
+	}
+	if decHdr.CycleSeq != hdr.CycleSeq {
+		t.Fatalf("cycle_seq mismatch: %d != %d", decHdr.CycleSeq, hdr.CycleSeq)
+	}
+	if decHdr.MAC != hdr.MAC {
+		t.Fatalf("MAC mismatch: %s != %s", decHdr.MAC, hdr.MAC)
+	}
+
+	// Decode CSI binary
+	tx, rx, rssi, _, decSamples, err := DecodeCSIBinary(decCSI, nil)
+	if err != nil {
+		t.Fatalf("DecodeCSIBinary error: %v", err)
+	}
+	if tx != 0 || rx != 1 || rssi != -45 {
+		t.Fatalf("CSI header mismatch: tx=%d rx=%d rssi=%d", tx, rx, rssi)
+	}
+	if len(decSamples) != len(samples) {
+		t.Fatalf("sample count mismatch: %d != %d", len(decSamples), len(samples))
+	}
+	for i, s := range decSamples {
+		// Allow small Q10 quantization loss
+		if math.Abs(s.Real-samples[i].Real) > 0.002 || math.Abs(s.Imaginary-samples[i].Imaginary) > 0.002 {
+			t.Fatalf("sample %d mismatch: %+v != %+v", i, s, samples[i])
+		}
+	}
+
+	// Test reuse of buffers
+	datagram2, err := EncodeUDPDatagram(datagram[:0], hdr, csiPart)
+	if err != nil {
+		t.Fatalf("reuse EncodeUDPDatagram error: %v", err)
+	}
+	if !bytes.Equal(datagram2, datagram) {
+		t.Fatalf("reused datagram differs")
+	}
+}
+
+func TestP6EmptyCSIPayload(t *testing.T) {
+	hdr := UDPHeader{
+		V:           1,
+		Type:        UDPMsgHeartbeat,
+		NodeID:      2,
+		TimestampUs: 1700000000000000,
+		CycleSeq:    50,
+	}
+
+	datagram, err := EncodeUDPDatagram(nil, hdr, nil)
+	if err != nil {
+		t.Fatalf("EncodeUDPDatagram with nil payload error: %v", err)
+	}
+
+	decHdr, decCSI, err := DecodeUDPDatagram(datagram)
+	if err != nil {
+		t.Fatalf("DecodeUDPDatagram error: %v", err)
+	}
+	if len(decCSI) != 0 {
+		t.Fatalf("expected empty CSI, got %d bytes", len(decCSI))
+	}
+	if decHdr.CycleSeq != hdr.CycleSeq {
+		t.Fatalf("cycle_seq mismatch: %d != %d", decHdr.CycleSeq, hdr.CycleSeq)
+	}
+}
+
+func TestAllNewPayloadsRoundTrip(t *testing.T) {
+	roundTrip := func(name string, in any, out any) {
+		t.Helper()
+		b, err := json.Marshal(in)
+		if err != nil {
+			t.Fatalf("%s marshal: %v", name, err)
+		}
+		if err := json.Unmarshal(b, out); err != nil {
+			t.Fatalf("%s unmarshal: %v", name, err)
+		}
+	}
+
+	var syncOut ClusterSyncPayload
+	roundTrip("ClusterSync", ClusterSyncPayload{
+		V: 1, Type: UDPMsgClusterSync, CycleSeq: 12, TimestampUs: 1000,
+		Mode: ModeCabinTomography, SlotMs: 20, ActiveNodeMask: 0x1f,
+		Slots: []SlotAssignment{{NodeID: 0, SlotID: 0, Ms: 20}},
+	}, &syncOut)
+	if syncOut.CycleSeq != 12 || len(syncOut.Slots) != 1 {
+		t.Fatalf("ClusterSync mismatch: %+v", syncOut)
+	}
+
+	var modeOut ModeCmdPayload
+	roundTrip("ModeCmd", ModeCmdPayload{V: 1, Type: UDPMsgModeCmd, Mode: ModeRadiationAlert, TimestampUs: 2000, CycleSeq: 13}, &modeOut)
+	if modeOut.Mode != ModeRadiationAlert {
+		t.Fatalf("ModeCmd mismatch: %+v", modeOut)
+	}
+
+	var helloOut NodeHelloPayload
+	roundTrip("NodeHello", NodeHelloPayload{V: 1, Type: UDPMsgNodeHello, MAC: "02:ED:6E:00:00:00", NodeID: 0, Peripherals: []Peripheral{PeripheralSCD40}}, &helloOut)
+	if helloOut.MAC != "02:ED:6E:00:00:00" {
+		t.Fatalf("NodeHello mismatch: %+v", helloOut)
+	}
+
+	var hbOut HeartbeatPayload
+	roundTrip("Heartbeat", HeartbeatPayload{V: 1, Type: UDPMsgHeartbeat, NodeID: 1, CycleSeq: 14, RSSIDbm: -42}, &hbOut)
+	if hbOut.CycleSeq != 14 {
+		t.Fatalf("Heartbeat mismatch: %+v", hbOut)
+	}
+
+	var pdataOut PeripheralDataPayload
+	roundTrip("PeripheralData", PeripheralDataPayload{
+		V: 1, Type: UDPMsgPeripheralData, NodeID: 2, CycleSeq: 15, TimestampUs: 3000,
+		Peripherals: []PeripheralReading{{Type: PeripheralSCD40, Value: 750, Unit: "ppm", TimestampUs: 3000}},
+	}, &pdataOut)
+	if len(pdataOut.Peripherals) != 1 || pdataOut.Peripherals[0].Value != 750 {
+		t.Fatalf("PeripheralData mismatch: %+v", pdataOut)
+	}
+}
+
+func TestIPCAndRESTPayloadsRoundTrip(t *testing.T) {
+	roundTrip := func(name string, in any, out any) {
+		t.Helper()
+		b, err := json.Marshal(in)
+		if err != nil {
+			t.Fatalf("%s marshal: %v", name, err)
+		}
+		if err := json.Unmarshal(b, out); err != nil {
+			t.Fatalf("%s unmarshal: %v", name, err)
+		}
+	}
+
+	var winOut CSIWindowPayload
+	roundTrip("CSIWindow", CSIWindowPayload{
+		CycleSeqFirst: 20, ActiveLinkMask: 0xfffff, Mode: ModeRestVitals,
+		Links: []CSILink{{TxNodeID: 0, RxNodeID: 1, IQSamples: []IQSample{{Real: 1.5, Imaginary: -0.5}}, RSSIDbm: -50, NoiseFloor: -92}},
+	}, &winOut)
+	if winOut.CycleSeqFirst != 20 || len(winOut.Links) != 1 {
+		t.Fatalf("CSIWindow mismatch: %+v", winOut)
+	}
+
+	var psOut PeripheralSnapshotPayload
+	roundTrip("PeripheralSnapshot", PeripheralSnapshotPayload{
+		TimestampUs: 4000, Readings: []PeripheralReading{{Type: PeripheralBME280, Value: 22.5, Unit: "C", TimestampUs: 4000}},
+	}, &psOut)
+	if len(psOut.Readings) != 1 {
+		t.Fatalf("PeripheralSnapshot mismatch: %+v", psOut)
+	}
+
+	var sacOut SetActiveCrewPayload
+	roundTrip("SetActiveCrew", SetActiveCrewPayload{
+		CrewID: "crew_001", BaselinePath: "/var/lib/edgespace/crew_001.onnx",
+		Thresholds: map[string]Threshold{"co2_ppm": {MetricName: "co2_ppm", YellowHigh: 2000, RedHigh: 5000}},
+	}, &sacOut)
+	if sacOut.CrewID != "crew_001" {
+		t.Fatalf("SetActiveCrew mismatch: %+v", sacOut)
+	}
+
+	var ackOut CrewAckPayload
+	roundTrip("CrewAck", CrewAckPayload{OK: true, BaselineFound: true}, &ackOut)
+	if !ackOut.OK || !ackOut.BaselineFound {
+		t.Fatalf("CrewAck mismatch: %+v", ackOut)
+	}
+
+	var aiOut AIInferencePayload
+	roundTrip("AIInference", AIInferencePayload{
+		CycleSeqFirst: 20, Posture: "supine", RespirationHz: 0.25, HeartRateBpm: 64, HRVMs: 52, AnomalyScore: 0.1, Confidence: 0.94,
+	}, &aiOut)
+	if aiOut.CycleSeqFirst != 20 || aiOut.Posture != "supine" {
+		t.Fatalf("AIInference mismatch: %+v", aiOut)
+	}
+
+	var creqOut ChatCorrelateReqPayload
+	roundTrip("ChatCorrelateReq", ChatCorrelateReqPayload{
+		Text: "dor de cabeca", CrewID: "crew_001",
+		Profile:       &CrewProfile{CrewID: "crew_001", Name: "Cmdr", Age: 39},
+		RecentHistory: []ChatMessage{{SentAt: 100, Role: "user", Content: "oi"}},
+	}, &creqOut)
+	if creqOut.Text != "dor de cabeca" || creqOut.Profile.Age != 39 {
+		t.Fatalf("ChatCorrelateReq mismatch: %+v", creqOut)
+	}
+
+	var crespOut ChatCorrelateRespPayload
+	roundTrip("ChatCorrelateResp", ChatCorrelateRespPayload{
+		Text: "CO2 elevado", Differentials: []string{"Hipercapnia"}, DisambiguationQuestion: "Tem nausea?",
+		Actions: []string{"OPEN_VENT"}, Evidence: []string{"SCD40 2400ppm"}, Countermeasures: []string{"Ventilar"},
+		SourceIDs: []string{"NASA-HRP-CO2"}, Escalation: EscalationCrew, Disclaimer: "Apoio clinico",
+	}, &crespOut)
+	if len(crespOut.Differentials) != 1 || crespOut.DisambiguationQuestion == "" || len(crespOut.Actions) != 1 {
+		t.Fatalf("ChatCorrelateResp mismatch: %+v", crespOut)
+	}
+
+	var chatReplyOut ChatReplyPayload
+	roundTrip("ChatReply", ChatReplyPayload{
+		Text: "CO2 elevado", Differentials: []string{"Hipercapnia"}, DisambiguationQuestion: "Tem nausea?",
+		Actions: []string{"OPEN_VENT"}, Evidence: []string{"SCD40 2400ppm"}, Countermeasures: []string{"Ventilar"},
+		SourceIDs: []string{"NASA-HRP-CO2"}, Escalation: EscalationCrew, Disclaimer: "Apoio clinico",
+	}, &chatReplyOut)
+	if len(chatReplyOut.Differentials) != 1 {
+		t.Fatalf("ChatReply mismatch: %+v", chatReplyOut)
+	}
+
+	var csOut CalibrationStepPayload
+	roundTrip("CalibrationStep", CalibrationStepPayload{StepID: "step_1", Action: "stand_still", DurationMs: 5000}, &csOut)
+	if csOut.DurationMs != 5000 {
+		t.Fatalf("CalibrationStep mismatch: %+v", csOut)
+	}
+
+	var cfOut CalibrationFeedbackPayload
+	roundTrip("CalibrationFeedback", CalibrationFeedbackPayload{StepID: "step_1", Progress: 100, Quality: 0.95}, &cfOut)
+	if cfOut.Progress != 100 {
+		t.Fatalf("CalibrationFeedback mismatch: %+v", cfOut)
+	}
+
+	var tsOut TimeseriesResponse
+	roundTrip("TimeseriesResponse", TimeseriesResponse{
+		CrewID: "crew_001", StartUs: 100, EndUs: 200,
+		Buckets: []TelemetryBucket{{TsUs: 150, Vitals: VitalsData{HeartRateBpm: 65}, Environment: EnvironmentData{CO2Ppm: 600}}},
+	}, &tsOut)
+	if len(tsOut.Buckets) != 1 {
+		t.Fatalf("TimeseriesResponse mismatch: %+v", tsOut)
+	}
+
+	var protoOut ProtocolDTO
+	roundTrip("ProtocolDTO", ProtocolDTO{ProtocolID: "p_co2", Name: "CO2", Subsystems: []Subsystem{SubsystemRespiratoryAtmosphere}, Steps: []string{"Ventilar"}}, &protoOut)
+	if protoOut.ProtocolID != "p_co2" {
+		t.Fatalf("ProtocolDTO mismatch: %+v", protoOut)
+	}
+
+	var alertOut AlertRecord
+	roundTrip("AlertRecord", AlertRecord{AlertID: "a1", TsUs: 100, Subsystem: SubsystemRespiratoryAtmosphere, Severity: SeverityRed, Message: "CO2", Escalation: EscalationStoreAndForward}, &alertOut)
+	if alertOut.AlertID != "a1" {
+		t.Fatalf("AlertRecord mismatch: %+v", alertOut)
+	}
+
+	var obOut OutboxRecord
+	roundTrip("OutboxRecord", OutboxRecord{OutboxID: "o1", TsUs: 100, Subsystem: SubsystemRespiratoryAtmosphere, Severity: SeverityRed, Message: "CO2", Destination: "MCC"}, &obOut)
+	if obOut.OutboxID != "o1" {
+		t.Fatalf("OutboxRecord mismatch: %+v", obOut)
+	}
+
+	var devOut DevScenarioReq
+	roundTrip("DevScenarioReq", DevScenarioReq{Scenario: "hypercapnia", Seed: 42}, &devOut)
+	if devOut.Scenario != "hypercapnia" || devOut.Seed != 42 {
+		t.Fatalf("DevScenarioReq mismatch: %+v", devOut)
+	}
+}
+
+func TestEncodeDecodeCSIBinaryZeroAlloc(t *testing.T) {
+	samples := make([]IQSample, 56)
+	for i := range samples {
+		samples[i] = IQSample{Real: float64(i) * 0.01, Imaginary: -float64(i) * 0.02}
+	}
+	binBuf := make([]byte, 0, 512)
+	samplesDst := make([]IQSample, 0, 64)
+
+	// Warm-up to stabilize any one-time initialization.
+	binBuf = EncodeCSIBinary(binBuf, 0, 1, -45, -92.0, samples)
+	_, _, _, _, samplesDst, err := DecodeCSIBinary(binBuf, samplesDst)
+	if err != nil {
+		t.Fatalf("warmup DecodeCSIBinary: %v", err)
+	}
+
+	encAllocs := testing.AllocsPerRun(100, func() {
+		binBuf = EncodeCSIBinary(binBuf, 0, 1, -45, -92.0, samples)
+	})
+	if encAllocs != 0 {
+		t.Fatalf("EncodeCSIBinary allocs=%.2f, want 0", encAllocs)
+	}
+
+	decAllocs := testing.AllocsPerRun(100, func() {
+		var derr error
+		_, _, _, _, samplesDst, derr = DecodeCSIBinary(binBuf, samplesDst)
+		if derr != nil {
+			t.Fatalf("DecodeCSIBinary: %v", derr)
+		}
+	})
+	if decAllocs != 0 {
+		t.Fatalf("DecodeCSIBinary allocs=%.2f, want 0", decAllocs)
+	}
+}
+
+func TestDecodeUDPDatagramInvalidAndTruncated(t *testing.T) {
+	cases := []struct {
+		name string
+		raw  []byte
+	}{
+		{"empty", nil},
+		{"invalid_json_no_newline", []byte(`{"v":1,"type":`)},
+		{"garbage_no_newline", []byte(`not-json-at-all`)},
+		{"invalid_version_with_newline", []byte("{\"v\":99,\"type\":\"HEARTBEAT\",\"node_id\":1}\n")},
+		{"invalid_type_with_newline", []byte("{\"v\":1,\"type\":\"UNKNOWN\",\"node_id\":1}\n")},
+		{"truncated_json_before_newline", []byte("{\"v\":1,\"type\":\"CSI_FRAME\"\n\x00\x01")},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			_, _, err := DecodeUDPDatagram(tc.raw)
+			if !errors.Is(err, ErrInvalidUDPDatagram) {
+				t.Fatalf("%s: got err=%v, want ErrInvalidUDPDatagram", tc.name, err)
+			}
+		})
+	}
+
+	// CSI_FRAME without '\n' produces nil csiPayload; DecodeCSIBinary must return ErrInvalidUDPDatagram without panic.
+	hdrOnly := []byte(`{"v":1,"type":"CSI_FRAME","node_id":1,"slot_id":0,"mode":"MODE_CABIN_TOMOGRAPHY","timestamp_us":1,"cycle_seq":1}`)
+	hdr, csi, err := DecodeUDPDatagram(hdrOnly)
+	if err != nil {
+		t.Fatalf("valid header without newline unexpectedly failed: %v", err)
+	}
+	if hdr.Type != UDPMsgCSIFrame || csi != nil {
+		t.Fatalf("unexpected hdr=%+v len(csi)=%d", hdr, len(csi))
+	}
+	if _, _, _, _, _, err := DecodeCSIBinary(csi, nil); !errors.Is(err, ErrInvalidUDPDatagram) {
+		t.Fatalf("DecodeCSIBinary(nil): got %v, want ErrInvalidUDPDatagram", err)
+	}
+
+	// Truncated binary CSI payload (short header, and header claiming 10 samples with only 4 bytes).
+	for _, rawCSI := range [][]byte{
+		{1, 2, 3},
+		make([]byte, 9),
+		{0, 1, 0, 0, 0, 0, 0, 0, 10, 0, 1, 2, 3, 4},
+	} {
+		if _, _, _, _, _, err := DecodeCSIBinary(rawCSI, nil); !errors.Is(err, ErrInvalidUDPDatagram) {
+			t.Fatalf("DecodeCSIBinary(%x): got %v, want ErrInvalidUDPDatagram", rawCSI, err)
+		}
+	}
+}
+
+func FuzzDecodeUDPDatagram(f *testing.F) {
+	f.Add([]byte(`{"v":1,"type":"HEARTBEAT","node_id":0,"timestamp_us":1,"cycle_seq":1}`))
+	f.Add([]byte("{\"v\":1,\"type\":\"CSI_FRAME\",\"node_id\":1,\"slot_id\":0,\"mode\":\"MODE_CABIN_TOMOGRAPHY\",\"timestamp_us\":1,\"cycle_seq\":1}\n\x00\x01\xd3\xff\x00\x00\xb8\xc2\x01\x00\x01\x00\x02\x00"))
+	f.Add([]byte(`{"v":1`))
+	f.Add([]byte{})
+	f.Add([]byte("\n\xff\xff\xff\xff"))
+
+	f.Fuzz(func(t *testing.T, data []byte) {
+		hdr, csi, err := DecodeUDPDatagram(data)
+		if err == nil && (hdr.Type == UDPMsgCSIFrame || len(csi) > 0) {
+			_, _, _, _, _, _ = DecodeCSIBinary(csi, nil)
+		}
+	})
 }

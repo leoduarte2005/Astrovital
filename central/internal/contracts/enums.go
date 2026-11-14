@@ -115,6 +115,7 @@ const (
 	IPCMsgAIInference         IPCMsgType = "AI_INFERENCE"
 	IPCMsgChatCorrelateReq    IPCMsgType = "CHAT_CORRELATE_REQ"
 	IPCMsgChatCorrelateResp   IPCMsgType = "CHAT_CORRELATE_RESP"
+	IPCMsgCalibrationStep     IPCMsgType = "CALIBRATION_STEP"
 	IPCMsgCalibrationFeedback IPCMsgType = "CALIBRATION_FEEDBACK"
 )
 
@@ -127,6 +128,7 @@ func (t IPCMsgType) IsValid() bool {
 		IPCMsgAIInference,
 		IPCMsgChatCorrelateReq,
 		IPCMsgChatCorrelateResp,
+		IPCMsgCalibrationStep,
 		IPCMsgCalibrationFeedback:
 		return true
 	default:

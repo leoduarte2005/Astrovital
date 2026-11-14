@@ -58,13 +58,17 @@ type ChatMsgPayload struct {
 }
 
 // ChatReplyPayload is sent to WS client (CHAT_REPLY).
+// Optional differentials, disambiguation_question and actions keep v1 clients compatible.
 type ChatReplyPayload struct {
-	Text            string     `json:"text"`
-	Evidence        []string   `json:"evidence"`
-	Countermeasures []string   `json:"countermeasures"`
-	SourceIDs       []string   `json:"source_ids"`
-	Escalation      Escalation `json:"escalation"`
-	Disclaimer      string     `json:"disclaimer"`
+	Text                   string     `json:"text"`
+	Evidence               []string   `json:"evidence"`
+	Countermeasures        []string   `json:"countermeasures"`
+	SourceIDs              []string   `json:"source_ids"`
+	Escalation             Escalation `json:"escalation"`
+	Disclaimer             string     `json:"disclaimer"`
+	Differentials          []string   `json:"differentials,omitempty"`
+	DisambiguationQuestion string     `json:"disambiguation_question,omitempty"`
+	Actions                []string   `json:"actions,omitempty"`
 }
 
 // SelfExamPayload is received from WS client (SELF_EXAM).
@@ -74,10 +78,12 @@ type SelfExamPayload struct {
 	Observations string `json:"observations,omitempty"`
 }
 
-// CalibrationStepPayload is received from WS client (CALIBRATION_STEP).
+// CalibrationStepPayload is received from WS client (CALIBRATION_STEP) and
+// forwarded Central -> Edge AI over IPC (CALIBRATION_STEP request).
 type CalibrationStepPayload struct {
-	StepID string `json:"step_id"`
-	Action string `json:"action"`
+	StepID     string `json:"step_id"`
+	Action     string `json:"action"`
+	DurationMs int    `json:"duration_ms,omitempty"`
 }
 
 // NewWSEnvelope marshals payload into a validated v1 WSEnvelope.

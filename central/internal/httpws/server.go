@@ -41,6 +41,48 @@ type StoreStats struct {
 	Backlog int64
 }
 
+// ExtraMetrics holds transport, IPC, pipeline, and cluster counters surfaced in /api/metrics.
+type ExtraMetrics struct {
+	DroppedFrames     uint64
+	DroppedCtrl       uint64
+	IPCDroppedWindows uint64
+	IPCReconnects     uint64
+	LateFrames        uint64
+	FailoverLastMs    int64
+}
+
+// CrewProfileDTO is returned by GET /api/crew/{id}/profile.
+type CrewProfileDTO struct {
+	Profile             contracts.CrewProfile          `json:"profile"`
+	BaselinePath        string                         `json:"baseline_path,omitempty"`
+	CalibrationRequired bool                           `json:"calibration_required"`
+	Thresholds          map[string]contracts.Threshold `json:"thresholds,omitempty"`
+}
+
+// ExtendedReader supplies optional clinical REST queries without coupling httpws to store.
+type ExtendedReader interface {
+	GetCrewProfile(ctx context.Context, id string) (CrewProfileDTO, error)
+	QueryTimeseries(ctx context.Context, crewID, metric string, fromUs, toUs int64, bucketSec int) (contracts.TimeseriesResponse, error)
+	GetProtocol(ctx context.Context, id string) (contracts.ProtocolDTO, error)
+	ListAlerts(ctx context.Context, limit int) ([]contracts.AlertRecord, error)
+	ListOutbox(ctx context.Context) ([]contracts.OutboxRecord, error)
+}
+
+// SessionCommander routes validated WS client commands to internal/session.
+type SessionCommander interface {
+	SetCrew(ctx context.Context, crewID string) (contracts.CrewStatePayload, error)
+	HandleChatMsg(ctx context.Context, crewID, text string) (contracts.ChatReplyPayload, error)
+	HandleSelfExam(ctx context.Context, crewID string, exam contracts.SelfExamPayload) error
+	HandleCalibrationStep(ctx context.Context, crewID string, step contracts.CalibrationStepPayload) (contracts.CalibrationFeedbackPayload, error)
+}
+
+// DevController enables optional /api/dev/* simulation endpoints when injected.
+type DevController interface {
+	SetScenario(ctx context.Context, scenario string, seed int64) error
+	KillNode(ctx context.Context, nodeID uint8) error
+	ReviveNode(ctx context.Context, nodeID uint8) error
+}
+
 // Config configures the HTTP/WS server.
 type Config struct {
 	Addr string
@@ -49,17 +91,29 @@ type Config struct {
 
 // Deps holds injected dependencies (all optional except Logger/Reader when used).
 type Deps struct {
-	Logger     *slog.Logger
-	Reader     Reader
-	StoreStats func() StoreStats
+	Logger          *slog.Logger
+	Reader          Reader
+	ExtendedReader  ExtendedReader
+	Session         SessionCommander
+	Dev             DevController
+	StoreStats      func() StoreStats
+	ExtraMetrics    func() ExtraMetrics
+	CrewStateFn     func() contracts.CrewStatePayload
+	ClusterStatusFn func() contracts.ClusterStatusPayload
 }
 
 // MetricsSnapshot is the JSON payload returned by GET /api/metrics.
 type MetricsSnapshot struct {
-	WSClients          int64 `json:"ws_clients"`
-	WSDroppedTelemetry int64 `json:"ws_dropped_telemetry"`
-	StoreCommits       int64 `json:"store_commits"`
-	StoreBacklog       int64 `json:"store_backlog"`
+	WSClients          int64  `json:"ws_clients"`
+	WSDroppedTelemetry int64  `json:"ws_dropped_telemetry"`
+	StoreCommits       int64  `json:"store_commits"`
+	StoreBacklog       int64  `json:"store_backlog"`
+	DroppedFrames      uint64 `json:"dropped_frames"`
+	DroppedCtrl        uint64 `json:"dropped_ctrl"`
+	IPCDroppedWindows  uint64 `json:"ipc_dropped_windows"`
+	IPCReconnects      uint64 `json:"ipc_reconnects"`
+	LateFrames         uint64 `json:"late_frames"`
+	FailoverLastMs     int64  `json:"failover_last_ms"`
 }
 
 // Server owns the HTTP listener and WebSocket hub.
@@ -128,7 +182,7 @@ func (s *Server) Handler() http.Handler {
 	return s.handler
 }
 
-// Metrics returns current HTTP/WS + store counters.
+// Metrics returns current HTTP/WS + store + transport/pipeline/cluster counters.
 func (s *Server) Metrics() MetricsSnapshot {
 	m := MetricsSnapshot{
 		WSClients:          s.hub.clientsCount.Load(),
@@ -138,6 +192,15 @@ func (s *Server) Metrics() MetricsSnapshot {
 		st := s.deps.StoreStats()
 		m.StoreCommits = st.Commits
 		m.StoreBacklog = st.Backlog
+	}
+	if s.deps.ExtraMetrics != nil {
+		ex := s.deps.ExtraMetrics()
+		m.DroppedFrames = ex.DroppedFrames
+		m.DroppedCtrl = ex.DroppedCtrl
+		m.IPCDroppedWindows = ex.IPCDroppedWindows
+		m.IPCReconnects = ex.IPCReconnects
+		m.LateFrames = ex.LateFrames
+		m.FailoverLastMs = ex.FailoverLastMs
 	}
 	return m
 }

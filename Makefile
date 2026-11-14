@@ -64,7 +64,7 @@ central-build:
 	else echo "[pendente] central/go.mod ausente"; fi
 
 central-run-mock:
-	@if [ -f central/go.mod ]; then cd central && go run ./cmd/edgespace-central --mock-cluster --db ../$(DB_PATH); \
+	@if [ -f central/go.mod ]; then cd central && go run ./cmd/edgespace-central --mock-cluster=inproc --mock-ai --db ../$(DB_PATH); \
 	else echo "[pendente] central/go.mod ausente"; fi
 
 edge-ai-setup:

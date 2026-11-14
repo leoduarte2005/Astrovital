@@ -13,6 +13,9 @@ func (s *Store) Run(ctx context.Context) error {
 }
 
 func (s *Store) writerLoop(ctx context.Context) error {
+	s.running.Store(true)
+	defer s.running.Store(false)
+
 	ticker := time.NewTicker(s.cfg.BatchInterval)
 	defer ticker.Stop()
 

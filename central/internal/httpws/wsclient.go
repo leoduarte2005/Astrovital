@@ -60,11 +60,15 @@ func (s *Server) handleWS(w http.ResponseWriter, r *http.Request) {
 
 func (h *wsHub) sendInitialSnapshot(c *wsClient) {
 	nowUs := time.Now().UnixMicro()
-	crewEnv, err := contracts.NewWSEnvelope(contracts.WSMsgCrewState, nowUs, nil, nil, contracts.CrewStatePayload{
+	crewPayload := contracts.CrewStatePayload{
 		MissionMode:         contracts.ModeCabinTomography,
 		AIReady:             false,
 		CalibrationRequired: false,
-	})
+	}
+	if h.srv.deps.CrewStateFn != nil {
+		crewPayload = h.srv.deps.CrewStateFn()
+	}
+	crewEnv, err := contracts.NewWSEnvelope(contracts.WSMsgCrewState, nowUs, crewPayload.CrewID, nil, crewPayload)
 	if err == nil {
 		if raw, err := json.Marshal(crewEnv); err == nil {
 			select {
@@ -74,10 +78,14 @@ func (h *wsHub) sendInitialSnapshot(c *wsClient) {
 		}
 	}
 
-	clusterEnv, err := contracts.NewWSEnvelope(contracts.WSMsgClusterStatus, nowUs, nil, nil, contracts.ClusterStatusPayload{
+	clusterPayload := contracts.ClusterStatusPayload{
 		Nodes:  []contracts.NodeStatus{},
 		AILink: "offline",
-	})
+	}
+	if h.srv.deps.ClusterStatusFn != nil {
+		clusterPayload = h.srv.deps.ClusterStatusFn()
+	}
+	clusterEnv, err := contracts.NewWSEnvelope(contracts.WSMsgClusterStatus, nowUs, nil, nil, clusterPayload)
 	if err == nil {
 		if raw, err := json.Marshal(clusterEnv); err == nil {
 			select {
@@ -156,11 +164,11 @@ func (c *wsClient) readLoop(ctx context.Context) {
 			}
 			return
 		}
-		c.handleIncoming(data)
+		c.handleIncoming(ctx, data)
 	}
 }
 
-func (c *wsClient) handleIncoming(data []byte) {
+func (c *wsClient) handleIncoming(ctx context.Context, data []byte) {
 	var env contracts.WSEnvelope
 	if err := json.Unmarshal(data, &env); err != nil {
 		c.sendError(nil, "INVALID_JSON", "malformed JSON envelope")
@@ -174,7 +182,48 @@ func (c *wsClient) handleIncoming(data []byte) {
 		c.sendError(env.ClientMsgID, "INVALID_PAYLOAD", err.Error())
 		return
 	}
-	// Leva 2 will route validated client commands (SET_CREW, CHAT_MSG, SELF_EXAM, CALIBRATION_STEP) to session/store.
+	sess := c.hub.srv.deps.Session
+	if sess == nil {
+		return
+	}
+	crewID := ""
+	if env.CrewID != nil {
+		crewID = *env.CrewID
+	}
+	msgID := env.ClientMsgID
+	go c.dispatchSessionCmd(ctx, sess, env.Type, crewID, msgID, env.Payload)
+}
+
+func (c *wsClient) dispatchSessionCmd(ctx context.Context, sess SessionCommander, typ contracts.WSMsgType, crewID string, msgID *string, raw json.RawMessage) {
+	cmdCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	defer cancel()
+
+	switch typ {
+	case contracts.WSMsgSetCrew:
+		var p contracts.SetCrewPayload
+		_ = json.Unmarshal(raw, &p)
+		if _, err := sess.SetCrew(cmdCtx, p.CrewID); err != nil {
+			c.sendError(msgID, "SET_CREW_ERROR", err.Error())
+		}
+	case contracts.WSMsgChatMsg:
+		var p contracts.ChatMsgPayload
+		_ = json.Unmarshal(raw, &p)
+		if _, err := sess.HandleChatMsg(cmdCtx, crewID, p.Text); err != nil {
+			c.sendError(msgID, "CHAT_ERROR", err.Error())
+		}
+	case contracts.WSMsgSelfExam:
+		var p contracts.SelfExamPayload
+		_ = json.Unmarshal(raw, &p)
+		if err := sess.HandleSelfExam(cmdCtx, crewID, p); err != nil {
+			c.sendError(msgID, "SELF_EXAM_ERROR", err.Error())
+		}
+	case contracts.WSMsgCalibrationStep:
+		var p contracts.CalibrationStepPayload
+		_ = json.Unmarshal(raw, &p)
+		if _, err := sess.HandleCalibrationStep(cmdCtx, crewID, p); err != nil {
+			c.sendError(msgID, "CALIBRATION_ERROR", err.Error())
+		}
+	}
 }
 
 func validateClientPayload(env *contracts.WSEnvelope) error {

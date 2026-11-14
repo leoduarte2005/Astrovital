@@ -11,6 +11,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"edgespace/central/internal/contracts"
 )
 
 func waitFilesGone(dbPath string) {
@@ -110,11 +112,11 @@ func TestStorePragmasAndMigrations(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ListCrew without table: %v", err)
 	}
-	if crew == nil || len(crew) != 0 {
-		t.Fatalf("expected non-nil empty crew slice, got %#v", crew)
+	if len(crew) != 3 || crew[0].CrewID != "crew_001" || !crew[2].CalibrationRequired {
+		t.Fatalf("expected 3 fallback crew summaries (crew_003 calibration_required), got %#v", crew)
 	}
 
-	// Missing migrations directory also warns without error and ListCrew -> [].
+	// Missing migrations directory also warns without error and returns fallback crew.
 	var missBuf bytes.Buffer
 	missLog := slog.New(slog.NewJSONHandler(&missBuf, &slog.HandlerOptions{Level: slog.LevelWarn}))
 	missDB := filepath.Join(dir, "missing.db")
@@ -130,8 +132,8 @@ func TestStorePragmasAndMigrations(t *testing.T) {
 		t.Fatalf("expected warning log for missing migrations dir, got %s", missBuf.String())
 	}
 	crewMiss, err := sMiss.Reader().ListCrew(context.Background())
-	if err != nil || crewMiss == nil || len(crewMiss) != 0 {
-		t.Fatalf("expected [] for missing migrations dir, got %#v, err=%v", crewMiss, err)
+	if err != nil || len(crewMiss) != 3 {
+		t.Fatalf("expected 3 fallback crew for missing migrations dir, got %#v, err=%v", crewMiss, err)
 	}
 }
 
@@ -464,4 +466,209 @@ func TestStoreConcurrency10kCmdsAndParallelReads(t *testing.T) {
 		t.Fatalf("shutdown: %v", err)
 	}
 	waitFilesGone(dbPath)
+}
+
+func TestStoreFallbackModeAndRegistry(t *testing.T) {
+	dir := tempDir(t)
+	dbPath := filepath.Join(dir, "fallback.db")
+	s, err := New(Config{DBPath: dbPath, MigrationsDir: filepath.Join(dir, "absent"), BatchInterval: 20 * time.Millisecond}, Deps{})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- s.Run(ctx) }()
+	defer func() {
+		cancel()
+		<-done
+		waitFilesGone(dbPath)
+	}()
+
+	// RegistryStore persistence in central_registry when cluster_nodes is absent.
+	if err := s.SaveNodeID(ctx, "02:ED:6E:00:00:00", 0); err != nil {
+		t.Fatalf("SaveNodeID: %v", err)
+	}
+	if err := s.SaveNodeID(ctx, "02:ED:6E:00:00:01", 1); err != nil {
+		t.Fatalf("SaveNodeID: %v", err)
+	}
+	nodes, err := s.LoadNodeIDs(ctx)
+	if err != nil || nodes["02:ED:6E:00:00:00"] != 0 || nodes["02:ED:6E:00:00:01"] != 1 {
+		t.Fatalf("LoadNodeIDs mismatch: %#v err=%v", nodes, err)
+	}
+
+	// Crew profiles fallback (crew_001, crew_002, crew_003).
+	p1, err := s.GetCrewProfile(ctx, "crew_001")
+	if err != nil || p1.Profile.Name != "Cmdr. Silva" || p1.BaselinePath == "" {
+		t.Fatalf("crew_001 mismatch: %+v err=%v", p1, err)
+	}
+	p3, err := s.GetCrewProfile(ctx, "crew_003")
+	if err != nil || p3.Profile.Name != "Eng. Sato" || p3.BaselinePath != "" {
+		t.Fatalf("crew_003 mismatch: %+v err=%v", p3, err)
+	}
+	if _, err := s.GetCrewProfile(ctx, "unknown"); err == nil {
+		t.Fatal("expected ErrNotFound for unknown crew")
+	}
+
+	// Telemetry + peripheral + timeseries decimation in memory.
+	cid := "crew_001"
+	now := time.Now().UnixMicro()
+	_ = s.SaveTelemetry1Hz(ctx, Telemetry1HzRecord{
+		TsUs:        now - 10_000_000,
+		CrewID:      &cid,
+		MissionMode: contracts.ModeCabinTomography,
+		Vitals:      contracts.VitalsData{HeartRateBpm: 70, SpO2Pct: 98},
+		Environment: contracts.EnvironmentData{CO2Ppm: 800},
+	})
+	_ = s.SaveTelemetry1Hz(ctx, Telemetry1HzRecord{
+		TsUs:        now - 9_500_000,
+		CrewID:      &cid,
+		MissionMode: contracts.ModeCabinTomography,
+		Vitals:      contracts.VitalsData{HeartRateBpm: 80, SpO2Pct: 96},
+		Environment: contracts.EnvironmentData{CO2Ppm: 1200},
+	})
+	_ = s.SavePeripheral1Hz(ctx, now, []PeripheralReadingRecord{{NodeID: 0, Type: contracts.PeripheralSCD40, Value: 1200, Unit: "ppm", TsUs: now}})
+
+	tsResp, err := s.QueryTimeseries(ctx, "crew_001", "", now-20_000_000, now, 5)
+	if err != nil || len(tsResp.Buckets) != 1 {
+		t.Fatalf("QueryTimeseries fallback got %+v err=%v", tsResp, err)
+	}
+	if tsResp.Buckets[0].Vitals.HeartRateBpm != 75 || tsResp.Buckets[0].Environment.CO2Ppm != 1000 {
+		t.Fatalf("unexpected averaged bucket: %+v", tsResp.Buckets[0])
+	}
+
+	// Alert + RED outbox + SelfExam + Chat + Summary24h + Protocols.
+	_ = s.SaveAlertAndOutbox(ctx, AlertWriteRecord{
+		TsUs:   now,
+		CrewID: &cid,
+		Alert: contracts.AlertEventPayload{
+			Subsystem:      contracts.SubsystemRespiratoryAtmosphere,
+			Severity:       contracts.SeverityRed,
+			Message:        "CO2 > 3500 ppm",
+			Countermeasure: "Ventilate",
+			Escalation:     contracts.EscalationStoreAndForward,
+			SourceID:       "NASA-STD-3001",
+		},
+		WriteOutbox: true,
+	})
+	alerts, err := s.ListAlerts(ctx, 10)
+	if err != nil || len(alerts) != 1 || alerts[0].Severity != contracts.SeverityRed {
+		t.Fatalf("ListAlerts fallback: %+v err=%v", alerts, err)
+	}
+	outbox, err := s.ListOutbox(ctx)
+	if err != nil || len(outbox) != 1 {
+		t.Fatalf("ListOutbox fallback: %+v err=%v", outbox, err)
+	}
+
+	_ = s.SaveSelfExam(ctx, "crew_001", contracts.SelfExamPayload{ExamType: "amsler", Result: "altered"}, now)
+	_ = s.SaveChatExchange(ctx, "crew_001", contracts.ChatMsgPayload{Text: "headache"}, contracts.ChatCorrelateRespPayload{Text: "check CO2"}, now)
+	hist, err := s.RecentChat(ctx, "crew_001", 10)
+	if err != nil || len(hist) != 2 || hist[0].Role != "user" || hist[1].Role != "assistant" {
+		t.Fatalf("RecentChat fallback: %+v err=%v", hist, err)
+	}
+	sum, err := s.Summary24h(ctx, "crew_001")
+	if err != nil || !strings.Contains(sum, "samples=2") {
+		t.Fatalf("Summary24h fallback: %q err=%v", sum, err)
+	}
+
+	for _, pid := range []string{"amsler_grid", "capillary_blood", "ultrasound_onsd", "blood_pressure", "temperature"} {
+		proto, err := s.GetProtocol(ctx, pid)
+		if err != nil || proto.ProtocolID != pid || len(proto.Steps) == 0 {
+			t.Fatalf("GetProtocol(%s) failed: %+v err=%v", pid, proto, err)
+		}
+	}
+}
+
+func TestStoreWithTempM1Schema(t *testing.T) {
+	dir := tempDir(t)
+	dbPath := filepath.Join(dir, "m1.db")
+	migDir := filepath.Join(dir, "migrations")
+	if err := os.MkdirAll(migDir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	schema := `
+CREATE TABLE cluster_nodes (mac TEXT PRIMARY KEY, node_id INTEGER NOT NULL);
+CREATE TABLE crew_profiles (crew_id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT, mission_day INTEGER, age INTEGER, baseline_path TEXT, thresholds_json TEXT);
+INSERT INTO crew_profiles(crew_id, name, role, mission_day, age, baseline_path, thresholds_json)
+VALUES ('crew_sql', 'Dr. Vega', 'Science', 10, 34, 'baselines/vega.onnx', '{"co2_ppm":{"metric_name":"co2_ppm","yellow_high":800,"red_high":2500}}');
+CREATE TABLE telemetry_timeseries (ts_us INTEGER NOT NULL, crew_id TEXT, mission_mode TEXT, heart_rate_bpm REAL, hrv_ms REAL, resp_rate_bpm REAL, spo2_pct REAL, posture TEXT, confidence REAL, co2_ppm REAL, temp_c REAL, humidity_pct REAL, pressure_hpa REAL);
+CREATE TABLE peripheral_readings (ts_us INTEGER NOT NULL, node_id INTEGER, sensor_type TEXT, value REAL, unit TEXT);
+CREATE TABLE alerts_audit (alert_id TEXT PRIMARY KEY, ts_us INTEGER NOT NULL, crew_id TEXT, subsystem TEXT, severity TEXT, message TEXT, countermeasure TEXT, escalation TEXT, handled INTEGER);
+CREATE TABLE store_and_forward_outbox (outbox_id TEXT PRIMARY KEY, ts_us INTEGER NOT NULL, subsystem TEXT, severity TEXT, message TEXT, destination TEXT, sent INTEGER);
+CREATE TABLE self_exams (ts_us INTEGER NOT NULL, crew_id TEXT, exam_type TEXT, result TEXT, observations TEXT);
+CREATE TABLE chat_messages (ts_us INTEGER NOT NULL, crew_id TEXT, role TEXT, content TEXT);
+CREATE TABLE protocols (protocol_id TEXT PRIMARY KEY, name TEXT NOT NULL, subsystems_json TEXT, description TEXT, steps_json TEXT);
+INSERT INTO protocols(protocol_id, name, subsystems_json, description, steps_json)
+VALUES ('amsler_grid', 'Amsler SQL', '["NEURO_OCULAR_SANS"]', 'SQL desc', '["Step 1"]');
+`
+	if err := os.WriteFile(filepath.Join(migDir, "0001_m1.sql"), []byte(schema), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	s, err := New(Config{DBPath: dbPath, MigrationsDir: migDir, BatchInterval: 20 * time.Millisecond}, Deps{})
+	if err != nil {
+		t.Fatalf("New: %v", err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- s.Run(ctx) }()
+	defer func() {
+		cancel()
+		<-done
+		waitFilesGone(dbPath)
+	}()
+
+	if err := s.SaveNodeID(ctx, "AA:BB:CC:DD:EE:01", 2); err != nil {
+		t.Fatalf("SaveNodeID M1: %v", err)
+	}
+	nodes, err := s.LoadNodeIDs(ctx)
+	if err != nil || nodes["AA:BB:CC:DD:EE:01"] != 2 {
+		t.Fatalf("LoadNodeIDs M1: %#v err=%v", nodes, err)
+	}
+
+	prof, err := s.GetCrewProfile(ctx, "crew_sql")
+	if err != nil || prof.Profile.Name != "Dr. Vega" || prof.Thresholds["co2_ppm"].YellowHigh != 800 {
+		t.Fatalf("GetCrewProfile M1: %+v err=%v", prof, err)
+	}
+
+	cid := "crew_sql"
+	now := time.Now().UnixMicro()
+	_ = s.SaveTelemetry1Hz(ctx, Telemetry1HzRecord{
+		TsUs: now - 2_000_000, CrewID: &cid, MissionMode: contracts.ModeCabinTomography,
+		Vitals: contracts.VitalsData{HeartRateBpm: 60, SpO2Pct: 99}, Environment: contracts.EnvironmentData{CO2Ppm: 500},
+	})
+	_ = s.SaveTelemetry1Hz(ctx, Telemetry1HzRecord{
+		TsUs: now - 1_500_000, CrewID: &cid, MissionMode: contracts.ModeCabinTomography,
+		Vitals: contracts.VitalsData{HeartRateBpm: 70, SpO2Pct: 97}, Environment: contracts.EnvironmentData{CO2Ppm: 700},
+	})
+	_ = s.SaveAlertAndOutbox(ctx, AlertWriteRecord{
+		TsUs: now, CrewID: &cid, WriteOutbox: true,
+		Alert: contracts.AlertEventPayload{Subsystem: contracts.SubsystemRespiratoryAtmosphere, Severity: contracts.SeverityRed, Message: "SQL alert", Escalation: contracts.EscalationStoreAndForward},
+	})
+	_ = s.SaveChatExchange(ctx, cid, contracts.ChatMsgPayload{Text: "hi"}, contracts.ChatCorrelateRespPayload{Text: "hello"}, now)
+	_ = s.SaveSelfExam(ctx, cid, contracts.SelfExamPayload{ExamType: "amsler", Result: "ok"}, now)
+
+	if err := s.Flush(ctx); err != nil {
+		t.Fatalf("Flush M1: %v", err)
+	}
+
+	tsResp, err := s.QueryTimeseries(ctx, cid, "", now-10_000_000, now, 10)
+	if err != nil || len(tsResp.Buckets) != 1 || tsResp.Buckets[0].Vitals.HeartRateBpm != 65 {
+		t.Fatalf("QueryTimeseries M1: %+v err=%v", tsResp, err)
+	}
+	alerts, err := s.ListAlerts(ctx, 10)
+	if err != nil || len(alerts) != 1 || alerts[0].Message != "SQL alert" {
+		t.Fatalf("ListAlerts M1: %+v err=%v", alerts, err)
+	}
+	outbox, err := s.ListOutbox(ctx)
+	if err != nil || len(outbox) != 1 {
+		t.Fatalf("ListOutbox M1: %+v err=%v", outbox, err)
+	}
+	hist, err := s.RecentChat(ctx, cid, 10)
+	if err != nil || len(hist) != 2 {
+		t.Fatalf("RecentChat M1: %+v err=%v", hist, err)
+	}
+	proto, err := s.GetProtocol(ctx, "amsler_grid")
+	if err != nil || proto.Name != "Amsler SQL" {
+		t.Fatalf("GetProtocol M1: %+v err=%v", proto, err)
+	}
 }

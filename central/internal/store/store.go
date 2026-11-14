@@ -87,10 +87,12 @@ type Store struct {
 	readerDB *sql.DB
 	cmdCh    chan Cmd
 
-	closing atomic.Bool
-	commits atomic.Int64
-	dropped atomic.Int64
-	failed  atomic.Int64
+	closing  atomic.Bool
+	running  atomic.Bool
+	commits  atomic.Int64
+	dropped  atomic.Int64
+	failed   atomic.Int64
+	fallback *fallbackStore
 }
 
 // New opens the DB (WAL + PRAGMAs), creates internal tables and applies migrations.
@@ -132,7 +134,14 @@ func New(cfg Config, deps Deps) (*Store, error) {
 		w.Close()
 		return nil, fmt.Errorf("store: open reader: %w", err)
 	}
-	return &Store{cfg: cfg, log: log, writerDB: w, readerDB: r, cmdCh: make(chan Cmd, cfg.CmdBuffer)}, nil
+	return &Store{
+		cfg:      cfg,
+		log:      log,
+		writerDB: w,
+		readerDB: r,
+		cmdCh:    make(chan Cmd, cfg.CmdBuffer),
+		fallback: newFallbackStore(),
+	}, nil
 }
 
 func dsn(path string, params url.Values) string {

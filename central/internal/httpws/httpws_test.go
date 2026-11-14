@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -576,4 +577,252 @@ func TestServerShutdownClosesWSWith1001(t *testing.T) {
 	if err := <-runDone; err != nil {
 		t.Fatalf("Server.Run returned error: %v", err)
 	}
+}
+
+type stubExtendedReader struct {
+	stubReader
+	profiles map[string]CrewProfileDTO
+	tsResp   contracts.TimeseriesResponse
+	protos   map[string]contracts.ProtocolDTO
+	alerts   []contracts.AlertRecord
+	outbox   []contracts.OutboxRecord
+}
+
+func (s *stubExtendedReader) GetCrewProfile(ctx context.Context, id string) (CrewProfileDTO, error) {
+	p, ok := s.profiles[id]
+	if !ok {
+		return CrewProfileDTO{}, errors.New("crew not found")
+	}
+	return p, nil
+}
+func (s *stubExtendedReader) QueryTimeseries(ctx context.Context, crewID, metric string, fromUs, toUs int64, bucketSec int) (contracts.TimeseriesResponse, error) {
+	return s.tsResp, nil
+}
+func (s *stubExtendedReader) GetProtocol(ctx context.Context, id string) (contracts.ProtocolDTO, error) {
+	p, ok := s.protos[id]
+	if !ok {
+		return contracts.ProtocolDTO{}, errors.New("protocol not found")
+	}
+	return p, nil
+}
+func (s *stubExtendedReader) ListAlerts(ctx context.Context, limit int) ([]contracts.AlertRecord, error) {
+	return s.alerts, nil
+}
+func (s *stubExtendedReader) ListOutbox(ctx context.Context) ([]contracts.OutboxRecord, error) {
+	return s.outbox, nil
+}
+
+type stubSessionCmd struct {
+	mu         sync.Mutex
+	setCrewErr error
+	setCrews   []string
+	chats      []string
+	exams      []contracts.SelfExamPayload
+	calibs     []contracts.CalibrationStepPayload
+}
+
+func (s *stubSessionCmd) SetCrew(ctx context.Context, crewID string) (contracts.CrewStatePayload, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.setCrews = append(s.setCrews, crewID)
+	if s.setCrewErr != nil {
+		return contracts.CrewStatePayload{}, s.setCrewErr
+	}
+	return contracts.CrewStatePayload{CrewID: &crewID, MissionMode: contracts.ModeCabinTomography, AIReady: true}, nil
+}
+func (s *stubSessionCmd) HandleChatMsg(ctx context.Context, crewID, text string) (contracts.ChatReplyPayload, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.chats = append(s.chats, text)
+	return contracts.ChatReplyPayload{Text: "ok"}, nil
+}
+func (s *stubSessionCmd) HandleSelfExam(ctx context.Context, crewID string, exam contracts.SelfExamPayload) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.exams = append(s.exams, exam)
+	return nil
+}
+func (s *stubSessionCmd) HandleCalibrationStep(ctx context.Context, crewID string, step contracts.CalibrationStepPayload) (contracts.CalibrationFeedbackPayload, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.calibs = append(s.calibs, step)
+	return contracts.CalibrationFeedbackPayload{StepID: step.StepID, Progress: 100}, nil
+}
+
+type stubDevCtrl struct {
+	scenario string
+	killed   []uint8
+	revived  []uint8
+}
+
+func (d *stubDevCtrl) SetScenario(ctx context.Context, scenario string, seed int64) error {
+	d.scenario = scenario
+	return nil
+}
+func (d *stubDevCtrl) KillNode(ctx context.Context, nodeID uint8) error {
+	d.killed = append(d.killed, nodeID)
+	return nil
+}
+func (d *stubDevCtrl) ReviveNode(ctx context.Context, nodeID uint8) error {
+	d.revived = append(d.revived, nodeID)
+	return nil
+}
+
+func TestExtendedRESTDevRoutesAndCSPScript(t *testing.T) {
+	ext := &stubExtendedReader{
+		profiles: map[string]CrewProfileDTO{
+			"crew_001": {Profile: contracts.CrewProfile{CrewID: "crew_001", Name: "Cmdr. Silva"}},
+		},
+		tsResp: contracts.TimeseriesResponse{CrewID: "crew_001", Buckets: []contracts.TelemetryBucket{{TsUs: 1000}}},
+		protos: map[string]contracts.ProtocolDTO{
+			"amsler_grid": {ProtocolID: "amsler_grid", Name: "Amsler", Steps: []string{"Step 1"}},
+		},
+		alerts: []contracts.AlertRecord{{AlertID: "a1", Severity: contracts.SeverityYellow}},
+		outbox: []contracts.OutboxRecord{{OutboxID: "o1", Severity: contracts.SeverityRed}},
+	}
+
+	srvNoDev, err := New(Config{}, Deps{Reader: ext})
+	if err != nil {
+		t.Fatal(err)
+	}
+	tsNoDev := httptest.NewServer(srvNoDev.Handler())
+	defer tsNoDev.Close()
+
+	resp, err := http.Post(tsNoDev.URL+"/api/dev/scenario", "application/json", strings.NewReader(`{"scenario":"hypercapnia"}`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusNotFound {
+		t.Fatalf("POST /api/dev/scenario without Dev = %d, want 404", resp.StatusCode)
+	}
+
+	dev := &stubDevCtrl{}
+	srv, err := New(Config{}, Deps{
+		Reader: ext,
+		Dev:    dev,
+		ExtraMetrics: func() ExtraMetrics {
+			return ExtraMetrics{DroppedFrames: 1, DroppedCtrl: 2, IPCDroppedWindows: 3, IPCReconnects: 4, LateFrames: 5, FailoverLastMs: 310}
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	for _, path := range []string{
+		"/api/crew/crew_001/profile",
+		"/api/crew/crew_001/timeseries?bucket_sec=5",
+		"/api/protocols/amsler_grid",
+		"/api/alerts?limit=10",
+		"/api/outbox",
+		"/app.js",
+		"/style.css",
+	} {
+		r, err := http.Get(ts.URL + path)
+		if err != nil {
+			t.Fatalf("GET %s: %v", path, err)
+		}
+		r.Body.Close()
+		if r.StatusCode != http.StatusOK {
+			t.Fatalf("GET %s status = %d, want 200", path, r.StatusCode)
+		}
+	}
+
+	rScen, err := http.Post(ts.URL+"/api/dev/scenario", "application/json", strings.NewReader(`{"scenario":"hypercapnia","seed":7}`))
+	if err != nil || rScen.StatusCode != http.StatusOK {
+		t.Fatalf("POST /api/dev/scenario failed: err=%v resp=%v", err, rScen)
+	}
+	rScen.Body.Close()
+	rKill, err := http.Post(ts.URL+"/api/dev/node/3/kill", "application/json", nil)
+	if err != nil || rKill.StatusCode != http.StatusOK {
+		t.Fatalf("POST /api/dev/node/3/kill failed: err=%v resp=%v", err, rKill)
+	}
+	rKill.Body.Close()
+	rRev, err := http.Post(ts.URL+"/api/dev/node/3/revive", "application/json", nil)
+	if err != nil || rRev.StatusCode != http.StatusOK {
+		t.Fatalf("POST /api/dev/node/3/revive failed: err=%v resp=%v", err, rRev)
+	}
+	rRev.Body.Close()
+	if dev.scenario != "hypercapnia" || len(dev.killed) != 1 || len(dev.revived) != 1 {
+		t.Fatalf("dev controller not invoked: %+v", dev)
+	}
+
+	rUI, err := http.Get(ts.URL + "/")
+	if err != nil {
+		t.Fatal(err)
+	}
+	rawUI, _ := io.ReadAll(rUI.Body)
+	rUI.Body.Close()
+	if strings.Contains(string(rawUI), "<script>") || !strings.Contains(string(rawUI), `./app.js`) {
+		t.Fatalf("index.html violates CSP self-only script rule")
+	}
+}
+
+func TestWSSessionCommandRoutingAndErrorEnvelope(t *testing.T) {
+	sess := &stubSessionCmd{setCrewErr: errors.New("unknown crew")}
+	srv, err := New(Config{WSHz: 10}, Deps{
+		Reader:  stubReader{},
+		Session: sess,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	hubCtx, hubCancel := context.WithCancel(context.Background())
+	defer hubCancel()
+	go srv.hub.run(hubCtx)
+
+	ts := httptest.NewServer(srv.Handler())
+	defer ts.Close()
+
+	wsURL := "ws" + strings.TrimPrefix(ts.URL, "http") + "/ws"
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	conn, _, err := websocket.Dial(ctx, wsURL, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.CloseNow()
+
+	for i := 0; i < 3; i++ {
+		if _, _, err := conn.Read(ctx); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := conn.Write(ctx, websocket.MessageText, []byte(`{"v":1,"type":"SET_CREW","ts_us":1,"crew_id":null,"client_msg_id":"err-1","payload":{"crew_id":"bad"}}`)); err != nil {
+		t.Fatal(err)
+	}
+	for {
+		_, data, err := conn.Read(ctx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		var env contracts.WSEnvelope
+		if json.Unmarshal(data, &env) == nil && env.Type == contracts.WSMsgError {
+			if env.ClientMsgID == nil || *env.ClientMsgID != "err-1" {
+				t.Fatalf("expected client_msg_id=err-1, got %v", env.ClientMsgID)
+			}
+			break
+		}
+	}
+
+	_ = conn.Write(ctx, websocket.MessageText, []byte(`{"v":1,"type":"CHAT_MSG","ts_us":2,"crew_id":"crew_001","client_msg_id":"m2","payload":{"text":"hello"}}`))
+	_ = conn.Write(ctx, websocket.MessageText, []byte(`{"v":1,"type":"SELF_EXAM","ts_us":3,"crew_id":"crew_001","client_msg_id":"m3","payload":{"exam_type":"amsler","result":"normal"}}`))
+	_ = conn.Write(ctx, websocket.MessageText, []byte(`{"v":1,"type":"CALIBRATION_STEP","ts_us":4,"crew_id":"crew_001","client_msg_id":"m4","payload":{"step_id":"s1","action":"start"}}`))
+
+	deadline := time.Now().Add(500 * time.Millisecond)
+	for time.Now().Before(deadline) {
+		sess.mu.Lock()
+		done := len(sess.chats) == 1 && len(sess.exams) == 1 && len(sess.calibs) == 1
+		sess.mu.Unlock()
+		if done {
+			return
+		}
+		time.Sleep(5 * time.Millisecond)
+	}
+	sess.mu.Lock()
+	defer sess.mu.Unlock()
+	t.Fatalf("expected all WS commands routed, got chats=%d exams=%d calibs=%d", len(sess.chats), len(sess.exams), len(sess.calibs))
 }
