@@ -1,0 +1,46 @@
+id: capillary_blood
+title: Coleta de Sangue Capilar / Glicemia na Ponta do Dedo
+duration_s: 180
+materials:
+  - Lanceta retrátil estéril
+  - Swab de álcool 70%
+  - Microcuveta / fita reagente
+  - Gaze estéril
+  - Descartador de perfurocortantes
+steps:
+  - text: Aqueça a ponta do dedo e higienize com álcool.
+    image: protocols/capillary_clean.svg
+    timer_s: 20
+    safety_note: Aguarde o álcool secar antes da punção.
+  - text: Perfure a lateral da polpa digital com lanceta estéril.
+    image: protocols/capillary_lancet.svg
+    timer_s: 10
+    safety_note: Evite o centro do dedo; use lanceta única.
+  - text: Descarte a primeira gota, preencha a microcuveta e comprima com gaze.
+    image: protocols/capillary_sample.svg
+    timer_s: 45
+    safety_note: Não ordenhe o dedo com força para não diluir a amostra.
+  - text: Descarte a lanceta no coletor rígido e registre os valores em SELF_EXAM.
+    image: protocols/capillary_dispose.svg
+    timer_s: 20
+    safety_note: Contenha gotículas em microgravidade com gaze.
+result_schema:
+  type: object
+  required:
+    - glucose_mg_dl
+  properties:
+    glucose_mg_dl:
+      type: number
+      minimum: 20
+      maximum: 600
+    hemoglobin_g_dl:
+      type:
+        - number
+        - 'null'
+      minimum: 3
+      maximum: 25
+linked_risks:
+  - HRP-RISK-NUTRITION
+  - HRP-RISK-IRON-HEMATO
+  - HRP-RISK-IMMUNE
+  - HRP-RISK-ONE-CARBON

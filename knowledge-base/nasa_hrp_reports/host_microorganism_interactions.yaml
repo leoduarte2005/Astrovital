@@ -1,0 +1,59 @@
+id: HRP-RISK-MICROBIOME
+seed_id: host_microorganism_interactions
+title: Interações Hospedeiro-Microrganismo / Host-Microorganism Interactions
+hazard: Hostile/Closed Environments
+category: PHYSIOLOGICAL
+subsystems:
+  - IMMUNE_HEMATO_NUTRITION
+problem: Habitat fechado altera o microbioma da tripulação e da nave, com risco de infecções e transferência de patógenos entre tripulantes.
+symptoms:
+  pt:
+    - febre
+    - lesão cutânea
+    - diarreia
+    - tosse
+    - mal-estar
+  en:
+    - fever
+    - skin lesion
+    - diarrhea
+    - cough
+    - malaise
+    - infection
+    - microbiome
+sensor_signatures:
+  - sensor: Autoexame
+    metric: temp_c
+    op: gte
+    threshold: 37.8
+    causal_weight: 2.0
+    weight_basis: heuristic_pending_clinical_review
+  - sensor: MAX30102
+    metric: heart_rate_bpm
+    op: gte
+    threshold: 85.0
+    causal_weight: 1.3
+    weight_basis: heuristic_pending_clinical_review
+detection:
+  - 'Autoexame: temperatura'
+  - Sintomas infecciosos autorrelatados
+countermeasures:
+  - order: 1
+    action: Medir temperatura
+    protocol: temperature
+  - order: 2
+    action: Higiene reforçada e isolamento do tripulante sintomático
+    protocol: null
+  - order: 3
+    action: Registrar em SELF_EXAM
+    protocol: null
+escalation:
+  default: CREW
+  LOCAL: Higiene e monitoramento.
+  CREW: 'Febre ou lesão: alertar tripulação para limitar contato.'
+  STORE_AND_FORWARD: 'Infecção suspeita: Store-and-Forward.'
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Health Event due to Host-Microorganism Interactions
+  section: Evidence Report
+  source_id: NASA-HRP-MICROBIOME
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

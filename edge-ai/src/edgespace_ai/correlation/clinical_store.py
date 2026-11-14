@@ -149,15 +149,36 @@ def _parse_yaml_scalar(raw: str) -> Any:
         return s
 
 
+DEFAULT_DB_PATH = Path("../data/edgespace.db")
+DEFAULT_DB_CANDIDATES: tuple[Path, ...] = (
+    DEFAULT_DB_PATH,
+    Path("var/edgespace.db"),
+    Path("../var/edgespace.db"),
+)
+
+
+def resolve_db_path(db_path: Optional[Path | str] = None) -> Path:
+    """Resolve SQLite path, falling back from ../data/edgespace.db to var/edgespace.db."""
+    if db_path is not None:
+        candidate = Path(db_path)
+        if candidate != DEFAULT_DB_PATH or candidate.is_file():
+            return candidate
+    for path in DEFAULT_DB_CANDIDATES:
+        if path.is_file():
+            return path
+    return Path("../var/edgespace.db") if Path("../var").is_dir() else Path("var/edgespace.db")
+
+
 class ClinicalStore:
     """Queries SQLite FTS5 (BM25) in read-only mode with YAML fallback."""
 
     def __init__(
         self,
-        db_path: Path | str = Path("../data/edgespace.db"),
+        db_path: Optional[Path | str] = None,
         knowledge_base_path: Optional[Path | str] = None,
     ) -> None:
-        self.db_path = Path(db_path)
+        self._explicit_db_path = db_path is not None and Path(db_path) != DEFAULT_DB_PATH
+        self.db_path = resolve_db_path(db_path)
         default_kb = Path(__file__).resolve().parents[3] / "knowledge-base" / "nasa_causal_graph.yaml"
         self.knowledge_base_path = Path(knowledge_base_path) if knowledge_base_path else default_kb
         self._yaml_cache: Optional[dict[str, Any]] = None
@@ -174,6 +195,8 @@ class ClinicalStore:
         return self._search_yaml_fallback(terms, limit=limit)
 
     def _search_sqlite_fts5(self, terms: Sequence[str], *, limit: int) -> list[ClinicalDocument]:
+        if not self.db_path.is_file() and not self._explicit_db_path:
+            self.db_path = resolve_db_path(None)
         if not self.db_path.is_file():
             return []
 
@@ -293,7 +316,7 @@ class ClinicalStore:
 
     @staticmethod
     def _build_search_terms(query: str, concepts: Sequence[str]) -> list[str]:
-        tokens = re.findall(r"[a-zA-Z0-9_]{3,}", query.lower())
+        tokens = re.findall(r"\w{3,}", query.lower())
         merged: list[str] = []
         seen: set[str] = set()
         for item in [*concepts, *tokens]:

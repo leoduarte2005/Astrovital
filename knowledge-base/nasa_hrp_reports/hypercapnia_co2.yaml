@@ -1,0 +1,83 @@
+id: HRP-RISK-CO2
+seed_id: hypercapnia_co2
+title: Hipercapnia por CO2 / High Carbon Dioxide and Air Quality
+hazard: Hostile/Closed Environments
+category: PHYSIOLOGICAL
+subsystems:
+  - RESPIRATORY_ATMOSPHERE
+problem: 'CO2 elevado em habitat fechado causa cefaleia, tontura, dispneia, fadiga e confusão. Limiares: >= 1500 ppm suspeita, >= 3000 ppm crítico (SCD40). Dados de CO2 são ambientais e não provam causa de sintomas.'
+symptoms:
+  pt:
+    - dor de cabeça
+    - cefaleia
+    - tontura
+    - fadiga
+    - falta de ar
+    - confusão
+    - náusea
+    - pele corada
+    - hipercapnia
+  en:
+    - headache
+    - dizziness
+    - fatigue
+    - dyspnea
+    - confusion
+    - nausea
+    - flushed skin
+    - hypercapnia
+    - CO2
+sensor_signatures:
+  - sensor: SCD40
+    metric: co2_ppm
+    op: gte
+    threshold: 1500.0
+    causal_weight: 5.5
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: SCD40
+    metric: co2_ppm
+    op: gte
+    threshold: 3000.0
+    causal_weight: 8.5
+    weight_basis: causal_graph:likelihood_ratio
+    note: Crítico
+  - sensor: CSI
+    metric: respiration_hz
+    op: gte
+    threshold: 0.32
+    causal_weight: 2.2
+    weight_basis: causal_graph:likelihood_ratio
+    note: Taquipneia compensatória
+  - sensor: MAX30102
+    metric: heart_rate_bpm
+    op: gte
+    threshold: 85.0
+    causal_weight: 1.5
+    weight_basis: causal_graph:likelihood_ratio
+detection:
+  - 'I2C: SCD40 (CO2)'
+  - Respiração via CSI
+  - Amsler normal ajuda a excluir SANS
+countermeasures:
+  - order: 1
+    action: Verificar SCD40 e depuradores CDRA / cartuchos LiOH
+    protocol: null
+  - order: 2
+    action: Aumentar ventilação local e redirecionar fluxo de ar
+    protocol: null
+  - order: 3
+    action: Reduzir esforço até CO2 < 1000 ppm
+    protocol: null
+  - order: 4
+    action: 'CO2 >= 3000 ppm ou confusão: máscara de O2 e alertar tripulação'
+    protocol: null
+escalation:
+  default: CREW
+  LOCAL: Ventilação e inspeção de depuradores.
+  CREW: 'CO2 >= 3000 ppm ou confusão: alertar toda a tripulação.'
+  STORE_AND_FORWARD: 'Persistência > 1 h: Store-and-Forward.'
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Health Effects from CO2; NASA-STD-3001 Vol. 1/2
+  section: Atmosphere / CO2 limits
+  source_id: NASA-HRP-CO2
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

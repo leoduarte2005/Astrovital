@@ -1,0 +1,63 @@
+id: HRP-RISK-IRON-HEMATO
+seed_id: iron_overload
+title: Volume Plasmático, Anemia Espacial e Sobrecarga de Ferro
+hazard: Gravity Fields
+category: BEHAVIORAL_BIOCHEMICAL
+subsystems:
+  - IMMUNE_HEMATO_NUTRITION
+problem: Contração do volume plasmático concentra ferro sérico e eleva risco de anemia espacial e acúmulo de ferro, com fadiga, artralgia e desconforto abdominal.
+symptoms:
+  pt:
+    - fadiga
+    - dor articular
+    - dor abdominal
+    - mal-estar
+    - tontura
+  en:
+    - fatigue
+    - joint pain
+    - abdominal pain
+    - malaise
+    - dizziness
+    - iron
+    - anemia
+    - plasma volume
+sensor_signatures:
+  - sensor: Central
+    metric: mission_day
+    op: gte
+    threshold: 21.0
+    causal_weight: 2.0
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: CSI
+    metric: anomaly_score
+    op: gte
+    threshold: 0.4
+    causal_weight: 1.4
+    weight_basis: causal_graph:likelihood_ratio
+detection:
+  - 'Autoexame: sangue capilar (hemoglobina)'
+  - Desvio do baseline
+countermeasures:
+  - order: 1
+    action: Revisar cardápio e reduzir alimentos fortificados com ferro (Nutrition SMO)
+    protocol: null
+  - order: 2
+    action: Verificar hematologia e ferritina
+    protocol: capillary_blood
+  - order: 3
+    action: Manter hidratação e registrar artralgia
+    protocol: null
+  - order: 4
+    action: Resumo periódico ao cirurgião de voo
+    protocol: null
+escalation:
+  default: LOCAL
+  LOCAL: Ajuste de dieta e hidratação.
+  CREW: 'Sintomas persistentes: avisar tripulante.'
+  STORE_AND_FORWARD: Resumo periódico Store-and-Forward.
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Iron Overload / Space Anemia
+  section: Evidence Report
+  source_id: NASA-HRP-IRON-HEMATO
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

@@ -1,0 +1,162 @@
+version: 1
+description: Golden cases sintéticos para o motor de correlação causal. Nenhum dado real identificável.
+generation:
+  method: authored_manually
+  random_seed: null
+  reference_graph: edge-ai/knowledge-base/nasa_causal_graph.yaml
+cases:
+  - id: GC-01-HYPERCAPNIA
+    title: Cefaleia + CO2 alto + Amsler normal
+    input:
+      symptoms:
+        - headache
+        - dizziness
+      sensor_snapshot:
+        co2_ppm: 2100.0
+        respiration_hz: 0.34
+        heart_rate_bpm: 88.0
+        spo2_pct: 97.0
+        mission_day: 42
+        posture: upright
+        anomaly_score: 0.35
+      history:
+        crew_id: crew_001
+        mission_day: 42
+        recent_co2_trend: rising_2h
+      self_exam:
+        amsler_grid:
+          status: normal
+          scotomas: false
+    expected:
+      top1_hypothesis: hypercapnia_co2
+      mission_mode: MODE_REST_VITALS
+      countermeasures:
+        - Verificar SCD40 e depuradores CDRA/LiOH
+        - Aumentar ventilação local da cabine
+        - Reduzir esforço até CO2 < 1000 ppm
+      escalation: CREW
+      actions:
+        - OPEN_VENTILATION_CHECK
+        - INSPECT_CDRA_SCRUBBER
+        - MONITOR_SCD40
+      linked_protocols:
+        - amsler_grid
+      min_top1_posterior: 0.5
+  - id: GC-02-SANS-VIIP
+    title: Cefaleia + visão turva + Amsler alterado + CO2 normal
+    input:
+      symptoms:
+        - headache
+        - blurred_vision
+      sensor_snapshot:
+        co2_ppm: 620.0
+        respiration_hz: 0.22
+        heart_rate_bpm: 66.0
+        spo2_pct: 98.0
+        mission_day: 90
+        posture: supine
+        anomaly_score: 0.55
+      history:
+        crew_id: crew_002
+        mission_day: 90
+        recent_co2_trend: stable
+      self_exam:
+        amsler_grid:
+          status: altered
+          scotomas: false
+          distorted_quadrants:
+            - superotemporal
+    expected:
+      top1_hypothesis: sans_viip
+      mission_mode: MODE_CABIN_TOMOGRAPHY
+      countermeasures:
+        - Thigh Cuffs (Braslet) ou LBNP
+        - Ultrassom ONSD bilateral
+        - Complexo B (folato, B6, B12)
+      escalation: CREW
+      actions:
+        - OPEN_AMSLER_GRID
+        - LOG_SELF_EXAM
+        - CHECK_FLUID_SHIFT_PROTOCOL
+      linked_protocols:
+        - amsler_grid
+        - ultrasound_onsd
+        - capillary_blood
+      min_top1_posterior: 0.5
+  - id: GC-03-FATIGUE-DEHYDRATION
+    title: Cefaleia + sono curto + HRV baixo + hidratação baixa
+    input:
+      symptoms:
+        - headache
+        - fatigue
+        - insomnia
+      sensor_snapshot:
+        co2_ppm: 700.0
+        respiration_hz: 0.24
+        heart_rate_bpm: 80.0
+        hrv_ms: 24.0
+        sleep_duration_h: 4.5
+        hydration_index: 0.35
+        temp_c: 36.8
+        mission_day: 60
+        posture: upright
+        anomaly_score: 0.45
+      history:
+        crew_id: crew_003
+        mission_day: 60
+        sleep_trend: declining_5d
+      self_exam:
+        amsler_grid:
+          status: normal
+          scotomas: false
+    expected:
+      top1_hypothesis: sleep_immune_deprivation
+      mission_mode: MODE_REST_VITALS
+      countermeasures:
+        - 'Nutrition SMO: hidratação e plano alimentar'
+        - Ajuste circadiano (luz e horários de repouso)
+        - Suspender estimulantes 6h antes do sono
+      escalation: LOCAL
+      actions:
+        - ADJUST_LIGHTING_CIRCADIAN
+        - LOG_SLEEP_REST
+        - CHECK_HRV_TREND
+      linked_protocols:
+        - temperature
+      min_top1_posterior: 0.4
+  - id: GC-04-SPE-RADIATION-ALERT
+    title: Evento SPE + HRV em queda
+    input:
+      symptoms:
+        - nausea
+        - fatigue
+        - malaise
+      sensor_snapshot:
+        co2_ppm: 800.0
+        heart_rate_bpm: 92.0
+        hrv_ms: 22.0
+        spo2_pct: 97.0
+        radiation_context: 1.0
+        mission_day: 120
+        posture: upright
+        anomaly_score: 0.6
+      history:
+        crew_id: crew_001
+        mission_day: 120
+        spe_alert: true
+        hrv_trend: falling_30min
+      self_exam: {}
+    expected:
+      top1_hypothesis: radiation_ros
+      mission_mode: MODE_RADIATION_ALERT
+      countermeasures:
+        - Abrigo de maior blindagem (storm shelter / water wall)
+        - Vitaminas C e E (antioxidantes)
+        - Verificar dosímetros e monitorar sinais vitais
+      escalation: STORE_AND_FORWARD
+      actions:
+        - MOVE_TO_STORM_SHELTER
+        - CHECK_DOSIMETER
+        - MONITOR_VITALS
+      linked_protocols: []
+      min_top1_posterior: 0.5

@@ -798,3 +798,182 @@ def test_symptom_extractor_bilingual() -> None:
     assert "fatigue" in res.concepts
     assert "blurred_vision" in res.concepts
     assert res.eva_context is True
+
+
+def _apply_real_migrations(db_file: Path) -> Path:
+    import sqlite3
+
+    repo_root = Path(__file__).resolve().parents[2]
+    mig_dir = repo_root / "database" / "migrations"
+    sql_files = sorted(mig_dir.glob("*.sql"))
+    assert [p.name for p in sql_files][:2] == [
+        "0001_operational_schema.sql",
+        "0002_operational_seeds.sql",
+    ]
+
+    conn = sqlite3.connect(db_file)
+    try:
+        for sql_path in sql_files:
+            conn.executescript(sql_path.read_text(encoding="utf-8"))
+        conn.commit()
+    finally:
+        conn.close()
+    return repo_root
+
+
+def test_clinical_store_real_database_migrations(tmp_path: Path) -> None:
+    db_file = tmp_path / "edgespace_real.db"
+    _apply_real_migrations(db_file)
+
+    store = ClinicalStore(db_path=db_file)
+    queries = (
+        "dor de cabeça",
+        "dor de cabeca",
+        "radiação",
+        "radiacao",
+        "insônia",
+        "insonia",
+        "visão turva",
+        "visao turva",
+        "SANS",
+        "CO2",
+        "hypoxia",
+        "decompression",
+    )
+    for query in queries:
+        hits = store.search(query)
+        assert hits, f"expected FTS5 hits for {query!r}"
+        assert all(h.source == "sqlite_fts5" for h in hits), f"unexpected fallback hit for {query!r}: {hits}"
+
+
+def test_baseline_registry_parity_with_sql_seeds(tmp_path: Path) -> None:
+    import sqlite3
+
+    db_file = tmp_path / "edgespace_real.db"
+    repo_root = _apply_real_migrations(db_file)
+    edge_ai_dir = repo_root / "edge-ai"
+
+    conn = sqlite3.connect(db_file)
+    try:
+        rows = conn.execute("SELECT crew_id, baseline_path FROM crew_profiles ORDER BY crew_id").fetchall()
+    finally:
+        conn.close()
+
+    assert [r[0] for r in rows] == ["crew_001", "crew_002", "crew_003"]
+
+    registry = BaselineRegistry(models_dir=edge_ai_dir / "models")
+    results: dict[str, tuple[bool, float]] = {}
+    for crew_id, baseline_path in rows:
+        resolved = str((edge_ai_dir / baseline_path).resolve()) if baseline_path else None
+        _, found = registry.set_active_crew(crew_id, baseline_path=resolved)
+        results[crew_id] = (found, registry.last_switch_ms)
+
+    assert results["crew_001"][0] is True and results["crew_001"][1] < 300.0
+    assert results["crew_002"][0] is True and results["crew_002"][1] < 300.0
+    assert results["crew_003"][0] is False and results["crew_003"][1] < 300.0
+
+
+def test_golden_cases_end_to_end_with_real_sqlite(tmp_path: Path) -> None:
+    import re
+    import sqlite3
+    from edgespace_ai.correlation.clinical_store import load_yaml_file
+
+    db_file = tmp_path / "edgespace_real.db"
+    repo_root = _apply_real_migrations(db_file)
+
+    conn = sqlite3.connect(db_file)
+    try:
+        crew_thresholds: dict[str, dict[str, Threshold]] = {}
+        for crew_id, tj in conn.execute("SELECT crew_id, thresholds_json FROM crew_profiles").fetchall():
+            raw = json.loads(tj)
+            crew_thresholds[crew_id] = {k: Threshold(**v) for k, v in raw.items()}
+    finally:
+        conn.close()
+
+    causal_kb = load_yaml_file(repo_root / "edge-ai" / "knowledge-base" / "nasa_causal_graph.yaml")
+    cond_meta = {
+        c["id"]: (c["name"], c["source_id"])
+        for c in causal_kb.get("conditions", [])
+        if isinstance(c, dict)
+    }
+
+    golden = load_yaml_file(repo_root / "knowledge-base" / "datasets" / "golden_cases" / "golden_cases.yaml")
+    cases = golden.get("cases", [])
+    assert len(cases) == 4
+
+    correlator = ClinicalCorrelator(db_path=db_file)
+    ts = now_us()
+
+    for case in cases:
+        inp = case["input"]
+        snap = inp.get("sensor_snapshot") or {}
+        hist = inp.get("history") or {}
+        crew_id = str(hist.get("crew_id") or "crew_001")
+
+        parts = list(inp.get("symptoms") or [])
+        if hist.get("spe_alert") or snap.get("radiation_context"):
+            parts.append("SPE radiation alert")
+        if snap.get("sleep_duration_h") is not None and float(snap["sleep_duration_h"]) < 6.0:
+            parts.append(f"sono curto {snap['sleep_duration_h']}h")
+        if snap.get("hydration_index") is not None and float(snap["hydration_index"]) < 0.5:
+            parts.append("baixa hidratacao")
+        text = " ".join(str(p) for p in parts)
+
+        peripherals: list[PeripheralReading] = []
+        if "co2_ppm" in snap:
+            peripherals.append(PeripheralReading(type=Peripheral.SCD40, value=float(snap["co2_ppm"]), unit="ppm", timestamp_us=ts))
+        if "spo2_pct" in snap:
+            peripherals.append(PeripheralReading(type=Peripheral.MAX30102, value=float(snap["spo2_pct"]), unit="%", timestamp_us=ts))
+        if "temp_c" in snap:
+            peripherals.append(PeripheralReading(type=Peripheral.BME280, value=float(snap["temp_c"]), unit="C", timestamp_us=ts))
+
+        inference = AIInferencePayload(
+            cycle_seq_first=1,
+            posture=str(snap.get("posture", "upright")),
+            respiration_hz=float(snap.get("respiration_hz", 0.25)),
+            heart_rate_bpm=float(snap.get("heart_rate_bpm", 72.0)),
+            hrv_ms=float(snap.get("hrv_ms", 45.0)),
+            anomaly_score=float(snap.get("anomaly_score", 0.1)),
+            confidence=0.9,
+        )
+        req = ChatCorrelateReqPayload(
+            text=text,
+            crew_id=crew_id,
+            profile=CrewProfile(crew_id=crew_id, name=crew_id, mission_day=int(snap.get("mission_day", 42))),
+            last_peripherals=peripherals,
+        )
+        resp = correlator.correlate(
+            req,
+            peripherals=peripherals,
+            inference=inference,
+            thresholds=crew_thresholds.get(crew_id),
+        )
+
+        exp = case["expected"]
+        exp_id = exp["top1_hypothesis"]
+        exp_name, exp_source_id = cond_meta[exp_id]
+
+        assert resp.differentials, f"{case['id']}: missing differentials"
+        assert resp.differentials[0].startswith(exp_name), (
+            f"{case['id']}: got {resp.differentials[0]!r}, expected prefix {exp_name!r}"
+        )
+        assert resp.source_ids and resp.source_ids[0] == exp_source_id, (
+            f"{case['id']}: source_ids={resp.source_ids}, expected first={exp_source_id!r}"
+        )
+        m = re.search(r"P=(\d+\.\d+)", resp.differentials[0])
+        assert m is not None, f"{case['id']}: could not parse posterior from {resp.differentials[0]!r}"
+        posterior = float(m.group(1))
+        assert posterior >= float(exp["min_top1_posterior"]), (
+            f"{case['id']}: posterior {posterior} < {exp['min_top1_posterior']}"
+        )
+        assert resp.escalation.value == exp["escalation"], (
+            f"{case['id']}: escalation={resp.escalation.value}, expected={exp['escalation']}"
+        )
+        assert any("Base clínica (sqlite_fts5)" in ev for ev in (resp.evidence or [])), (
+            f"{case['id']}: expected sqlite_fts5 citation in evidence={resp.evidence}"
+        )
+
+    correlator = ClinicalCorrelator(db_path=db_file)
+    ts = now_us()
+
+

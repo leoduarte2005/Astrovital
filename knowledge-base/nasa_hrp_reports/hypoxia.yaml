@@ -1,0 +1,78 @@
+id: HRP-RISK-HYPOXIA
+seed_id: hypoxia
+title: Hipóxia de Cabine / Hypoxia and Low Oxygen
+hazard: Hostile/Closed Environments
+category: PHYSIOLOGICAL
+subsystems:
+  - RESPIRATORY_ATMOSPHERE
+problem: 'Queda de O2 ou da pressão de cabine reduz a saturação arterial. Sinais: dispneia, tontura, confusão, cianose. SpO2 fisiológica (MAX30102) e O2 ambiental são fluxos distintos.'
+symptoms:
+  pt:
+    - hipóxia
+    - falta de ar
+    - tontura
+    - confusão
+    - cianose
+    - dor de cabeça
+    - fadiga
+    - dessaturação
+  en:
+    - hypoxia
+    - dyspnea
+    - dizziness
+    - confusion
+    - cyanosis
+    - headache
+    - fatigue
+    - SpO2
+sensor_signatures:
+  - sensor: MAX30102
+    metric: spo2_pct
+    op: lte
+    threshold: 94.0
+    causal_weight: 6.5
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: BME280
+    metric: pressure_hpa
+    op: lte
+    threshold: 750.0
+    causal_weight: 4.5
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: CSI
+    metric: respiration_hz
+    op: gte
+    threshold: 0.35
+    causal_weight: 2.0
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: MAX30102
+    metric: heart_rate_bpm
+    op: gte
+    threshold: 95.0
+    causal_weight: 1.8
+    weight_basis: causal_graph:likelihood_ratio
+detection:
+  - 'I2C: MAX30102 (SpO2), BME280 (pressão)'
+  - Respiração via CSI
+countermeasures:
+  - order: 1
+    action: Confirmar SpO2 (MAX30102) e pressão (BME280)
+    protocol: null
+  - order: 2
+    action: Inspecionar suprimento de O2 e vedação
+    protocol: null
+  - order: 3
+    action: O2 suplementar se SpO2 <= 92%
+    protocol: null
+  - order: 4
+    action: Escalonar Store-and-Forward
+    protocol: null
+escalation:
+  default: STORE_AND_FORWARD
+  LOCAL: Confirmar leitura de sensores.
+  CREW: 'SpO2 <= 92%: alertar tripulação e iniciar O2.'
+  STORE_AND_FORWARD: Enfileirar evento ao cirurgião de voo.
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Hypoxia / hypobaric exposure; NASA-STD-3001 Vol. 1/2
+  section: Atmosphere / pressure
+  source_id: NASA-HRP-HYPOXIA
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

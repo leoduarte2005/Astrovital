@@ -1,0 +1,61 @@
+id: amsler_grid
+title: Grade de Amsler (Triagem Ocular SANS/VIIP)
+duration_s: 120
+materials:
+  - Tela com Grade de Amsler interativa
+  - Oclusor ocular ou mão limpa
+  - Iluminação uniforme da cabine
+steps:
+  - text: Posicione a Grade de Amsler a 30 cm dos olhos sob luz uniforme.
+    image: protocols/amsler_position.svg
+    timer_s: 10
+    safety_note: Use óculos de correção habituais se utilizar.
+  - text: Cubra o olho esquerdo sem pressionar o globo ocular.
+    image: protocols/amsler_cover_left.svg
+    timer_s: 5
+    safety_note: Não aperte a pálpebra.
+  - text: Fixe o ponto preto central com o olho direito e marque linhas tortas ou ausentes.
+    image: protocols/amsler_fixate_od.svg
+    timer_s: 30
+    safety_note: Mantenha o olhar fixo no ponto central.
+  - text: Repita o teste cobrindo o olho direito.
+    image: protocols/amsler_fixate_os.svg
+    timer_s: 30
+    safety_note: Compare a simetria entre os olhos.
+  - text: Registre o resultado via SELF_EXAM e escale se distorção persistir por 2 dias.
+    image: protocols/amsler_record.svg
+    timer_s: 15
+    safety_note: Alteração nova exige revisão por Flight Surgeon.
+result_schema:
+  type: object
+  required:
+    - eye
+    - distorted_quadrants
+    - scotomas
+    - status
+  properties:
+    eye:
+      type: string
+      enum:
+        - OD
+        - OS
+        - OU
+    distorted_quadrants:
+      type: array
+      items:
+        type: string
+        enum:
+          - superonasal
+          - superotemporal
+          - inferonasal
+          - inferotemporal
+    scotomas:
+      type: boolean
+    status:
+      type: string
+      enum:
+        - normal
+        - altered
+linked_risks:
+  - HRP-RISK-SANS
+  - HRP-RISK-ONE-CARBON

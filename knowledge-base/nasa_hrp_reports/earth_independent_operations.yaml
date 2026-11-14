@@ -1,0 +1,48 @@
+id: HRP-RISK-EARTH-INDEP
+seed_id: earth_independent_operations
+title: Operações Independentes da Terra / Earth-Independent Operations
+hazard: Distance from Earth
+category: BEHAVIORAL_BIOCHEMICAL
+subsystems:
+  - IMMUNE_HEMATO_NUTRITION
+problem: Atraso de até 22 min e ausência de evacuação exigem tomada de decisão médica autônoma com apoio de CDSS e autoexames guiados.
+symptoms:
+  pt:
+    - incerteza clínica
+    - ansiedade
+    - atraso de resposta
+  en:
+    - clinical uncertainty
+    - anxiety
+    - response delay
+    - medical autonomy
+sensor_signatures:
+  - sensor: Central
+    metric: comm_delay_min
+    op: gte
+    threshold: 5.0
+    causal_weight: 1.0
+    weight_basis: heuristic_pending_clinical_review
+detection:
+  - Estado do enlace na Central
+  - Autoexames guiados
+countermeasures:
+  - order: 1
+    action: Seguir protocolo guiado local
+    protocol: blood_pressure
+  - order: 2
+    action: Registrar em SELF_EXAM
+    protocol: null
+  - order: 3
+    action: Enfileirar pacote Store-and-Forward
+    protocol: null
+escalation:
+  default: STORE_AND_FORWARD
+  LOCAL: Resolver autonomamente se houver protocolo.
+  CREW: Pedir apoio de outro tripulante para exames em dupla.
+  STORE_AND_FORWARD: Pacote assíncrono ao cirurgião de voo.
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Inadequate Medical Capability / Earth-independent operations; CSA
+  section: Evidence Report
+  source_id: NASA-HRP-EARTH-INDEP
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

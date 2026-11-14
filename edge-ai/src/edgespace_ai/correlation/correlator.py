@@ -30,7 +30,7 @@ class ClinicalCorrelator:
     def __init__(
         self,
         *,
-        db_path: Path | str = Path("../data/edgespace.db"),
+        db_path: Optional[Path | str] = None,
         knowledge_base_path: Optional[Path | str] = None,
     ) -> None:
         default_kb = Path(__file__).resolve().parents[3] / "knowledge-base" / "nasa_causal_graph.yaml"

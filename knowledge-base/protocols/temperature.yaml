@@ -1,0 +1,45 @@
+id: temperature
+title: Medição de Temperatura Corporal
+duration_s: 90
+materials:
+  - Termômetro timpânico ou oral
+  - Capa descartável de sonda
+  - Lenço de álcool
+steps:
+  - text: Confirme que a capa da sonda está limpa e intacta.
+    image: protocols/temp_probe.svg
+    timer_s: 10
+    safety_note: Não reutilize capa descartável.
+  - text: Meça a temperatura timpânica ou oral e aguarde o sinal sonoro.
+    image: protocols/temp_measure.svg
+    timer_s: 30
+    safety_note: Aguarde 15 min após exercício para leitura confiável.
+  - text: Registre em SELF_EXAM se >= 37.8 °C ou <= 35.5 °C.
+    image: protocols/temp_record.svg
+    timer_s: 15
+    safety_note: 'Febre com lesão cutânea: isole contato e avise a tripulação.'
+  - text: Repita em 15 minutos se a leitura for limítrofe.
+    image: protocols/temp_repeat.svg
+    timer_s: 900
+    safety_note: Hidrate-se e evite agasalho excessivo.
+result_schema:
+  type: object
+  required:
+    - temp_c
+    - site
+  properties:
+    temp_c:
+      type: number
+      minimum: 30.0
+      maximum: 43.0
+    site:
+      type: string
+      enum:
+        - tympanic
+        - oral
+        - axillary
+        - forehead
+linked_risks:
+  - HRP-RISK-IMMUNE
+  - HRP-RISK-MICROBIOME
+  - HRP-RISK-SLEEP
