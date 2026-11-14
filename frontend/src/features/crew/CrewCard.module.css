@@ -1,0 +1,17 @@
+.figure {
+  width: 128px;
+  aspect-ratio: 100 / 220;
+  margin-bottom: var(--space-2);
+}
+
+.name {
+  margin: 0;
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+}
+
+.role {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
