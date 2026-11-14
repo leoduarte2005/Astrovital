@@ -20,7 +20,7 @@
 
 1. **Propriedade de Diretório:** cada membro abre PRs alterando apenas suas pastas exclusivas. Alterar pasta de outro membro exige revisão do dono da pasta.
 2. **Mudança em `contracts/`:** qualquer alteração em enum, JSON Schema ou fixture exige aprovação de Leonardo (M4) + 1 membro afetado, com atualização imediata de `tools/validate_contracts.py` e dos structs Go/TS/Python.
-3. **Escritor Único do SQLite:** Selliny (M1) define o schema em `database/migrations/`, mas em runtime **somente `central/internal/store` (Leonardo/M4)** executa `INSERT/UPDATE/DELETE`. Santiago/Leonardo (M5, `edge-ai/`) lê apenas em `file:edgespace.db?mode=ro`.
+3. **Escritor Único do SQLite:** Selliny (M1) define o schema operacional previsto em [database/README.md](../database/README.md#base-operacional-planejada); sua implementação ainda está pendente. Em runtime, **somente `central/internal/store` (Leonardo/M4)** executa `INSERT/UPDATE/DELETE`. Santiago/Leonardo (M5, `edge-ai/`) lê apenas em `file:edgespace.db?mode=ro`. O pacote de pesquisa tem schema próprio em `database/space_health_sqlite/schema.sql` e é consultado por conexão separada somente leitura.
 4. **Mocks Primeiro:**
    - Rafael (M3) desenvolve todo o Frontend contra o mock server / `--mock-cluster` de Leonardo (M4) (não precisa de ESP32 nem Python rodando).
    - Santiago/Leonardo (M5) desenvolve e testa DSP/ONNX/Correlação offline usando `knowledge-base/datasets/` de Selliny (M1) e fixtures em `contracts/fixtures/`.
@@ -35,7 +35,7 @@
 | `central` ↔ `firmware` | UDP `:5005` | `CLUSTER_SYNC` (Central→Nós, 10 Hz); `CSI_FRAME` + `PERIPHERAL_DATA` (Nós→Central) | 100 ms ciclo TDM (5×20 ms); I2C 1 Hz |
 | `central` ↔ `edge-ai` | TCP `127.0.0.1:5006` | Frames length-prefixed JSON: `CSI_WINDOW`, `SET_ACTIVE_CREW`, `CHAT_CORRELATE_REQ` ↔ `AI_INFERENCE`, `CHAT_CORRELATE_RESP` | 1–10 Hz (janelas deslizantes) + sob demanda (chat) |
 | `central` ↔ `frontend` | WS + REST `:8000` | Envelope `{"v":1,"type":...,"ts_us":...,"crew_id":...,"payload":...}` | Push 2–10 Hz para UI; REST para histórico/seeds |
-| `central` ↔ `database` | SQLite local (`WAL`) | `database/migrations/*.sql` + queries FTS5 | Contínuo (batch/tx curtas) |
+| `central` ↔ `database` | SQLite local (`WAL`) | Schema operacional + queries FTS5, a implementar conforme [database/README.md](../database/README.md#base-operacional-planejada) | Contínuo (batch/tx curtas) |
 
 ---
 

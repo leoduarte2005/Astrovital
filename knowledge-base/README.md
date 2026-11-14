@@ -3,7 +3,7 @@
 **Responsável:** Selliny (M1). Guia: [`docs/members/MEMBER-01-DATABASE-KNOWLEDGE.md`](../docs/members/MEMBER-01-DATABASE-KNOWLEDGE.md)
 
 ## Propósito
-Conhecimento médico aeroespacial estruturado, legível por máquina, que alimenta seeds do banco, tutoriais do painel e motor de correlação causal.
+Conhecimento médico aeroespacial estruturado, legível por máquina, previsto para a carga inicial do banco operacional, tutoriais do painel e motor de correlação causal.
 
 ## Estrutura
 | Pasta | Conteúdo |
@@ -13,7 +13,7 @@ Conhecimento médico aeroespacial estruturado, legível por máquina, que alimen
 | [`datasets/`](datasets/README.md) | Séries sintéticas e golden cases |
 
 ## Consumidores
-- Selliny/M1: gera `database/seeds/`.
+- Selliny/M1: mantém o [pacote de pesquisa](../database/space_health_sqlite/README.md) e prepara a futura carga inicial operacional descrita em [database/README.md](../database/README.md).
 - Rafael/M3: tutoriais (via REST da Central).
 - Santiago/Leonardo/M5: grafo causal, golden cases, datasets de treino.
 

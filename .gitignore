@@ -1,1 +1,9 @@
 .cline/*
+/var/
+__pycache__/
+*.db-wal
+*.db-shm
+*.db-journal
+
+# Snapshot completo de pesquisa: mantido localmente e distribuído separadamente.
+/database/space_health_sqlite/space_health.db

@@ -1,0 +1,189 @@
+{
+  "source_directory": "/home/selliny/Documentos/space_health_sqlite",
+  "imported_at_utc": "2026-11-14T16:32:30+00:00",
+  "network_used": false,
+  "files": [
+    {
+      "file": "apply_missingness_policy.py",
+      "source_bytes": 27201,
+      "project_bytes": 25017,
+      "source_sha256": "0e20b0078e5cdd55eedcced0be3df9d991733c8352ee2cdeed01da0632e7f542",
+      "project_sha256": "bb7e686a76cfe814d5c86722ca281a2a4a8b8cadb1540e176a1afc7e90d6bb66",
+      "adapted": true,
+      "project_path": "scripts/apply_missingness_policy.py"
+    },
+    {
+      "file": "build_db.py",
+      "source_bytes": 47668,
+      "project_bytes": 47672,
+      "source_sha256": "14488e15767b8418d6ff0cb043918bacfee16395c485a582c787ab9ee9fb2683",
+      "project_sha256": "5d157064b89dfa6b429f074ca68dfcd25be5bf92447f9248f15db9e3474b3b91",
+      "adapted": true,
+      "project_path": "scripts/build_db.py"
+    },
+    {
+      "file": "DATA_INVENTORY.md",
+      "source_bytes": 10229,
+      "project_bytes": 11069,
+      "source_sha256": "0831abc025fb67c97bba72a98ff24afe7e9b975733a5cfd4b915acddc8cfe4a0",
+      "project_sha256": "78b71388b79b0dc7b9b04fee9edd01f25a91e047e25a231aaf5f4849d5c1740b",
+      "adapted": true,
+      "project_path": "docs/DATA_INVENTORY.md"
+    },
+    {
+      "file": "import_published_physiology.py",
+      "source_bytes": 25245,
+      "project_bytes": 26248,
+      "source_sha256": "dbcf5a6dea91f8d61cdf07b48e260624edd26db219700af5409970dea9db9eae",
+      "project_sha256": "4507e94249e68ca8555a5c550ad51e5dba6023ae886f1347670b0a6ce1707417",
+      "adapted": true,
+      "project_path": "scripts/import_published_physiology.py"
+    },
+    {
+      "file": "MISSING_DATA_POLICY.md",
+      "source_bytes": 6830,
+      "project_bytes": 7096,
+      "source_sha256": "9fe3f68b12962c7d416e419a57021d30a1871127aef781aeb82f23ed7576a36d",
+      "project_sha256": "286bf82e5a33611c007a67947ad64c2b2996e182c74a6e5cd7c59a632d82878f",
+      "adapted": true,
+      "project_path": "docs/MISSING_DATA_POLICY.md"
+    },
+    {
+      "file": "queries.sql",
+      "source_bytes": 6728,
+      "project_bytes": 6728,
+      "source_sha256": "73f0a1efff2d7408031d10240f2e62f0e15c1f2b67857dbe12be03df6981e951",
+      "project_sha256": "73f0a1efff2d7408031d10240f2e62f0e15c1f2b67857dbe12be03df6981e951",
+      "adapted": false,
+      "project_path": "queries/queries.sql"
+    },
+    {
+      "file": "README.md",
+      "source_bytes": 7963,
+      "project_bytes": 10382,
+      "source_sha256": "20a9ecbbdd6e86c11eb8e0772552ced11fe2b0e6008b1f08fdc319dd485b6862",
+      "project_sha256": "b848572002548da738dbed748cb8185a88fcb4f14fbd1ebf697328dd4c1c40a7",
+      "adapted": true,
+      "project_path": "docs/SOURCE_README.md"
+    },
+    {
+      "file": "schema.sql",
+      "source_bytes": 17211,
+      "project_bytes": 17211,
+      "source_sha256": "74ac3d10e5d0c1d7b970472c4e73c9a42fe75231bc4f2e38c2efca8087415b9e",
+      "project_sha256": "74ac3d10e5d0c1d7b970472c4e73c9a42fe75231bc4f2e38c2efca8087415b9e",
+      "adapted": false,
+      "project_path": "schema.sql"
+    },
+    {
+      "file": "space_health.db",
+      "source_bytes": 496971776,
+      "project_bytes": 496971776,
+      "source_sha256": "8273c353f2df54f621e978c14648b78686e890f4936ce23bd68ff29209db71d9",
+      "project_sha256": "55dc0d96546e9ca005340fad42a29a93f384fdf844ebad71c9583466b796a827",
+      "adapted": true,
+      "project_path": "space_health.db"
+    },
+    {
+      "file": "validate_db.py",
+      "source_bytes": 16219,
+      "project_bytes": 18936,
+      "source_sha256": "bfa681e4dff08ea237d1d7352bcb452ccd1b142604e60a32d59b4565bdc9f1ff",
+      "project_sha256": "622383ef83f0343819a57105b16d37e6c82b5646b201fabe68d5a90f90b65ca7",
+      "adapted": true,
+      "project_path": "scripts/validate_db.py"
+    },
+    {
+      "file": "validation_report.json",
+      "source_bytes": 18543,
+      "project_bytes": 18543,
+      "source_sha256": "144d65674fc37f269df0a97420e94760cb1a36600ed73fd9d177a0aa2ba51443",
+      "project_sha256": "144d65674fc37f269df0a97420e94760cb1a36600ed73fd9d177a0aa2ba51443",
+      "adapted": false,
+      "project_path": "reports/supplied/validation_report.json"
+    },
+    {
+      "file": "VALIDATION_REPORT.md",
+      "source_bytes": 7111,
+      "project_bytes": 7111,
+      "source_sha256": "19b7a48a1ac6a2454988757d0da1da71414e3667f28833a3b5282056a096a98c",
+      "project_sha256": "19b7a48a1ac6a2454988757d0da1da71414e3667f28833a3b5282056a096a98c",
+      "adapted": false,
+      "project_path": "reports/supplied/VALIDATION_REPORT.md"
+    }
+  ],
+  "adaptations": {
+    "space_health.db": "Consistent SQLite backup including committed WAL data; standalone DELETE snapshot; all 26 table counts match the supplied report.",
+    "validate_db.py": "Read-only and isolated reporting, grouped NULL-event verification, denominator arithmetic with zero-row NOT_ASSESSABLE handling, failure exit status, dynamic publication counts and preserved source-quality findings. Package root resolution adjusted for scripts/.",
+    "import_published_physiology.py": "Side-effect-free module, --db and legacy CLI, safe default var/space_health_demo.db, shared schema and legacy SD migration, one transaction, and replacement restricted to the supplied publication corpus. All 161 source aggregate values and context fields match the rebuilt demonstration. Package root resolution adjusted for scripts/.",
+    "apply_missingness_policy.py": "Side-effect-free transactional CLI, shared schema with legacy study_key migration, safe demonstration default, managed audit refresh, parent-key UPSERT and dataset-scoped completeness. Source missingness and original measurement values are preserved. Package root resolution adjusted for scripts/.",
+    "build_db.py": "Package root resolution adjusted for scripts/; build behavior and supplied data preserved.",
+    "README.md": "Source README revised for the project layout, 26 field definitions, six source snapshots, complete 26-table summary and four-stage preparation commands targeting a separate database. Supplied original left unchanged.",
+    "DATA_INVENTORY.md": "Inventory revised to document six snapshots, molecular and published-aggregate counts, 44 temporal series and preservation of all-empty EDA rows with zero exclusions; Markdown table continuity fixed. Supplied original left unchanged.",
+    "MISSING_DATA_POLICY.md": "Summary corrected from 43 to 44 temporal series to match the snapshot and the document temporal section. Policy and source values unchanged; supplied original left unchanged."
+  },
+  "updated_at_utc": "2026-11-14T19:44:28+00:00",
+  "previous_version_backup": "var/research/backups/20261114T194422226066Z",
+  "database_snapshot_method": "SQLite backup API from read-only source including committed WAL data; standalone DELETE destination; SHM is not deployed",
+  "source_sidecars": [
+    {
+      "file": "space_health.db-wal",
+      "bytes": 0,
+      "sha256_at_inspection": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "handling": "Committed WAL data included through SQLite backup; SHM coordination state is not deployed."
+    },
+    {
+      "file": "space_health.db-shm",
+      "bytes": 32768,
+      "sha256_at_inspection": "fd4c9fda9cd3f9ae7c962b0ddf37232294d55580e1aa165aa06129b8549389eb",
+      "handling": "Committed WAL data included through SQLite backup; SHM coordination state is not deployed."
+    }
+  ],
+  "verification": {
+    "table_counts_match_supplied_report": 26,
+    "structural_checks_passed": 13,
+    "regression_tests_passed": 13,
+    "query_file_statements_passed": 20,
+    "dbeaver_statements_passed": 24,
+    "complete_physiology_query_statements_passed": 1,
+    "complete_physiology_query_rows": 161,
+    "complete_physiology_query_columns": 39,
+    "source_snapshots_verified": 6,
+    "missingness_events": 781198,
+    "all_empty_environmental_rows_preserved": 128175,
+    "imputed_values": 0,
+    "source_quality_findings_retained": 1,
+    "source_content_files_unchanged": 12,
+    "network_used": false
+  },
+  "layout_version": 2,
+  "organized_at_utc": "2026-11-14T20:00:57+00:00",
+  "organization_backup": "var/research/backups/20261114T200057558975Z",
+  "database_sha256_before_organization": "55dc0d96546e9ca005340fad42a29a93f384fdf844ebad71c9583466b796a827",
+  "organization_verification": {
+    "database_path_unchanged": true,
+    "database_sha256_unchanged": true,
+    "tables_unchanged": 26,
+    "regression_tests_passed": 13,
+    "structural_checks_passed": 13,
+    "query_target_statements_passed": 20,
+    "fresh_offline_demo_passed": true,
+    "local_markdown_links_checked": true,
+    "obsolete_executable_paths_removed": true
+  },
+  "documentation_updated_at_utc": "2026-11-14T20:19:55+00:00",
+  "documentation_cleanup_backup": "var/research/backups/20261114T201657779083Z",
+  "documentation_cleanup_verification": {
+    "planning_directories_removed": true,
+    "obsolete_make_targets_and_references_removed": true,
+    "make_help_passed": true,
+    "research_make_targets_dry_run_passed": true,
+    "local_markdown_files_checked": 12,
+    "local_markdown_links_checked": 64,
+    "project_manifest_hashes_and_sizes_verified": 12,
+    "original_document_hashes_verified": 3,
+    "database_sha256_unchanged": true,
+    "supplied_reports_sha256_unchanged": true,
+    "schema_and_scripts_unchanged": true
+  }
+}
