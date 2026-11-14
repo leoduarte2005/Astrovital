@@ -1,0 +1,2 @@
+[console_scripts]
+edgespace-ai = edgespace_ai.main:main

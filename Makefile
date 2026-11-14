@@ -13,7 +13,7 @@ PYTHON         ?= python3
 
 .PHONY: help contracts-validate db-migrate db-seed firmware-build firmware-flash \
         frontend-build central-build central-run-mock edge-ai-setup edge-ai-run \
-        all clean
+        test-e2e-ai all clean
 
 help:
 	@echo "EdgeSpace — alvos disponíveis:"
@@ -27,6 +27,7 @@ help:
 	@echo "  central-run-mock    Central com --mock-cluster (sem hardware)              [Leonardo/M4]"
 	@echo "  edge-ai-setup       Cria venv e instala requirements do edge-ai            [Santiago+Leonardo/M5]"
 	@echo "  edge-ai-run         Sobe worker IA em 127.0.0.1:5006                       [Santiago+Leonardo/M5]"
+	@echo "  test-e2e-ai         Valida integração real edge-ai (:5006) + Central Go"
 	@echo "  all                 contracts-validate + frontend-build + central-build"
 
 contracts-validate:
@@ -76,6 +77,11 @@ edge-ai-run:
 	@if [ -d edge-ai/src/edgespace_ai ] && [ -f edge-ai/requirements.txt ]; then cd edge-ai && \
 	PYTHONPATH=src ./.venv/bin/python -m edgespace_ai --listen 127.0.0.1:5006 --db ../$(DB_PATH); \
 	else echo "[pendente] worker edge-ai ainda não implementado"; fi
+
+test-e2e-ai:
+	@PY=edge-ai/.venv/bin/python; \
+	if [ ! -x "$$PY" ] && [ -x edge-ai/.venv/Scripts/python.exe ]; then PY=edge-ai/.venv/Scripts/python.exe; fi; \
+	PYTHONPATH=edge-ai/src "$$PY" edge-ai/tests/e2e_central_integration.py
 
 all: contracts-validate frontend-build central-build
 

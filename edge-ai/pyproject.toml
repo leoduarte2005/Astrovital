@@ -1,0 +1,44 @@
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "edgespace-ai"
+version = "0.1.0"
+description = "Edge Space AI worker for CSI DSP, ONNX biometric inference, and clinical correlation"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "numpy>=1.26.0",
+    "scipy>=1.11.0",
+    "onnxruntime>=1.17.0",
+    "pydantic>=2.6.0",
+    "pydantic-settings>=2.2.0",
+]
+
+[project.optional-dependencies]
+train = [
+    "scikit-learn>=1.4.0",
+    "skl2onnx>=1.16.0",
+    "onnx>=1.15.0",
+]
+test = [
+    "pytest>=8.0.0",
+]
+dev = [
+    "scikit-learn>=1.4.0",
+    "skl2onnx>=1.16.0",
+    "onnx>=1.15.0",
+    "pytest>=8.0.0",
+]
+
+[project.scripts]
+edgespace-ai = "edgespace_ai.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
