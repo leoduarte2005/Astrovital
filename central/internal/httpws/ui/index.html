@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EdgeSpace Central — Offline Placeholder UI</title>
+  <style>
+    body { font-family: monospace; background: #0b1017; color: #d8e2ec; margin: 2rem; }
+    h1 { color: #5ccfe6; margin-bottom: 0.25rem; }
+    .meta { color: #8b9bb4; margin-bottom: 1rem; }
+    pre { background: #131b26; padding: 1rem; border: 1px solid #263244; overflow-x: auto; }
+    a { color: #80cbc4; }
+  </style>
+</head>
+<body>
+  <h1>EdgeSpace Central</h1>
+  <div class="meta">Offline embedded placeholder UI (pending frontend/dist build from M3).</div>
+  <div>
+    Endpoints: <a href="/healthz">/healthz</a> | <a href="/api/metrics">/api/metrics</a> | <a href="/api/crew">/api/crew</a>
+  </div>
+  <h3>WebSocket /ws (<span id="status">connecting</span>)</h3>
+  <pre id="log"></pre>
+  <script>
+    (function () {
+      var statusEl = document.getElementById("status");
+      var logEl = document.getElementById("log");
+      var proto = location.protocol === "https:" ? "wss:" : "ws:";
+      var ws = new WebSocket(proto + "//" + location.host + "/ws");
+      ws.onopen = function () { statusEl.textContent = "connected"; };
+      ws.onclose = function (e) { statusEl.textContent = "closed (" + e.code + ")"; };
+      ws.onmessage = function (e) {
+        logEl.textContent = e.data + "\n" + logEl.textContent.slice(0, 4000);
+      };
+    })();
+  </script>
+</body>
+</html>
