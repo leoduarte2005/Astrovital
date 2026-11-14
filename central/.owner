@@ -1,0 +1,4 @@
+Leonardo (Membro 4 — Integrador)
+Orquestrador Central em Go (Orange Pi 4 Pro)
+CGO_ENABLED=0 | linux/arm64 | UDP :5005 | IPC :5006 | HTTP/WS :8000
+Hub único entre: Nicolas/M2 (nós), Santiago/Leonardo/M5 (IA), Selliny/M1 (DB), Rafael/M3 (UI)
