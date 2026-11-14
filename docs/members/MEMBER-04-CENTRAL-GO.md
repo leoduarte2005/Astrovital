@@ -2,7 +2,7 @@
 
 **Pastas exclusivas:** `central/`, `tools/`, `deploy/`. Guardião de `contracts/`.
 **Hub único** entre Nicolas/M2 (cluster ESP32-S3), Rafael/M3 (UI/Chatbot), Selliny/M1 (schema SQLite), Santiago/Leonardo/M5 (Edge AI).
-**Status:** planejamento arquitetural. **Zero código-fonte nesta etapa.** Blocos de estrutura abaixo são contratos/pseudo-estruturas, não implementação.
+**Status:** especificação arquitetural de referência. A Central já possui implementação em `central/`; os blocos abaixo descrevem o desenho e os critérios previstos, cuja cobertura deve ser conferida no código e nos testes.
 
 ---
 
@@ -73,7 +73,7 @@ Regras:
 | `pipeline` | Ring buffers pré-alocados por enlace `(tx,rx)`; agrupar frames por `cycle_seq`; fechar ciclo; montar `CSI_WINDOW` e `PERIPHERAL_SNAPSHOT`; aplicar limiares do tripulante ativo e gerar severidade por subsistema; mesclar `AI_INFERENCE` | Abrir SQLite, falar WS direto | `DataCh`, máscara do `cluster`, `session.Snapshot`, inferências do `ipc` | `ipc` (lo-pri), `store` (cmds), `httpws` (estado latest-wins), alertas |
 | `session` | Dono do `crew_id` ativo e `mission_mode`; hot-swap atômico; calibração; montar contexto de `CHAT_CORRELATE_REQ` | Telemetria contínua | Cmds de `httpws`/`sim`, `CREW_ACK`, respostas de chat | `Snapshot` atômico, `SET_ACTIVE_CREW`, `CREW_STATE`, `MODE_CMD` |
 | `ipc` | Conectar/reconectar `127.0.0.1:5006`; framing; fila hi-pri/lo-pri; roteamento de respostas por `type` e `req_id` | Interpretar inferência | Envelopes de `pipeline`/`session` | `InferenceCh`, `CrewAckCh`, `ChatRespCh`, `CalibFbCh` |
-| `store` | Goroutine única de escrita; batch 250 ms; PRAGMAs; migrations (`database/migrations/`); pool read-only para REST; outbox Store-and-Forward; checkpoint WAL | Regras clínicas | `store.Cmd` canal | Linhas no DB, ACKs de flush |
+| `store` | Goroutine única de escrita; batch 250 ms; PRAGMAs; migrations da pasta configurada por `--migrations`; pool read-only para REST; outbox Store-and-Forward; checkpoint WAL | Regras clínicas | `store.Cmd` canal | Linhas no DB, ACKs de flush |
 | `sim` | Nós virtuais (MACs fixos, HELLO/HEARTBEAT/CSI/I2C) e cenários; worker IA falso | Rodar em produção sem flag | Flags, `POST /api/dev/scenario` | Mesmos canais de `udp`; listener IPC falso |
 | `httpws` | Servir `embed` UI; REST; hub WS; validar envelope de entrada; decimador 2 Hz | Calcular severidade (só repassa) | Estado latest-wins, eventos, `store.Reader` | Frames WS, cmds para `session` |
 
@@ -181,7 +181,7 @@ G8 loop:
 | Alertas, autoexames, chat, cluster | Por evento | `alerts_audit`, `self_exams`, `chat_*` |
 | Alerta vermelho | Por evento, mesma tx | `alerts_audit` + `store_and_forward_outbox` |
 
-Estimativa `< 50 MB/dia`. Migrations `database/migrations/*.sql` aplicadas no boot por `store` (tabela de versão).
+Estimativa `< 50 MB/dia`. Migrations SQL da pasta configurada por `--migrations` são aplicadas no boot por `store` (tabela de versão). Essa pasta não é distribuída no repositório atual; a base de pesquisa usa seus próprios scripts de preparação (seção 12).
 
 ### 2.7 Broadcast WebSocket (2 Hz)
 
@@ -408,7 +408,7 @@ Testes Go planejados (sem código agora): `contracts` (round-trip fixtures), `ip
 | Flag | Padrão | Descrição |
 | :--- | :--- | :--- |
 | `--db` | `./var/edgespace.db` | SQLite WAL |
-| `--migrations` | `../database/migrations` | Aplicadas no boot |
+| `--migrations` | `../database/migrations` | Padrão atual da CLI; diretório não distribuído. Aceita outra pasta de migrations SQL, aplicadas no boot. |
 | `--udp-addr` / `--broadcast-addr` | `:5005` / `10.42.0.255:5005` | Rx e destino de `CLUSTER_SYNC` |
 | `--ipc-addr` | `127.0.0.1:5006` | Worker Edge AI |
 | `--http-addr` | `:8000` | UI/REST/WS |
@@ -419,7 +419,7 @@ Testes Go planejados (sem código agora): `contracts` (round-trip fixtures), `ip
 | `--seed`, `--time-scale` | fixo, `1` | Determinismo do `sim` |
 | `--log-level` | `info` | `slog` JSON em stdout (journald) |
 
-Ajuste necessário no `Makefile`: `central-run-mock` deve passar `--mock-cluster --mock-ai` (hoje passa só `--mock-cluster`).
+O alvo `make central-run-mock` passa `--mock-cluster=inproc --mock-ai`, executando os simuladores locais de cluster e IA.
 
 ---
 
@@ -474,5 +474,10 @@ Ajuste necessário no `Makefile`: `central-run-mock` deve passar `--mock-cluster
 
 ---
 
-Documento vivo. Mudança em interface exige atualização deste arquivo + `contracts/`. Guardião: Leonardo (M4).
+## 12. Integração com a base de pesquisa
 
+A base de pesquisa de Selliny/M1 fica em `database/space_health_sqlite/` e deve ser consultada por conexão separada somente leitura. Ela mantém schema e dados próprios; o banco operacional da Central é `var/edgespace.db`. O [guia de uso local e DBeaver](../../database/space_health_sqlite/docs/COMO_RODAR_LOCAL_E_DBEAVER.md) descreve as consultas e os comandos disponíveis. O escopo da entrega operacional de M1 está em [database/README.md](../../database/README.md#base-operacional-planejada).
+
+---
+
+Documento vivo. Mudança em interface exige atualização deste arquivo + `contracts/`. Guardião: Leonardo (M4).
