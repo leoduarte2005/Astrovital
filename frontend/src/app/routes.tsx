@@ -16,6 +16,7 @@ export const routes: Record<string, ComponentType> = {
   '/': lazy(() => import('@/pages/home')),
   '/crew': lazy(() => import('@/pages/crew')),
   ...Object.fromEntries(MODULES.map((module) => [module.path, placeholder(module.labelKey)])),
+  '/charts': lazy(() => import('@/pages/charts')),
   '/garden': lazy(() => import('@/pages/garden')),
   '/games': lazy(() => import('@/pages/games')),
   '/leisure': lazy(() => import('@/pages/leisure')),
