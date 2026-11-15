@@ -9,6 +9,7 @@ import { useSession } from '@/lib/data/session'
 import { setLocale, useI18n } from '@/lib/i18n'
 import { CORNER_SLOT_ID } from '@/lib/utils/cornerSlot'
 import { navigate, useHashRoute } from '@/lib/utils/hashRoute'
+import { IconButton } from '@/ui/IconButton'
 import { Suspense, useEffect, useState } from 'react'
 import styles from './App.module.css'
 import { routes } from './routes'
@@ -55,7 +56,12 @@ export function App() {
       {showTabs && <AstronautTabs />}
       {showTabs && (
         <div className={styles.corner}>
-          {activeCrew && <CrewSummary member={activeCrew} />}
+          {activeCrew && (
+            <div className={styles.crewSummaryRow}>
+              <CrewSummary member={activeCrew} />
+              <IconButton icon="swap" label={t('home.switchCrew')} onClick={() => navigate(CREW_PATH)} />
+            </div>
+          )}
           <div id={CORNER_SLOT_ID} />
         </div>
       )}
