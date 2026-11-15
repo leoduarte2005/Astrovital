@@ -1,0 +1,22 @@
+/* Fills the page. The canvas takes no pointer input; only the markers receive hover. */
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  touch-action: none;
+}
+
+.markers {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}

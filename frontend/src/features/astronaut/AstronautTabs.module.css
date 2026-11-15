@@ -1,0 +1,16 @@
+/* Fixed over the page, top centre. The strip lets pointer events through; only the tabs take them. */
+.root {
+  position: fixed;
+  top: var(--space-5);
+  left: 0;
+  right: 0;
+  z-index: var(--z-drawer);
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  pointer-events: none;
+}
+
+.tabs {
+  pointer-events: auto;
+}
