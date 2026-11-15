@@ -3,6 +3,8 @@
   flex-direction: column;
   gap: var(--space-4);
   height: 100%;
+  background: var(--bg);
+  color: var(--ink);
   /* padding: var(--space-4) calc(var(--touch-min) + var(--space-3)) var(--space-4) var(--space-4); */
 }
 
@@ -13,14 +15,6 @@
   display: flex;
   min-height: 0;
   height: 100dvh;
-}
-
-/* Floating over the twin, bottom-left, always visible. */
-.floating {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  z-index: var(--z-drawer);
 }
 
 .status {
