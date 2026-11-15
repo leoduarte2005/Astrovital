@@ -119,3 +119,26 @@ export interface ClusterStatusPayload {
   dropped_ctrl: number
   dropped_windows: number
 }
+
+/** `CHAT_MSG` payload (client to central). Text is 1 to 2000 bytes. */
+export interface ChatMsgPayload {
+  text: string
+}
+
+/** Escalation levels of a chat reply. */
+export type Escalation = 'LOCAL' | 'CREW' | 'STORE_AND_FORWARD'
+
+/**
+ * `CHAT_REPLY` payload (server to client). Field names and types confirmed by a real reply (2026-11-15).
+ * It has no `client_msg_id`: replies pair with sent messages in the order they were sent.
+ * `disambiguation_question` appears when the central needs more detail; `text` is what the chat shows.
+ */
+export interface ChatReplyPayload {
+  text: string
+  evidence: string[]
+  countermeasures: string[]
+  source_ids: string[]
+  escalation: Escalation
+  disclaimer: string
+  disambiguation_question?: string
+}
