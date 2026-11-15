@@ -94,12 +94,16 @@ export function useFeedPlot<S>(config: FeedPlotConfig<S>) {
       const current = configRef.current
       const { options, toData, format, height } = current
       plot = new UPlot(
-        { ...options(UPlot, readTheme(current.variant, current.seriesToken), format), width: el.clientWidth, height },
+        {
+          ...options(UPlot, readTheme(current.variant, current.seriesToken), format),
+          width: el.clientWidth,
+          height,
+        },
         toData(current.feed.read()),
         el,
       )
       unsubscribe = current.feed.subscribe(schedule)
-      observer = new ResizeObserver(() => plot?.setSize({ width: el.clientWidth, height }))
+      observer = new ResizeObserver(() => plot?.setSize({ width: el.clientWidth, height: el.clientHeight || height }))
       observer.observe(el)
       document.addEventListener('visibilitychange', onVisibility)
       schedule()

@@ -24,13 +24,19 @@ export function ChartFrame({ title, unit, valueRef, message, onExpand, expanded 
       {!expanded && (
         <header className={styles.header}>
           <h3 className={styles.title}>{title}</h3>
+          <p className={styles.value}>
+            <span ref={valueRef}>—</span>
+            <span className={styles.unit}>{unit}</span>
+          </p>
           {onExpand && <IconButton icon="expand" label={t('chart.expand')} onClick={onExpand} size="sm" iconSize="sm" />}
         </header>
       )}
-      <p className={styles.value}>
-        <span ref={valueRef}>—</span>
-        <span className={styles.unit}>{unit}</span>
-      </p>
+      {expanded && (
+        <p className={styles.value}>
+          <span ref={valueRef}>—</span>
+          <span className={styles.unit}>{unit}</span>
+        </p>
+      )}
       {message !== null && <p className={styles.message}>{message}</p>}
       {children}
     </section>

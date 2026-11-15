@@ -15,7 +15,7 @@ import {
 } from './types'
 import plotStyles from './Plot.module.css'
 
-const CARD_HEIGHT = 96
+const CARD_HEIGHT = 148
 const EXPANDED_HEIGHT = 360
 
 export interface SmoothLineChartProps {

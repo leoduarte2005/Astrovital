@@ -3,10 +3,10 @@
   align-items: center;
   gap: var(--space-1);
   padding: var(--space-1) var(--space-4);
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-strong);
   max-width: 100%;
-  border-radius: 8px;
-  background: var(--bg);
+  border-radius: var(--radius-pill);
+  background: var(--surface);
   color: var(--ink-2);
   font-size: var(--text-sm);
   line-height: 1.4;
