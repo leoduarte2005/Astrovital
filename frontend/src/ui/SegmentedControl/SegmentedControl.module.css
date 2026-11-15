@@ -1,0 +1,30 @@
+.root {
+  display: inline-flex;
+  flex-wrap: wrap;
+  border: var(--border-thin) solid var(--ink);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.option {
+  min-height: var(--touch-min);
+  padding: var(--space-1) var(--space-4);
+  border: 0;
+  border-inline-start: var(--border-thin) solid var(--ink);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+
+.option:first-child {
+  border-inline-start: 0;
+}
+
+/* Chosen: the kit's selection inversion. */
+.option[aria-pressed='true'] {
+  background: var(--ink);
+  color: var(--bg);
+  font-weight: var(--weight-bold);
+}

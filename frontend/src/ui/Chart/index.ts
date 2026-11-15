@@ -1,4 +1,5 @@
 export { ChartFrame } from './ChartFrame'
+export { CorridorChart, type CorridorChartProps } from './CorridorChart'
 export { ExpandableChart } from './ExpandableChart'
 export { OhlcChart, type OhlcChartProps } from './OhlcChart'
 export { SmoothLineChart, type SmoothLineChartProps } from './SmoothLineChart'

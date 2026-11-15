@@ -9,23 +9,26 @@ interface CardProps {
   onClick?: () => void
   /** Accessible name for interactive cards whose content is not self-describing. */
   label?: string
+  /** Layout from the caller (size, proportion). The card's own look stays in the kit. */
+  className?: string
 }
 
 /** Surface container. Plain `div`, or an interactive link/button when `href`/`onClick` is given. */
-export function Card({ children, href, onClick, label }: CardProps) {
+export function Card({ children, href, onClick, label, className }: CardProps) {
+  const base = className ? `${styles.root} ${className}` : styles.root
   if (href !== undefined) {
     return (
-      <a className={`${styles.root} ${styles.interactive}`} href={`#${href}`} aria-label={label}>
+      <a className={`${base} ${styles.interactive}`} href={`#${href}`} aria-label={label}>
         {children}
       </a>
     )
   }
   if (onClick) {
     return (
-      <button type="button" className={`${styles.root} ${styles.interactive}`} aria-label={label} onClick={onClick}>
+      <button type="button" className={`${base} ${styles.interactive}`} aria-label={label} onClick={onClick}>
         {children}
       </button>
     )
   }
-  return <div className={styles.root}>{children}</div>
+  return <div className={base}>{children}</div>
 }

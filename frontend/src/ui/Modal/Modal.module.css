@@ -19,6 +19,15 @@
   overflow: auto;
 }
 
+/* full: almost the whole screen, with the 16 px gutter. */
+.full {
+  width: calc(100vw - 2 * var(--space-4));
+  height: calc(100vh - 2 * var(--space-4));
+  max-width: none;
+  max-height: none;
+  overflow: auto;
+}
+
 /* Title and close button share one row, centred vertically. */
 .header {
   display: flex;

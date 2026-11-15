@@ -17,6 +17,7 @@ const PATHS = {
   expand: 'M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5',
   collapse: 'M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5',
   menu: 'M4 7h16M4 12h16M4 17h16',
+  home: 'M4 11l8-7 8 7v9h-5v-6H9v6H4z',
   alert: 'M12 4l9 16H3zM12 10v4M12 17v.01',
   gamepad: 'M7 9h10a4 4 0 0 1 4 4v1a3 3 0 0 1-5 2l-1-1H9l-1 1a3 3 0 0 1-5-2v-1a4 4 0 0 1 4-4zM8 12v2M7 13h2M16 13h.01M15 14h.01',
   download: 'M12 4v11M7 11l5 5 5-5M5 20h14',

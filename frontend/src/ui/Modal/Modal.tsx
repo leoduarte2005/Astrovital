@@ -3,7 +3,7 @@ import { IconButton } from '@/ui/IconButton'
 import styles from './Modal.module.css'
 
 interface ModalProps {
-  size: 'xl'
+  size: 'xl' | 'full'
   /** Shown at the top, on the same row as the close button. Also the dialog's accessible name. */
   title: string
   closeLabel: string
