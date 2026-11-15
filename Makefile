@@ -16,14 +16,18 @@ RESEARCH_DB_PATH ?= ./database/space_health_sqlite/space_health.db
 RESEARCH_REPORT_PATH ?= ./var/research/validation_report.json
 RESEARCH_DEMO_PATH ?= ./var/space_health_demo.db
 
-.PHONY: help contracts-validate firmware-build firmware-flash \
+.PHONY: help contracts-validate firmware-build firmware-flash flash-esp \
         db-migrate db-operational-validate db-operational-test db-intelligence-generate db-intelligence-check \
         frontend-build central-build central-run-mock edge-ai-setup edge-ai-run \
-        test-e2e-ai slm-model run run-win db-research-inventory db-research-queries db-research-validate \
+        test-e2e-ai slm-model run run-win demo-mock demo-real \
+        db-research-inventory db-research-queries db-research-validate \
         db-research-demo db-research-import-physiology db-research-missingness db-research-test all clean
 
 help:
 	@echo "EdgeSpace — alvos disponíveis:"
+	@echo "  demo-mock           One-Command Demo (cluster simulado inproc + Frontend + IA + SQLite)"
+	@echo "  demo-real           One-Command Demo (hardware real 5x ESP32-S3 via UDP :5005)"
+	@echo "  flash-esp           Detecta ESP32-S3 na USB, compila e grava firmware ESP-IDF"
 	@echo "  run                 Compila tudo e sobe edge-ai (:5006) + Central Go (:8000) [Linux/ARM64]"
 	@echo "  run-win             Compila tudo e sobe edge-ai (:5006) + Central Go (:8000) [Windows]"
 	@echo "  contracts-validate  Valida fixtures contra JSON Schemas (tools/)          [Leonardo/M4]"
@@ -142,6 +146,26 @@ run:
 
 run-win:
 	powershell -ExecutionPolicy Bypass -File scripts/run_stack.ps1 $(ARGS)
+
+ifeq ($(OS),Windows_NT)
+demo-mock:
+	powershell -ExecutionPolicy Bypass -File scripts/demo.ps1 -Mode mock $(ARGS)
+
+demo-real:
+	powershell -ExecutionPolicy Bypass -File scripts/demo.ps1 -Mode real $(ARGS)
+
+flash-esp:
+	powershell -ExecutionPolicy Bypass -File scripts/demo.ps1 -FlashOnly $(if $(PORT),-Port $(PORT),) $(ARGS)
+else
+demo-mock:
+	bash scripts/demo.sh --mock $(ARGS)
+
+demo-real:
+	bash scripts/demo.sh --real $(ARGS)
+
+flash-esp:
+	bash scripts/demo.sh --flash-only $(if $(PORT),--port $(PORT),) $(ARGS)
+endif
 
 all: contracts-validate frontend-build central-build
 
