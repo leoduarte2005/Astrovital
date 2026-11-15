@@ -4,7 +4,6 @@ dist-demo
 bin
 *.log
 .DS_Store
-data/
 docs/
 rules/
 tools/

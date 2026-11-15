@@ -1,0 +1,40 @@
+{
+  "layers": {
+    "skin": {
+      "triangles": 46210,
+      "materials": 12,
+      "file": "skin.glb",
+      "bytes": 1026484
+    },
+    "muscles": {
+      "triangles": 2137457,
+      "materials": 26,
+      "file": "muscles.glb",
+      "bytes": 51754380
+    },
+    "vascular": {
+      "triangles": 3617998,
+      "materials": 4,
+      "file": "vascular.glb",
+      "bytes": 89934884
+    },
+    "organs": {
+      "triangles": 442526,
+      "materials": 47,
+      "file": "organs.glb",
+      "bytes": 8766584
+    },
+    "nervous": {
+      "triangles": 1927694,
+      "materials": 35,
+      "file": "nervous.glb",
+      "bytes": 45116500
+    },
+    "bones": {
+      "triangles": 821274,
+      "materials": 58,
+      "file": "bones.glb",
+      "bytes": 17832404
+    }
+  }
+}

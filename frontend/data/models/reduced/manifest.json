@@ -1,0 +1,435 @@
+{
+ "source": "Z-Anatomy (CC BY-SA 4.0)",
+ "units": "as exported (m)",
+ "organs": [
+  {
+   "id": "heart",
+   "node": "halo_heart",
+   "label": "Coração e grandes vasos",
+   "system": "cardiovascular",
+   "triangles": 434264,
+   "sourceNodes": 81,
+   "bboxMin": [
+    -0.1281,
+    1.0286,
+    -0.0777
+   ],
+   "bboxMax": [
+    0.1279,
+    1.425,
+    0.088
+   ],
+   "center": [
+    0.0151,
+    1.2931,
+    0.0078
+   ],
+   "file": "heart.glb",
+   "originalKB": 7674,
+   "sizeKB": 1256,
+   "sizeRatio": 0.164
+  },
+  {
+   "id": "jugular",
+   "node": "halo_jugular",
+   "label": "Veias jugulares",
+   "system": "cardiovascular",
+   "triangles": 10944,
+   "sourceNodes": 4,
+   "bboxMin": [
+    -0.0512,
+    1.4085,
+    -0.0198
+   ],
+   "bboxMax": [
+    0.0512,
+    1.5742,
+    0.0236
+   ],
+   "center": [
+    -0.0,
+    1.4766,
+    0.0078
+   ],
+   "file": "jugular.glb",
+   "originalKB": 194,
+   "sizeKB": 35,
+   "sizeRatio": 0.182
+  },
+  {
+   "id": "lungs",
+   "node": "halo_lungs",
+   "label": "Pulmões e vias aéreas",
+   "system": "respiratório",
+   "triangles": 98042,
+   "sourceNodes": 52,
+   "bboxMin": [
+    -0.1317,
+    1.1661,
+    -0.0839
+   ],
+   "bboxMax": [
+    0.1302,
+    1.4606,
+    0.1027
+   ],
+   "center": [
+    -0.0007,
+    1.2909,
+    -0.0034
+   ],
+   "file": "lungs.glb",
+   "originalKB": 1739,
+   "sizeKB": 302,
+   "sizeRatio": 0.174
+  },
+  {
+   "id": "kidneys",
+   "node": "halo_kidneys",
+   "label": "Rins, ureteres e bexiga",
+   "system": "urinário",
+   "triangles": 17450,
+   "sourceNodes": 8,
+   "bboxMin": [
+    -0.0876,
+    0.7449,
+    -0.042
+   ],
+   "bboxMax": [
+    0.0904,
+    1.1652,
+    0.0878
+   ],
+   "center": [
+    0.0017,
+    1.0068,
+    -0.0107
+   ],
+   "file": "kidneys.glb",
+   "originalKB": 308,
+   "sizeKB": 55,
+   "sizeRatio": 0.179
+  },
+  {
+   "id": "brain",
+   "node": "halo_brain",
+   "label": "Encéfalo",
+   "system": "nervoso",
+   "triangles": 667589,
+   "sourceNodes": 374,
+   "bboxMin": [
+    -0.0689,
+    1.5388,
+    -0.0991
+   ],
+   "bboxMax": [
+    0.0689,
+    1.6996,
+    0.0816
+   ],
+   "center": [
+    0.0,
+    1.6356,
+    -0.0179
+   ],
+   "file": "brain.glb",
+   "originalKB": 11740,
+   "sizeKB": 2168,
+   "sizeRatio": 0.185
+  },
+  {
+   "id": "eyes",
+   "node": "halo_eyes",
+   "label": "Olhos e nervo óptico",
+   "system": "nervoso",
+   "triangles": 36428,
+   "sourceNodes": 20,
+   "bboxMin": [
+    -0.0438,
+    1.5774,
+    0.0189
+   ],
+   "bboxMax": [
+    0.0438,
+    1.6095,
+    0.0782
+   ],
+   "center": [
+    -0.0006,
+    1.5911,
+    0.0636
+   ],
+   "file": "eyes.glb",
+   "originalKB": 637,
+   "sizeKB": 120,
+   "sizeRatio": 0.188
+  },
+  {
+   "id": "spine",
+   "node": "halo_spine",
+   "label": "Coluna vertebral",
+   "system": "musculoesquelético",
+   "triangles": 72917,
+   "sourceNodes": 50,
+   "bboxMin": [
+    -0.0615,
+    0.8303,
+    -0.1009
+   ],
+   "bboxMax": [
+    0.0614,
+    1.5528,
+    0.0193
+   ],
+   "center": [
+    -0.0,
+    1.1982,
+    -0.0417
+   ],
+   "file": "spine.glb",
+   "originalKB": 1282,
+   "sizeKB": 230,
+   "sizeRatio": 0.179
+  },
+  {
+   "id": "pelvis",
+   "node": "halo_pelvis",
+   "label": "Pelve",
+   "system": "musculoesquelético",
+   "triangles": 7570,
+   "sourceNodes": 8,
+   "bboxMin": [
+    -0.1349,
+    0.7973,
+    -0.0868
+   ],
+   "bboxMax": [
+    0.1349,
+    1.0119,
+    0.0561
+   ],
+   "center": [
+    0.0,
+    0.9092,
+    -0.0129
+   ],
+   "file": "pelvis.glb",
+   "originalKB": 134,
+   "sizeKB": 28,
+   "sizeRatio": 0.211
+  },
+  {
+   "id": "femur",
+   "node": "halo_femur",
+   "label": "Fêmures",
+   "system": "musculoesquelético",
+   "triangles": 7588,
+   "sourceNodes": 4,
+   "bboxMin": [
+    -0.1485,
+    0.4299,
+    -0.0594
+   ],
+   "bboxMax": [
+    0.1485,
+    0.8843,
+    0.0188
+   ],
+   "center": [
+    -0.0,
+    0.6448,
+    -0.0131
+   ],
+   "file": "femur.glb",
+   "originalKB": 134,
+   "sizeKB": 27,
+   "sizeRatio": 0.203
+  },
+  {
+   "id": "liver",
+   "node": "halo_liver",
+   "label": "Fígado e vias biliares",
+   "system": "digestivo",
+   "triangles": 48170,
+   "sourceNodes": 14,
+   "bboxMin": [
+    -0.1151,
+    1.0791,
+    -0.0544
+   ],
+   "bboxMax": [
+    0.0933,
+    1.258,
+    0.0997
+   ],
+   "center": [
+    -0.0356,
+    1.1873,
+    0.0346
+   ],
+   "file": "liver.glb",
+   "originalKB": 854,
+   "sizeKB": 147,
+   "sizeRatio": 0.173
+  },
+  {
+   "id": "gut",
+   "node": "halo_gut",
+   "label": "Trato digestório",
+   "system": "digestivo",
+   "triangles": 35397,
+   "sourceNodes": 11,
+   "bboxMin": [
+    -0.1154,
+    0.8037,
+    -0.0718
+   ],
+   "bboxMax": [
+    0.1175,
+    1.2293,
+    0.0891
+   ],
+   "center": [
+    0.0094,
+    1.021,
+    0.0307
+   ],
+   "file": "gut.glb",
+   "originalKB": 627,
+   "sizeKB": 118,
+   "sizeRatio": 0.187
+  },
+  {
+   "id": "muscle_trunk",
+   "node": "halo_muscle_trunk",
+   "label": "Músculos do tronco",
+   "system": "musculoesquelético",
+   "triangles": 1009025,
+   "sourceNodes": 218,
+   "bboxMin": [
+    -0.2001,
+    0.8002,
+    -0.1301
+   ],
+   "bboxMax": [
+    0.2001,
+    1.5754,
+    0.1263
+   ],
+   "center": [
+    -0.0003,
+    1.2086,
+    -0.005
+   ],
+   "file": "muscle_trunk.glb",
+   "originalKB": 17714,
+   "sizeKB": 3163,
+   "sizeRatio": 0.179
+  },
+  {
+   "id": "muscle_arms",
+   "node": "halo_muscle_arms",
+   "label": "Músculos dos braços",
+   "system": "musculoesquelético",
+   "triangles": 256936,
+   "sourceNodes": 222,
+   "bboxMin": [
+    -0.33,
+    0.7115,
+    -0.117
+   ],
+   "bboxMax": [
+    0.33,
+    1.4239,
+    0.0881
+   ],
+   "center": [
+    -0.0,
+    1.1243,
+    -0.0237
+   ],
+   "file": "muscle_arms.glb",
+   "originalKB": 4523,
+   "sizeKB": 818,
+   "sizeRatio": 0.181
+  },
+  {
+   "id": "muscle_legs",
+   "node": "halo_muscle_legs",
+   "label": "Músculos das pernas",
+   "system": "musculoesquelético",
+   "triangles": 520700,
+   "sourceNodes": 272,
+   "bboxMin": [
+    -0.1612,
+    0.0069,
+    -0.1119
+   ],
+   "bboxMax": [
+    0.1612,
+    1.1555,
+    0.1284
+   ],
+   "center": [
+    0.0,
+    0.5705,
+    -0.0197
+   ],
+   "file": "muscle_legs.glb",
+   "originalKB": 9161,
+   "sizeKB": 1609,
+   "sizeRatio": 0.176
+  }
+ ],
+ "systems": {
+  "cardiovascular": [
+   "heart",
+   "jugular"
+  ],
+  "respiratório": [
+   "lungs"
+  ],
+  "urinário": [
+   "kidneys"
+  ],
+  "nervoso": [
+   "brain",
+   "eyes"
+  ],
+  "musculoesquelético": [
+   "spine",
+   "pelvis",
+   "femur",
+   "muscle_trunk",
+   "muscle_arms",
+   "muscle_legs"
+  ],
+  "digestivo": [
+   "liver",
+   "gut"
+  ]
+ },
+ "notAvailable": [
+  "skin: o atlas não contém superfície da pele"
+ ],
+ "unmappedTopLevelTriangles": {
+  "Arterial system.g": 2254832,
+  "Nervous system & Sense organs.g": 1223537,
+  "Venous system.g": 980760,
+  "Skeletal system.g": 574195,
+  "Muscular system.g": 197460,
+  "Joints.g": 159867,
+  "Fasciae.g": 153335,
+  "Lymphoid organs.g": 126338,
+  "Regions of human body.g": 65964,
+  "Visceral systems.g": 54323,
+  "Reference lines.g": 1458,
+  "HOW TO ...": 357,
+  "Movements.g": 312,
+  "General terms.g": 147,
+  "Reference planes.g": 14
+ },
+ "compression": "EXT_meshopt_compression + KHR_mesh_quantization (MeshoptDecoder do three.js)",
+ "coordinates": "todos os arquivos compartilham a origem do corpo; carregue sem reposicionar",
+ "originalDefinition": "GLB do órgão com a geometria completa do atlas, sem decimação e sem compressão"
+}
