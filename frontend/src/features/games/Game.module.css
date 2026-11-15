@@ -1,4 +1,7 @@
-/* Full-page game screen, shared by every game. Colours come from the kit's tokens. */
+/*
+ * Full-page game screen, shared by every game. Everything here uses the kit's tokens: the 8-bit palette lives
+ * only inside the canvas (features/games/palette.ts).
+ */
 .root {
   display: flex;
   flex-direction: column;
@@ -10,78 +13,171 @@
   color: var(--ink);
 }
 
-.hud {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: var(--space-4);
-  font-size: var(--text-sm);
-  color: var(--ink-2);
+/*
+ * Action screen: 16:9 at the full available width, unless the height runs out first. The HUD sits over the
+ * canvas, at the top left, as plain text.
+ */
+.stage {
+  position: relative;
+  width: min(calc(100vw - 2 * var(--space-4)), calc((100vh - 9rem) * 16 / 9));
 }
 
-.hudValue {
-  color: var(--ink);
-  font-weight: var(--weight-bold);
-}
-
-/* Fixed 4:3 drawing surface, scaled by CSS to the largest size that fits the screen. */
 .canvas {
   display: block;
-  width: min(100vw - 2 * var(--space-4), (100vh - 14rem) * 4 / 3);
+  width: 100%;
   height: auto;
-  aspect-ratio: 4 / 3;
-  border: var(--border-thin) solid var(--line-strong);
+  aspect-ratio: 16 / 9;
+  border: var(--border-frame) solid var(--ink);
   border-radius: var(--radius-md);
+  image-rendering: pixelated;
+}
+
+/* Stats across the top of the screen, in a row; they wrap only on a narrow screen. */
+.overlay {
+  position: absolute;
+  top: var(--space-3);
+  left: var(--space-3);
+  right: var(--space-3);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+/* Fixed width: a changing value never resizes the reading. */
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-1);
+  width: 13rem;
+  padding: var(--space-1) var(--space-2);
+  color: var(--ink);
+}
+
+/* Outside the safe range: the kit's selection inversion, with an icon and a label in the note. */
+.stat[data-over='true'] {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.statLabel {
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.statValue {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  font-variant-numeric: tabular-nums;
+}
+
+.statUnit {
+  margin-inline-start: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+}
+
+.statNote {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
 }
 
 .controls {
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: var(--space-3);
 }
 
 .control {
-  min-width: var(--touch-min);
-  min-height: var(--touch-min);
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-width: calc(var(--touch-min) * 1.6);
+  min-height: calc(var(--touch-min) * 1.6);
   padding: var(--space-1) var(--space-3);
   border: var(--border-thin) solid var(--ink);
   border-radius: var(--radius-sm);
   background: var(--bg);
   color: var(--ink);
   font: inherit;
-  font-size: var(--text-sm);
   cursor: pointer;
   touch-action: none;
   user-select: none;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out);
 }
 
-.control:active {
+/* Held, from touch or keyboard: inverted and pressed down a little. */
+.control[data-pressed='true'] {
   background: var(--ink);
   color: var(--bg);
+  transform: translateY(2px);
+}
+
+.glyph {
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+}
+
+.keyHint {
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
 }
 
 .panel {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
   gap: var(--space-2);
-  max-width: 32rem;
+  width: min(28rem, 100%);
   padding: var(--space-3) var(--space-4);
-  border: var(--border-frame) solid var(--ink);
+  border: var(--border-thin) solid var(--line-strong);
   border-radius: var(--radius-md);
   background: var(--bg);
-  text-align: center;
 }
 
 .panelTitle {
   margin: 0;
   font-size: var(--text-lg);
   font-weight: var(--weight-bold);
+  text-align: center;
+}
+
+.resultRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-block: var(--space-2);
+  border-top: var(--border-thin) solid var(--line);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.resultValue {
+  font-size: var(--text-body);
+  font-weight: var(--weight-bold);
+  color: var(--ink);
 }
 
 .panelText {
   margin: 0;
   font-size: var(--text-sm);
   color: var(--ink-2);
+  text-align: center;
 }
 
 .list {
@@ -89,4 +185,11 @@
   padding: 0;
   list-style: none;
   font-size: var(--text-sm);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .control {
+    transition: none;
+  }
 }

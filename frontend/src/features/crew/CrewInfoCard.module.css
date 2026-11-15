@@ -1,13 +1,15 @@
 .root {
   display: flex;
   flex-direction: column;
-  gap: var(--space-3);
-  width: min(260px, 70vw);
-  padding: var(--space-3) var(--space-5);
+  gap: var(--space-2);
+  width: min(380px, 90vw);
+  padding: var(--space-2) var(--space-4);
   border: var(--border-thin) solid var(--ink);
   border-radius: var(--radius-md);
   background: var(--bg);
   color: var(--ink);
+  max-height: calc(100dvh - var(--space-4));
+  overflow-y: auto;
 }
 
 .name {
@@ -20,6 +22,12 @@
   margin: 0;
   font-size: var(--text-sm);
   color: var(--ink-2);
+}
+
+/* Height and nationality side by side: fewer lines. */
+.facts {
+  display: flex;
+  gap: var(--space-5);
 }
 
 .row {

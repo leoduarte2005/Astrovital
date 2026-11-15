@@ -2,8 +2,9 @@
  * Asteroids rules, written from scratch: the classic mechanics, with no code or assets copied.
  * Pure functions: the component draws the state and feeds the input. Logical world units, not pixels.
  */
-export const WORLD_W = 800
-export const WORLD_H = 600
+/** 16:9, three times the pixel buffer (features/games/palette.ts). */
+export const WORLD_W = 960
+export const WORLD_H = 540
 
 const SHIP_RADIUS = 12
 const TURN_SPEED = 4.2 // rad/s

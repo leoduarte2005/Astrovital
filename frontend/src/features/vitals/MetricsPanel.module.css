@@ -1,0 +1,142 @@
+/* Section inside the crew card (outlined, like it); expanded, it sits in the dark modal. */
+.root {
+  --fg: var(--ink);
+  --surface: var(--bg);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  color: var(--fg);
+}
+
+.expanded {
+  gap: var(--space-4);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  align-items: baseline;
+  column-gap: var(--space-3);
+}
+
+.label {
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+}
+
+.value {
+  grid-row: 1;
+  grid-column: 3;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  white-space: nowrap;
+  text-align: end;
+}
+
+.unit {
+  margin-inline-start: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+}
+
+.base {
+  grid-column: 1 / -1;
+  font-size: var(--text-xs);
+}
+
+/* State label: three texts, one shown by data-state. Outside the corridor it is inverted and has an icon. */
+.chip {
+  grid-row: 1;
+  grid-column: 2;
+  display: none;
+  align-items: center;
+  gap: var(--space-1);
+  justify-self: start;
+  padding: 0 var(--space-2);
+  border: var(--border-thin) solid var(--fg);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}
+
+.chip[data-state='inside'],
+.chip[data-state='below'],
+.chip[data-state='above'] {
+  display: inline-flex;
+}
+
+.chip[data-state='below'],
+.chip[data-state='above'] {
+  background: var(--fg);
+  color: var(--surface);
+}
+
+.chip span[data-s],
+.chip .alert {
+  display: none;
+}
+
+.chip[data-state='inside'] span[data-s='inside'],
+.chip[data-state='below'] span[data-s='below'],
+.chip[data-state='above'] span[data-s='above'] {
+  display: inline;
+}
+
+.chip[data-state='below'] .alert,
+.chip[data-state='above'] .alert {
+  display: inline-flex;
+}
+
+.expanded .row {
+  padding: var(--space-3);
+  border: var(--border-thin) solid var(--ink);
+  border-radius: var(--radius-md);
+}
+
+.expanded .label,
+.expanded .base,
+.expanded .chip {
+  font-size: var(--text-sm);
+}
+
+.expanded .value {
+  font-size: var(--text-title);
+}
+
+.note {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  font-size: var(--text-sm);
+}
+
+.note p {
+  margin: 0;
+}

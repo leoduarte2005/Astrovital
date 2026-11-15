@@ -2,8 +2,9 @@
  * Landing rules: a 2D touchdown with gravity, thrust and fuel. Pure functions, logical units.
  * The result is for learning: it lists what to review. It is not a score (rules/gamification.md).
  */
-export const WORLD_W = 800
-export const WORLD_H = 600
+/** 16:9, three times the pixel buffer (features/games/palette.ts). */
+export const WORLD_W = 960
+export const WORLD_H = 540
 export const GROUND_Y = WORLD_H - 60
 export const PAD_WIDTH = 120
 export const LANDER_HALF = 14
@@ -12,6 +13,9 @@ const GRAVITY = 40 // px/s²
 const THRUST = 90 // px/s²
 const FUEL_PER_SECOND = 12
 const TURN_SPEED = 2 // rad/s
+
+/** World speed units per m/s shown on the HUD: 35 units = 3,5 m/s. */
+export const UNITS_PER_METRE = 10
 
 /** Safe touchdown limits. */
 export const SAFE_VERTICAL = 35 // px/s

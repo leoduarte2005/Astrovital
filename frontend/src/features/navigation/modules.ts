@@ -11,7 +11,7 @@ export interface AppModule {
 
 /** Module screens. One entry per route in rules/features-map.md. */
 export const MODULES: AppModule[] = [
-  { path: '/charts', icon: 'chart', labelKey: 'nav.charts' },
+  { path: '/charts', icon: 'chart', labelKey: 'nav.charts', homeMenu: true },
   { path: '/diagnosis', icon: 'diagnosis', labelKey: 'nav.diagnosis' },
   { path: '/encyclopedia', icon: 'book', labelKey: 'nav.encyclopedia', homeMenu: true },
   { path: '/garden', icon: 'leaf', labelKey: 'nav.garden', homeMenu: true },

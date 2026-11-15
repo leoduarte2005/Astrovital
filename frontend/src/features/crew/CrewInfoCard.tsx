@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react'
 import { useI18n } from '@/lib/i18n'
 import type { CrewMember } from '@/lib/model/crew'
 import { statureM } from '@/lib/model/stature'
@@ -6,10 +7,12 @@ import styles from './CrewInfoCard.module.css'
 
 interface CrewInfoCardProps {
   member: CrewMember
+  /** Extra sections inside the same card (composed by the page, so features stay independent). */
+  children?: ReactNode
 }
 
 /** Floating card with the active crew member's data, so the twin's height can be compared at a glance. */
-export function CrewInfoCard({ member }: CrewInfoCardProps) {
+export function CrewInfoCard({ member, children }: CrewInfoCardProps) {
   const { t, locale } = useI18n()
   const heightCm = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(statureM(member.nationality) * 100)
   const country = new Intl.DisplayNames([locale], { type: 'region' }).of(member.nationality)
@@ -21,6 +24,7 @@ export function CrewInfoCard({ member }: CrewInfoCardProps) {
     >
       <h2 className={styles.name}>{member.fullName}</h2>
       <p className={styles.role}>{t(`enum.crewRole.${member.role}`)}</p>
+      <div className={styles.facts}>
       <div className={styles.row}>
         <span className={styles.label}>{t('crew.info.height')}</span>
         <span className={styles.value}>
@@ -32,7 +36,9 @@ export function CrewInfoCard({ member }: CrewInfoCardProps) {
         <span className={styles.label}>{t('crew.info.nationality')}</span>
         <Chip>{country}</Chip>
       </div>
+      </div>
       <p className={styles.note}>{t('crew.info.estimateNote')}</p>
+      {children}
     </section>
   )
 }
