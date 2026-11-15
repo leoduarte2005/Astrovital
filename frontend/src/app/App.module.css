@@ -5,3 +5,16 @@
   right: var(--space-4);
   z-index: var(--z-drawer);
 }
+
+/* Top left column, like the section tabs (same pages): the active crew member's card, then page extras (training log). */
+.corner {
+  position: fixed;
+  top: var(--space-5);
+  left: var(--space-4);
+  z-index: var(--z-drawer);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: calc(100vw - 2 * var(--space-4));
+  pointer-events: none;
+}
