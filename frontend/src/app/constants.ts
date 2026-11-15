@@ -1,1 +1,1 @@
-export const APP_NAME = 'Edge Space'
+export const APP_NAME = 'Astro Vital'

@@ -1,3 +1,4 @@
+import { AstronautTabs } from '@/features/astronaut'
 import { ChatDrawer } from '@/features/chat'
 import { HomeMenu } from '@/features/navigation'
 import { loadConfig } from '@/lib/config'
@@ -11,6 +12,8 @@ import styles from './App.module.css'
 import { routes } from './routes'
 
 const CREW_PATH = '/crew'
+// Off for now: the floating drawer is not rendered on any page (rules/features-map.md). Set to true to bring it back.
+const SHOW_HOME_MENU = false
 
 export function App() {
   const [ready, setReady] = useState(false)
@@ -40,10 +43,13 @@ export function App() {
 
   const Page = routes[path]
   // Same fixed place on every page, like the chat sidebar. Hidden on the crew selection and in game tabs (full-page games).
-  const showMenu = path !== CREW_PATH && !path.startsWith('/game/')
+  const showMenu = SHOW_HOME_MENU && path !== CREW_PATH && !path.startsWith('/game/')
+  // The section tabs: on every page but the crew selection and the game tabs (full-page games, no crew member).
+  const showTabs = path !== CREW_PATH && !path.startsWith('/game/')
   return (
     <>
       <Suspense fallback={null}>{Page ? <Page /> : <p>{t('common.notFound')}</p>}</Suspense>
+      {showTabs && <AstronautTabs />}
       {showMenu && (
         <div className={styles.menu}>
           <HomeMenu />
