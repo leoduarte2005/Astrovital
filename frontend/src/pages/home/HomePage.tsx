@@ -1,7 +1,8 @@
-import { useLayoutEffect } from 'react'
-import { TwinCanvas } from '@/features/twin3d'
+import { useLayoutEffect, useState } from 'react'
+import { TwinCanvas, type TwinAnchorId } from '@/features/twin3d'
 import { HomeMenu } from '@/features/navigation'
 import { CrewInfoCard, ShelterOverlay } from '@/features/crew'
+import { hasOrganCharts, OrganCharts, vitalFeed } from '@/features/vitals'
 import { statureM } from '@/lib/model/stature'
 import { getDataSource } from '@/lib/data'
 import { crewStateStore, useCrewState } from '@/lib/data/crewState'
@@ -19,6 +20,8 @@ export default function HomePage() {
   const confirmedCrewId = useCrewState((state) => state.crewId)
   const missionMode = useCrewState((state) => state.missionMode)
   const switchFailed = useCrewState((state) => state.switchFailed)
+  // Selected twin marker: its chart group (features/vitals/organGroups.ts) shows on the right.
+  const [selected, setSelected] = useState<TwinAnchorId | null>(null)
 
   // The live link and the crew switch last as long as the home is mounted (rules/data-layer.md).
   // Layout effect: the mock confirms at once, so the twin mounts before the first paint.
@@ -27,7 +30,11 @@ export default function HomePage() {
     const source = getDataSource()
     source.open()
     source.setCrew(crewId)
-    return () => source.close()
+    vitalFeed.start(source)
+    return () => {
+      vitalFeed.stop()
+      source.close()
+    }
   }, [crewId])
 
   if (!crew) return null
@@ -49,10 +56,15 @@ export default function HomePage() {
       <section className={styles.stage}>
         {confirmed ? (
           <>
-            <TwinCanvas skinTone={crew.skinTone} heightM={statureM(crew.nationality)} />
+            <TwinCanvas skinTone={crew.skinTone} heightM={statureM(crew.nationality)} onSelect={setSelected} />
             <div className={styles.floating}>
               <CrewInfoCard member={crew} />
             </div>
+            {selected !== null && hasOrganCharts(selected) && (
+              <div className={styles.charts}>
+                <OrganCharts organ={selected} />
+              </div>
+            )}
           </>
         ) : switchFailed ? (
           <div className={styles.status}>

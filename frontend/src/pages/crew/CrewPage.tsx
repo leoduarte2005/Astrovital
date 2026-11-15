@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import { APP_NAME } from '@/app/constants'
 import { CrewCard } from '@/features/crew'
 import { getDataSource } from '@/lib/data'
+import { rememberCrew } from '@/lib/data/rememberedCrew'
 import { sessionStore } from '@/lib/data/session'
 import { useI18n } from '@/lib/i18n'
 import type { CrewMember } from '@/lib/model/crew'
@@ -31,6 +32,7 @@ export default function CrewPage() {
 
   const handleSelect = (member: CrewMember) => {
     sessionStore.getState().select(member)
+    rememberCrew(member.crewId)
     navigate('/')
   }
 

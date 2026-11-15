@@ -47,3 +47,32 @@
   font-size: var(--text-sm);
   color: var(--ink-2);
 }
+
+/* Stacked vital charts on the right, like the crew card on the left. Stops short of the chat tab. */
+.charts {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-drawer);
+  width: min(320px, 40%);
+  overflow-y: auto;
+}
+
+.charts {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+
+.charts::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+}
+
+.charts::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.charts::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+}
