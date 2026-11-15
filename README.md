@@ -400,5 +400,12 @@ make contracts-validate
 
 ---
 
+## AI Usage & Attribution
+
+
+
+Claude Haiku 5.5 and Claude Opus 5.5, with medium effort, assisted with writing and reviewing React state-management code. Gemini Hydrogen and Gemini Argon assisted with the creation and editing of 3D models in GLB format. AI tools also supported public-source research, organization of project data for SQLite, requirements and architecture review, environment setup, and documentation. AI-assisted outputs were reviewed by the project team before use. 
+
 **AstroVital** — *Autonomous health intelligence for the final frontier.*  
 Built for the **NASA Space Apps Challenge** so an autonomous Flight Surgeon travels alongside the crew.
+

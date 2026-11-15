@@ -1,8 +1,8 @@
 import { useLayoutEffect, useState } from 'react'
 import { ASTRONAUT_PATH, sectionPath } from '@/features/astronaut'
 import { TwinCanvas, type TwinAnchorId } from '@/features/twin3d'
-import { CrewInfoCard, ShelterOverlay } from '@/features/crew'
-import { hasOrganCharts, MetricsPanel, OrganCharts, vitalFeed } from '@/features/vitals'
+import { ShelterOverlay } from '@/features/crew'
+import { hasOrganCharts, OrganCharts, vitalFeed } from '@/features/vitals'
 import { statureM } from '@/lib/model/stature'
 import { getDataSource } from '@/lib/data'
 import { crewStateStore, useCrewState } from '@/lib/data/crewState'
@@ -51,16 +51,11 @@ export default function MedicalFollowUpPage() {
   }
 
   return (
-    <main className={styles.root}>
+    <main className={styles.root} data-theme="dark">
       <section className={styles.stage}>
         {confirmed ? (
           <>
             <TwinCanvas skinTone={crew.skinTone} heightM={statureM(crew.nationality)} onSelect={setSelected} intro={intro} />
-            <div className={styles.floating}>
-              <CrewInfoCard member={crew}>
-                <MetricsPanel />
-              </CrewInfoCard>
-            </div>
             {selected !== null && hasOrganCharts(selected) && (
               <div className={styles.charts}>
                 <OrganCharts organ={selected} />

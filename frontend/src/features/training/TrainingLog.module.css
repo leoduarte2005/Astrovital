@@ -1,0 +1,29 @@
+/* Shown in the top left column under the crew card (see App's corner slot). Text only. */
+.root {
+  max-width: min(22rem, calc(100vw - 2 * var(--space-4)));
+}
+
+/* Compact training status card. */
+.root {
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-thin) solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+}
+
+.title {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.text {
+  margin: 0;
+  font-size: var(--text-sm);
+  line-height: var(--leading-body);
+  color: var(--ink);
+}

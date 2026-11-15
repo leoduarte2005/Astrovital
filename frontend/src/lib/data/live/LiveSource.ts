@@ -14,6 +14,7 @@ import type { DataSource } from '../source'
 import type { BaselineMetricId, BaselineProfile, HistorySeries, HistoryWindow } from '@/lib/model/baseline'
 import { baselineProfile, historySeries } from '../mock/baseline'
 import { suggestBooks, type Book } from '../mock/bookCatalog'
+import { CREW_LORE, type CrewLore } from '../mock/crewLore'
 import { toCrewMember } from './crewMapping'
 import { HeartRateLink } from './HeartRateLink'
 
@@ -102,6 +103,11 @@ export class LiveSource implements DataSource {
   }
 
   /** The central has no book suggestions yet: the mock catalogue answers until it does. */
+  // The central does not serve lore yet: the mock answers (as for books).
+  listCrewLore(): Promise<CrewLore[]> {
+    return Promise.resolve(Object.values(CREW_LORE))
+  }
+
   listBookSuggestions(crewId: string): Promise<Book[]> {
     return Promise.resolve(suggestBooks(crewId))
   }

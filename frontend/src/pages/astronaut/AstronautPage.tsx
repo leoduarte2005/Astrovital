@@ -17,7 +17,7 @@ export default function AstronautPage() {
   if (!member) return null
 
   return (
-    <main className={styles.root}>
+    <main className={styles.root} data-theme="dark">
       <div className={styles.viewer}>
         <AstronautViewer label={t('astronaut.viewer.label', { name: member.fullName })} />
       </div>

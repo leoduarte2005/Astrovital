@@ -4,9 +4,10 @@
   gap: var(--space-2);
   width: min(380px, 90vw);
   padding: var(--space-2) var(--space-4);
-  border: var(--border-thin) solid var(--ink);
+  border: var(--border-thin) solid var(--line-strong);
   border-radius: var(--radius-md);
-  background: var(--bg);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
   color: var(--ink);
   max-height: calc(100dvh - var(--space-4));
   overflow-y: auto;

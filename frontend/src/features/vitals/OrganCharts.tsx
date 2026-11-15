@@ -1,5 +1,5 @@
 import { t, useI18n, type MessageKey } from '@/lib/i18n'
-import { SmoothLineChart } from '@/ui/Chart'
+import { SmoothLineChart, StatusChart } from '@/ui/Chart'
 import { ORGAN_GROUPS } from './organGroups'
 import { vitalFeed } from './vitalFeed'
 import { useStatusMessage } from './vitalStatus'
@@ -42,18 +42,28 @@ export function OrganCharts({ organ }: { organ: string }) {
   return (
     <div className={styles.stack}>
       {group.charts.map(({ spec, curve, labels }) => (
-        <SmoothLineChart
-          key={spec.id}
-          title={translate(spec.labelKey)}
-          feed={vitalFeed.lineFeed(spec.id)}
-          unit={spec.unit}
-          decimals={spec.decimals}
-          range={spec.range}
-          message={message}
-          seriesToken={group.seriesToken}
-          curve={curve}
-          valueFormat={labels === 'severity' ? severityLabel : labels === 'category' ? categoryLabel(spec.id) : undefined}
-        />
+        labels ? (
+          <StatusChart
+            key={spec.id}
+            title={translate(spec.labelKey)}
+            feed={vitalFeed.lineFeed(spec.id)}
+            message={message}
+            valueFormat={labels === 'severity' ? severityLabel : categoryLabel(spec.id)}
+            kind={labels}
+          />
+        ) : (
+          <SmoothLineChart
+            key={spec.id}
+            title={translate(spec.labelKey)}
+            feed={vitalFeed.lineFeed(spec.id)}
+            unit={spec.unit}
+            decimals={spec.decimals}
+            range={spec.range}
+            message={message}
+            seriesToken={group.seriesToken}
+            curve={curve}
+          />
+        )
       ))}
     </div>
   )

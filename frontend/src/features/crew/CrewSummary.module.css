@@ -1,0 +1,28 @@
+/* Compact active-crew card in the corner column. */
+.root {
+  box-sizing: border-box;
+  width: min(16rem, calc(100vw - 2 * var(--space-4)));
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-thin) solid var(--line-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-card);
+  pointer-events: none;
+}
+
+.name {
+  margin: 0 0 var(--space-1);
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.line {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}

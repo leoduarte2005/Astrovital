@@ -37,6 +37,11 @@
   visibility: hidden;
 }
 
+/* Always-labelled marker: leader and chip stay visible without hover. */
+.root.labelled .leader {
+  visibility: visible;
+}
+
 /* Active (selected) marker: leader and chip stay visible without hover. */
 .root[data-active='true'] .leader {
   visibility: visible;

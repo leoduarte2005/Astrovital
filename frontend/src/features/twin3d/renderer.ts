@@ -238,7 +238,8 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
 
     // Grid floor under the feet. It is a child of `body`, so it turns and tilts with the model. Model units,
     // so it scales with the body. Colour from the `--ink-3` token.
-    const pageInk = getComputedStyle(document.documentElement).getPropertyValue('--ink-3').trim()
+    const canvasStyle = getComputedStyle(canvas)
+    const pageInk = canvasStyle.getPropertyValue('--ink-3').trim()
     const floor = new GridHelper(Math.max(size.x, size.z) * 8, 8, new Color(pageInk || LIGHT_GROUND), new Color(pageInk || LIGHT_GROUND))
     const floorMaterial = floor.material as LineBasicMaterial
     floorMaterial.transparent = true
@@ -279,7 +280,7 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
     const webgl = new WebGLRenderer({ canvas, antialias: true })
     renderer = webgl
     // Opaque background taken from the page token, so it never depends on alpha compositing.
-    const pageBg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim()
+    const pageBg = canvasStyle.getPropertyValue('--bg').trim()
     webgl.setClearColor(pageBg || LIGHT_GROUND, 1)
     webgl.toneMapping = ACESFilmicToneMapping
     webgl.toneMappingExposure = STUDIO_LIGHT.exposure

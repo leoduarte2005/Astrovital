@@ -1,33 +1,44 @@
-/* Minimised card: solid light surface with dark text. */
+/* Live metric card: a bright, quiet surface that stays legible over the dark twin scene. */
 .root {
   display: flex;
   flex-direction: column;
   gap: var(--space-1);
-  padding: var(--space-1);
-  border-radius: var(--radius-md);
+  padding: var(--space-2) var(--space-3);
+  aspect-ratio: 5 / 3;
+  overflow: hidden;
+  border: var(--border-thin) solid var(--line-on-light);
+  border-radius: var(--radius-lg);
   background: var(--ink);
   color: var(--bg);
+  box-shadow: var(--shadow-card);
 }
 
 /* Expanded view sits inside the dark modal: no surface of its own. */
 .expanded {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  border: 0;
+  border-radius: 0;
+  padding: 0;
   background: transparent;
   color: var(--ink);
 }
 
 .header {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
 }
 
 .title {
+  min-width: 0;
+  flex: 1;
   margin: 0;
   font-size: var(--text-xs);
-  font-weight: var(--weight-regular);
-  letter-spacing: var(--tracking-wide);
-  text-transform: uppercase;
+  font-weight: var(--weight-bold);
+  letter-spacing: normal;
   color: inherit;
 }
 
@@ -42,14 +53,14 @@
 
 .unit {
   margin-inline-start: var(--space-1);
-  font-size: var(--text-sm);
+  font-size: var(--text-xs);
   font-weight: var(--weight-regular);
   color: inherit;
 }
 
 .message {
   margin: 0;
-  min-height: 5rem;
+  min-height: 5.5rem;
   display: grid;
   place-items: center;
   font-size: var(--text-sm);

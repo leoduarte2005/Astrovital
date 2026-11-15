@@ -1,5 +1,5 @@
 /**
- * Edge Space / HALO — lore dos tripulantes (MOCK, FICTÍCIO).
+ * Astro Vital — lore dos tripulantes (MOCK, FICTÍCIO).
  *
  * Tudo aqui é inventado para a fase de mock. Nenhum dado corresponde a pessoa real.
  * A lore alimenta três consumidores:
@@ -7,7 +7,7 @@
  *   2. o contexto individual da IA a bordo (Contrato 1, campo `particularities`);
  *   3. a personalização da UI (polaroid, filtros de conteúdo, sugestões no chat).
  *
- * Privacidade (regra 7 do CLAUDE.md): campos marcados como `Private<T>` só podem ser
+ * Privacidade (rules/offline-and-privacy.md): campos marcados como `Private<T>` só podem ser
  * exibidos com consentimento explícito do tripulante (ver `consent`). Orientação sexual
  * e notas de saúde NUNCA mudam limiares clínicos nem aparecem fora do perfil do próprio
  * tripulante.
@@ -162,9 +162,11 @@ export interface UiAdaptation {
   }
 }
 
+export type InteractionKind = 'bond' | 'mentoring' | 'friction' | 'support' | 'teamwork' | 'social'
+
 export interface Interaction {
   with: CrewId | CastId
-  kind: 'bond' | 'mentoring' | 'friction' | 'support' | 'teamwork' | 'social'
+  kind: InteractionKind
   note: string
 }
 

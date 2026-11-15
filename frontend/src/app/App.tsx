@@ -1,4 +1,5 @@
 import { AstronautTabs } from '@/features/astronaut'
+import { CrewSummary } from '@/features/crew'
 import { ChatDrawer } from '@/features/chat'
 import { HomeMenu } from '@/features/navigation'
 import { loadConfig } from '@/lib/config'
@@ -6,12 +7,15 @@ import { initDataSource } from '@/lib/data'
 import { restoreRememberedCrew } from '@/lib/data/rememberedCrew'
 import { useSession } from '@/lib/data/session'
 import { setLocale, useI18n } from '@/lib/i18n'
+import { CORNER_SLOT_ID } from '@/lib/utils/cornerSlot'
 import { navigate, useHashRoute } from '@/lib/utils/hashRoute'
+import { IconButton } from '@/ui/IconButton'
 import { Suspense, useEffect, useState } from 'react'
 import styles from './App.module.css'
 import { routes } from './routes'
 
 const CREW_PATH = '/crew'
+
 // Off for now: the floating drawer is not rendered on any page (rules/features-map.md). Set to true to bring it back.
 const SHOW_HOME_MENU = false
 
@@ -50,6 +54,17 @@ export function App() {
     <>
       <Suspense fallback={null}>{Page ? <Page /> : <p>{t('common.notFound')}</p>}</Suspense>
       {showTabs && <AstronautTabs />}
+      {showTabs && (
+        <div className={styles.corner}>
+          {activeCrew && (
+            <div className={styles.crewSummaryRow}>
+              <CrewSummary member={activeCrew} />
+              <IconButton icon="swap" label={t('home.switchCrew')} onClick={() => navigate(CREW_PATH)} />
+            </div>
+          )}
+          <div id={CORNER_SLOT_ID} />
+        </div>
+      )}
       {showMenu && (
         <div className={styles.menu}>
           <HomeMenu />

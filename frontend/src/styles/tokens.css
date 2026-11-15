@@ -1,63 +1,69 @@
 /*
- * Design tokens. Paper/newspaper look in dark mode: no pure black/white,
- * no gradients, no glass. Only hex and rgba (Chromium 90 baseline).
+ * Design tokens for the light clinical dashboard theme.
+ * Only hex and rgba are used for the Chromium 90 baseline.
  * Units: rem only for font sizes; px for everything else.
  */
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 
-  /* Background: the only surface for now */
-  --bg: #100c08; /* page background, also used by cards, drawers and controls */
+  /* Background and surfaces */
+  --bg: #f2f2f5;
+  --surface: #ffffff;
+  --surface-2: #f8f8fa;
 
   /* Ink */
-  --ink: #f9f8f2; /* primary text, frames */
-  --ink-2: #cfcec7; /* secondary text */
-  --ink-3: #adaea9; /* auxiliary text (only over --bg) */
+  --ink: #17181a;
+  --ink-2: #62656b;
+  --ink-3: #92959c;
 
-  /* Lines, like a ruler on paper */
-  --line: rgba(249, 248, 242, 0.16); /* internal separators */
-  --line-strong: rgba(249, 248, 242, 0.44); /* control borders */
-  --line-on-light: rgba(16, 12, 8, 0.16); /* separators on the light chart card (ink on --ink) */
+  /* Quiet separators keep the card system light and precise. */
+  --line: rgba(23, 24, 26, 0.1);
+  --line-strong: rgba(23, 24, 26, 0.2);
+  --line-on-light: rgba(23, 24, 26, 0.12);
 
-  /* Accent: technical-blueprint blue. Never signals health state. */
-  --accent: #9dbaf7;
-  --accent-ink: #2d3135; /* text over accent fill */
-  --accent-tint: rgba(157, 186, 247, 0.16);
+  /* Accent: warm yellow from the reference dashboard. */
+  --accent: #f3cf3d;
+  --accent-ink: #17181a;
+  --accent-tint: rgba(243, 207, 61, 0.2);
 
-  /* Organ group colours for chart series. Vascular = blood red (heart tint, rules/twin3d.md). */
-  --organ-blood: #c8283f;
-  --organ-lungs: #d4a5a0; /* respiratory group (lung tint, rules/twin3d.md) */
-  --organ-neuro: #b5527a; /* brain: deeper than its pink tint, readable on the light chart card */
-  --organ-nutrition: #8b4a3c; /* liver and gut (liver tint) */
-  --organ-kidneys: #7a2e2e; /* kidneys (tint) */
-  --organ-spine: #8a7650; /* spine: deeper than its ivory tint, readable on the light chart card */
+  /* Organ group colours for chart series. */
+  --organ-blood: #c94b55;
+  --organ-lungs: #c47b76;
+  --organ-neuro: #9a5c91;
+  --organ-nutrition: #b8783f;
+  --organ-kidneys: #9c5d5d;
+  --organ-spine: #9a844d;
 
-  /* Disabled controls: a warm grey just above --bg, with muted text */
-  --disabled-bg: #1c1915;
-  --disabled-ink: #6f6c66;
+  /* Disabled controls */
+  --disabled-bg: #e8e8ec;
+  --disabled-ink: #9b9da3;
 
-  /* Health state: calm, always with label or icon */
-  --ok: #9cc5a6;
-  --warn: #e0be72;
-  --high: #e09a86;
+  /* Health state: calm, always with label or icon. */
+  --ok: #4f946a;
+  --warn: #b78925;
+  --high: #c26c61;
 
-  /* Overlay and shadow base (not #000) */
-  --scrim: rgba(30, 34, 37, 0.5);
+  /* Overlay and depth */
+  --scrim: rgba(23, 24, 26, 0.32);
+  --shadow-card: 0 2px 12px rgba(23, 24, 26, 0.06);
+  --shadow-overlay: 0 12px 32px rgba(23, 24, 26, 0.14);
 
   /* Type */
+  --font-sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
   --font-mono: 'Ubuntu Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas,
     'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', monospace;
-  --text-xs: clamp(0.75rem, 0.7rem + 0.15vw, 0.9375rem);
-  --text-sm: clamp(0.875rem, 0.8rem + 0.2vw, 1.125rem);
-  --text-body: clamp(1rem, 0.9rem + 0.3vw, 1.5rem);
-  --text-lg: clamp(1.25rem, 1.05rem + 0.6vw, 2rem);
-  --text-title: clamp(1.5rem, 1.2rem + 1.2vw, 2.75rem);
-  --text-display: clamp(2.5rem, 2rem + 3vw, 6rem);
+  --text-xs: clamp(0.6875rem, 0.65rem + 0.1vw, 0.8125rem);
+  --text-sm: clamp(0.75rem, 0.7rem + 0.15vw, 0.9375rem);
+  --text-body: clamp(0.875rem, 0.82rem + 0.2vw, 1.125rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.4vw, 1.625rem);
+  --text-title: clamp(1.5rem, 1.25rem + 0.9vw, 2.5rem);
+  --text-display: clamp(2.5rem, 2rem + 2.5vw, 5rem);
   --weight-regular: 400;
   --weight-bold: 700;
   --leading-tight: 1.2;
-  --leading-body: 1.5;
-  --tracking-wide: 0.12em;
+  --leading-body: 1.45;
+  --tracking-wide: 0.06em;
 
   /* Space: multiples of 4 px, starting at 8 for gaps */
   --space-1: 4px;
@@ -67,25 +73,45 @@
   --space-5: 24px;
   --space-6: 32px;
 
-  /* Shape: 2 px controls/chips/fields; 4 px panels/cards/dialogs; 0 on contiguous grid cells */
-  --radius-sm: 2px;
-  --radius-md: 4px;
-  --border-frame: 2px; /* with --ink: screen frame and main dividers */
-  --border-thin: 1px; /* with --line: internal separators */
-
-  /* Depth: none on panels; a single shadow for dialogs and tooltips */
-  --shadow-overlay: 0 4px 16px var(--scrim);
+  /* Shape */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+  --border-frame: 1px;
+  --border-thin: 1px;
 
   --z-drawer: 10;
   --z-drawer-tab: 11;
   --z-overlay: 20;
 
   /* Layout and interaction */
-  --touch-min: 40px;
-  --scrollbar-size: 4px; /* thin white scrollbar on chart areas */
-  --control-sm: 32px; /* compact icon button inside cards; below the 44 px touch target, pointer use */
+  --touch-min: 44px;
+  --scrollbar-size: 4px;
+  --control-sm: 32px;
   --drawer-width: min(384px, 86vw);
-  --hover-shift: translate(-2px, 2px); /* pointer devices only, separated bordered elements */
+  --hover-shift: translateY(-1px);
   --duration-fast: 120ms;
   --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+[data-theme='dark'] {
+  color-scheme: dark;
+  --bg: #15181c;
+  --surface: #20252b;
+  --surface-2: #292f36;
+  --ink: #f5f6f7;
+  --ink-2: #c2c7cc;
+  --ink-3: #969da5;
+  --line: rgba(245, 246, 247, 0.16);
+  --line-strong: rgba(245, 246, 247, 0.36);
+  --line-on-light: rgba(21, 24, 28, 0.16);
+  --accent: #f3cf3d;
+  --accent-ink: #17181a;
+  --accent-tint: rgba(243, 207, 61, 0.2);
+  --disabled-bg: #292d32;
+  --disabled-ink: #777e86;
+  --scrim: rgba(0, 0, 0, 0.5);
+  --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.2);
+  --shadow-overlay: 0 12px 32px rgba(0, 0, 0, 0.35);
 }

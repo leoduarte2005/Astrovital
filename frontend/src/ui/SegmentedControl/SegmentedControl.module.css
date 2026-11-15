@@ -1,7 +1,7 @@
 .root {
   display: inline-flex;
   flex-wrap: wrap;
-  border: var(--border-thin) solid var(--ink);
+  border: var(--border-thin) solid var(--line-strong);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
@@ -10,8 +10,8 @@
   min-height: var(--touch-min);
   padding: var(--space-1) var(--space-4);
   border: 0;
-  border-inline-start: var(--border-thin) solid var(--ink);
-  background: var(--bg);
+  border-inline-start: var(--border-thin) solid var(--line);
+  background: var(--surface);
   color: var(--ink);
   font: inherit;
   font-size: var(--text-sm);

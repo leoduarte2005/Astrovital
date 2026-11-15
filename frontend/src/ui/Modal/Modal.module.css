@@ -1,9 +1,9 @@
 .root {
   margin: auto;
   padding: var(--space-3) var(--space-4);
-  border: var(--border-frame) solid var(--ink);
+  border: var(--border-frame) solid var(--line-strong);
   border-radius: var(--radius-md);
-  background: var(--bg);
+  background: var(--surface);
   color: var(--ink);
 }
 
@@ -43,7 +43,7 @@
   font-weight: var(--weight-regular);
   letter-spacing: var(--tracking-wide);
   text-transform: uppercase;
-  color: var(--ink-2);
+  color: var(--ink);
 }
 
 .xl {

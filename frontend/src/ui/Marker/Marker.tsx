@@ -9,6 +9,8 @@ interface MarkerProps {
   color?: string
   /** False for presentation only: no pointer cursor (the element still shows its chip on hover). Default true. */
   clickable?: boolean
+  /** True: the leader and chip are always shown, without hover (names over moving figures). Default false. */
+  showLabel?: boolean
   ref?: Ref<HTMLSpanElement>
 }
 
@@ -16,9 +18,9 @@ interface MarkerProps {
  * Generic ring with a centre dot, plus a leader line and name chip shown on hover.
  * The outer element is positioned by `placeMarker`; the inner parts react to hover. Hidden until placed.
  */
-export function Marker({ label, color, clickable = true, ref }: MarkerProps) {
+export function Marker({ label, color, clickable = true, showLabel = false, ref }: MarkerProps) {
   const style = color ? ({ '--marker-color': color } as CSSProperties) : undefined
-  const classes = [styles.root, clickable ? '' : styles.passive].filter(Boolean).join(' ')
+  const classes = [styles.root, clickable ? '' : styles.passive, showLabel ? styles.labelled : ''].filter(Boolean).join(' ')
   return (
     <span ref={ref} className={classes} style={style} role="img" aria-label={label}>
       <span className={styles.ring} />
