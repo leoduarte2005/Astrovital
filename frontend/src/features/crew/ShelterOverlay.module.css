@@ -15,9 +15,10 @@
   gap: var(--space-3);
   max-width: 32rem;
   padding: var(--space-5) var(--space-6);
-  border: var(--border-frame) solid var(--ink);
+  border: var(--border-frame) solid var(--line-strong);
   border-radius: var(--radius-md);
-  background: var(--bg);
+  background: var(--surface);
+  box-shadow: var(--shadow-overlay);
   text-align: center;
 }
 
