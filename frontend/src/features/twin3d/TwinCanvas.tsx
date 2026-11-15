@@ -12,10 +12,13 @@ interface TwinCanvasProps {
   skinTone: string
   heightM: number
   onSelect?: (id: TwinAnchorId | null) => void
+  /** Plays the suit-fragmentation intro when the twin mounts. Read once, at mount: changing it later does not replay. */
+  intro?: boolean
 }
 
-export function TwinCanvas({ skinTone, heightM, onSelect }: TwinCanvasProps) {
+export function TwinCanvas({ skinTone, heightM, onSelect, intro = false }: TwinCanvasProps) {
   const { t } = useI18n()
+  const introRef = useRef(intro)
   // Kept in a ref so a new callback does not remount the renderer.
   const onSelectRef = useRef(onSelect)
   useEffect(() => {
@@ -45,6 +48,7 @@ export function TwinCanvas({ skinTone, heightM, onSelect }: TwinCanvasProps) {
           heightM,
           signal: controller.signal,
           markers,
+          intro: introRef.current,
           onSelect: (id) => onSelectRef.current?.(id),
         }),
       )

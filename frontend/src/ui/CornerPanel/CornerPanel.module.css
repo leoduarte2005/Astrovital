@@ -1,0 +1,24 @@
+.root {
+  position: absolute;
+  z-index: 1;
+}
+
+.topLeft {
+  top: var(--space-4);
+  left: var(--space-4);
+}
+
+.topRight {
+  top: var(--space-4);
+  right: var(--space-4);
+}
+
+.bottomLeft {
+  bottom: var(--space-4);
+  left: var(--space-4);
+}
+
+.bottomRight {
+  bottom: var(--space-4);
+  right: var(--space-4);
+}

@@ -28,6 +28,8 @@ const missionDayOf = (crewId: string) => MOCK_CREW.find((member) => member.crewI
 export class MockSource implements DataSource {
   readonly kind = 'mock' as const
   private readonly listeners = new Map<string, Set<Listener>>()
+  private readonly heartWatchers = new Map<string, Set<(bpm: number) => void>>()
+  private heartTimer: number | undefined
   private references = 0
   private timer: number | undefined
 
@@ -60,6 +62,22 @@ export class MockSource implements DataSource {
     window.clearInterval(this.timer)
     this.timer = undefined
     connectionStore.setState({ state: 'offline' })
+  }
+
+  /** Simulated heart rate per crew member: one shared timer for every watched crew member. */
+  watchHeartRate(crewId: string, listener: (bpm: number) => void): () => void {
+    const listeners = this.heartWatchers.get(crewId) ?? new Set<(bpm: number) => void>()
+    listeners.add(listener)
+    this.heartWatchers.set(crewId, listeners)
+    this.heartTimer ??= window.setInterval(() => this.tickHeartRate(), TELEMETRY_PERIOD_MS)
+    return () => {
+      this.heartWatchers.get(crewId)?.delete(listener)
+      if (this.heartWatchers.get(crewId)?.size === 0) this.heartWatchers.delete(crewId)
+      if (this.heartWatchers.size === 0) {
+        window.clearInterval(this.heartTimer)
+        this.heartTimer = undefined
+      }
+    }
   }
 
   /** Confirms the crew member at once, as the central would after `SET_CREW`, and announces it. */
@@ -104,6 +122,14 @@ export class MockSource implements DataSource {
 
   history(crewId: string, metric: BaselineMetricId, window: HistoryWindow): Promise<HistorySeries> {
     return Promise.resolve(historySeries(crewId, metric, window, missionDayOf(crewId), Date.now()))
+  }
+
+  private tickHeartRate(): void {
+    const now = Date.now()
+    for (const [crewId, listeners] of this.heartWatchers) {
+      const bpm = simulateFrame(crewId, now).vitals.heart_rate_bpm
+      listeners.forEach((listener) => listener(bpm))
+    }
   }
 
   private tick(): void {

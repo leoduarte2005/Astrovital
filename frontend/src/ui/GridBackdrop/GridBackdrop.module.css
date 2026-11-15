@@ -1,0 +1,16 @@
+/* Light grid from CSS gradients (no image, no GPU cost). */
+.root {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: var(--grid-cell, 48px) var(--grid-cell, 48px);
+}
+
+.root[data-grid='false'] {
+  background-image: none;
+}

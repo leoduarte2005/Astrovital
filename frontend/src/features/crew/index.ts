@@ -1,5 +1,6 @@
 export { CrewCard } from './CrewCard'
 export { CrewFigure } from './CrewFigure'
 export { CrewInfoCard } from './CrewInfoCard'
+export { CrewStack } from './CrewStack'
 export { PrivacyIndicator } from './PrivacyIndicator'
 export { ShelterOverlay } from './ShelterOverlay'

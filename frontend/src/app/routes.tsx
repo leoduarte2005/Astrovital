@@ -8,13 +8,21 @@ const placeholder = (titleKey: MessageKey): ComponentType => {
   return Page
 }
 
+const MedicalFollowUpPage = lazy(() => import('@/pages/medicalFollowUp'))
+// One component per route family: moving between routes of the same family keeps the page (and its 3D scene) mounted.
+const AstronautPage = lazy(() => import('@/pages/astronaut'))
+
 /**
  * Route table. Module routes stay placeholders until their screen is built (rules/features-map.md).
  * Routes listed after the spread have their own page and take precedence.
  */
 export const routes: Record<string, ComponentType> = {
-  '/': lazy(() => import('@/pages/home')),
+  '/': MedicalFollowUpPage,
   '/crew': lazy(() => import('@/pages/crew')),
+  '/astronaut': AstronautPage,
+  '/astronaut/training': AstronautPage,
+  '/astronaut/medical': MedicalFollowUpPage,
+  '/astronaut/personal': AstronautPage,
   ...Object.fromEntries(MODULES.map((module) => [module.path, placeholder(module.labelKey)])),
   '/charts': lazy(() => import('@/pages/charts')),
   '/garden': lazy(() => import('@/pages/garden')),
