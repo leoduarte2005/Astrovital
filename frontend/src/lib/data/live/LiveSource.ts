@@ -15,6 +15,12 @@ import type { BaselineMetricId, BaselineProfile, HistorySeries, HistoryWindow } 
 import { baselineProfile, historySeries } from '../mock/baseline'
 import { suggestBooks, type Book } from '../mock/bookCatalog'
 import { toCrewMember } from './crewMapping'
+import { HeartRateLink } from './HeartRateLink'
+
+interface HeartWatch {
+  link: HeartRateLink
+  listeners: Set<(bpm: number) => void>
+}
 
 type Listener = (envelope: Envelope) => void
 
@@ -59,8 +65,30 @@ export class LiveSource implements DataSource {
   private chatOrder: string[] = []
   private chatSeq = 0
   private stopTimer: number | undefined
+  /** One heart-rate link per watched crew member. */
+  private readonly heartWatches = new Map<string, HeartWatch>()
 
   constructor(private readonly url: string) {}
+
+  /** Opens one link per crew member on the first watcher and closes it with the last one. */
+  watchHeartRate(crewId: string, listener: (bpm: number) => void): () => void {
+    let watch = this.heartWatches.get(crewId)
+    if (!watch) {
+      const listeners = new Set<(bpm: number) => void>()
+      const link = new HeartRateLink(this.url, crewId, (bpm) => listeners.forEach((each) => each(bpm)))
+      watch = { link, listeners }
+      this.heartWatches.set(crewId, watch)
+      link.open()
+    }
+    const current = watch
+    current.listeners.add(listener)
+    return () => {
+      current.listeners.delete(listener)
+      if (current.listeners.size > 0) return
+      current.link.close()
+      if (this.heartWatches.get(crewId) === current) this.heartWatches.delete(crewId)
+    }
+  }
 
   /** `GET /api/crew` (same origin). Rejects when the central is unreachable or answers with an error. */
   async listCrew(): Promise<CrewMember[]> {

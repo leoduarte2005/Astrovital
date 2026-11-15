@@ -25,6 +25,11 @@ export interface DataSource {
   getBaseline(crewId: string): Promise<BaselineProfile>
   /** One metric over one window, with the corridor of the baseline. Mock until the central provides it (Leva 2). */
   history(crewId: string, metric: BaselineMetricId, window: HistoryWindow): Promise<HistorySeries>
+  /**
+   * Heart rate (bpm) of one crew member, at each of its telemetry frames. Independent of the session and of
+   * the home's link: live opens one link per crew member, closed with the last watcher. Returns the unsubscribe.
+   */
+  watchHeartRate(crewId: string, listener: (bpm: number) => void): () => void
   /** Sends a chat message (`CHAT_MSG`) for the crew member and resolves with the reply, or rejects. */
   sendChat(text: string, crewId: string): Promise<ChatReplyPayload>
 }
