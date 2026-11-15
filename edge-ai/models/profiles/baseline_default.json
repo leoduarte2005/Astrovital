@@ -134,6 +134,6 @@
   ],
   "threshold": 0.75,
   "sample_count": 480,
-  "updated_at_us": 1794689706797922,
+  "updated_at_us": 1794771762558806,
   "model_path": "baseline_ae_default.onnx"
 }

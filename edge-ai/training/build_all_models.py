@@ -512,6 +512,63 @@ def build_all_models(models_dir: Path, seed: int = 42) -> None:
         encoding="utf-8",
     )
     print(f"wrote default baseline profile: {profiles_dir / 'baseline_default.json'}")
+    build_crew_autoencoders(models_dir, X_nom=X_nom, seed=seed)
+
+
+def build_crew_autoencoders(
+    models_dir: Path,
+    *,
+    X_nom: np.ndarray,
+    seed: int = 42,
+    min_samples: int = 100,
+) -> list[Path]:
+    """Train and export per-crew ``baseline_ae_<crew_id>.onnx`` for calibrated profiles."""
+    profiles_dir = models_dir / "profiles"
+    if not profiles_dir.is_dir():
+        return []
+    rng = np.random.default_rng(seed + 101)
+    exported: list[Path] = []
+    for ppath in sorted(profiles_dir.glob("baseline_*.json")):
+        if ppath.name == "baseline_default.json":
+            continue
+        try:
+            prof = json.loads(ppath.read_text(encoding="utf-8"))
+        except Exception:
+            continue
+        crew_id = str(prof.get("crew_id") or "").strip()
+        sample_count = int(prof.get("sample_count") or 0)
+        mean_raw = prof.get("mean")
+        std_raw = prof.get("std")
+        if (
+            not crew_id
+            or crew_id == "default"
+            or sample_count < min_samples
+            or not isinstance(mean_raw, list)
+            or not isinstance(std_raw, list)
+            or len(mean_raw) != FEATURE_DIM
+            or len(std_raw) != FEATURE_DIM
+        ):
+            continue
+        c_mean = np.asarray(mean_raw, dtype=np.float32)
+        c_std = np.maximum(np.asarray(std_raw, dtype=np.float32), 1e-3)
+        # Blend nominal manifold normalized to this crew's baseline + small crew-centred jitter
+        x_base = np.clip((X_nom - c_mean) / c_std, -6.0, 6.0).astype(np.float32)
+        x_crew = np.clip(rng.normal(0.0, 0.85, size=(min(len(X_nom), 400), FEATURE_DIM)), -5.0, 5.0).astype(np.float32)
+        x_train = np.vstack([x_base, x_crew]).astype(np.float32)
+
+        ae_crew = MLPRegressor(
+            hidden_layer_sizes=(32, 16, 32),
+            max_iter=1000,
+            early_stopping=True,
+            learning_rate_init=2e-3,
+            random_state=seed,
+        )
+        ae_crew.fit(x_train, x_train)
+        out_path = models_dir / f"baseline_ae_{crew_id}.onnx"
+        _export_mlp_onnx(ae_crew, out_path, scaler=None)
+        _verify_onnx(out_path, x_train[:4], ae_crew)
+        exported.append(out_path)
+    return exported
 
 
 def main() -> None:

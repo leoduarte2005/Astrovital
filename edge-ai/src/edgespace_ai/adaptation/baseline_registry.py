@@ -58,8 +58,9 @@ class CrewBaseline:
         """Z-score normalize a 1D (64,) or 2D (N, 64) feature vector, using posture stats if present."""
         mean_vec = self.mean
         std_vec = self.std
-        if posture and posture in self.per_posture_stats:
-            pstats = self.per_posture_stats[posture]
+        canon = {"exercising": "exercise", "seated": "sitting"}.get(posture.strip().lower(), posture.strip().lower()) if posture else None
+        if canon and canon in self.per_posture_stats:
+            pstats = self.per_posture_stats[canon]
             if isinstance(pstats, dict) and "mean" in pstats and "std" in pstats:
                 p_mean = np.asarray(pstats["mean"], dtype=np.float32)
                 p_std = np.asarray(pstats["std"], dtype=np.float32)
