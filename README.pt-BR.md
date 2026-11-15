@@ -1,11 +1,11 @@
-# 🛰️ EdgeSpace
+# 🛰️ AstroVital
 
 > **Edge AI Autônoma, Tomografia Wi-Fi CSI Multi-Estática e Gêmeo Digital 3D para Saúde Espacial — 100% Offline na Orange Pi 4 Pro (NASA Space Apps Challenge).**
 
 🌐 **Language / Idioma:** [🇺🇸 English](README.md) · [🇧🇷 Português (Brasil)](README.pt-BR.md)
 
 <p align="center">
-  <img src="assets/readme/hero-edgespace.svg" width="100%" alt="EdgeSpace Edge AI Autônoma e Gêmeo Digital Wi-Fi CSI">
+  <img src="assets/readme/hero-astrovital.svg" width="100%" alt="AstroVital Edge AI Autônoma e Gêmeo Digital Wi-Fi CSI">
 </p>
 
 <p align="center">
@@ -35,9 +35,9 @@
 
 ## 2. Veja Dentro da Cabine com Wi-Fi e Edge AI
 
-Em missões lunares (Artemis) e marcianas, **atrasos de comunicação de até 22 minutos** e **janelas de blackout orbital** inviabilizam a telemedicina em tempo real com a Terra diante de eventos agudos como hipercapnia, SANS (*Spaceflight Associated Neuro-ocular Syndrome*), tempestades solares, desidratação e perda de condicionamento físico. O **EdgeSpace** atua como um **Flight Surgeon autônomo a bordo** sem câmeras, sem vestíveis obrigatórios e sem internet.
+Em missões lunares (Artemis) e marcianas, **atrasos de comunicação de até 22 minutos** e **janelas de blackout orbital** inviabilizam a telemedicina em tempo real com a Terra diante de eventos agudos como hipercapnia, SANS (*Spaceflight Associated Neuro-ocular Syndrome*), tempestades solares, desidratação e perda de condicionamento físico. O **AstroVital** atua como um **Flight Surgeon autônomo a bordo** sem câmeras, sem vestíveis obrigatórios e sem internet.
 
-| Capacidade | Sistemas Dependentes da Terra / Câmeras / Wearables | **EdgeSpace (Wi-Fi CSI + Edge AI)** |
+| Capacidade | Sistemas Dependentes da Terra / Câmeras / Wearables | **AstroVital (Wi-Fi CSI + Edge AI)** |
 | :--- | :--- | :--- |
 | **Resiliência a Blackouts** | Falha com latência de 22 min de Marte ou perda de sinal | **100% autônomo e offline** na Orange Pi 4 Pro (`linux/arm64`) |
 | **Privacidade & Adesão** | Câmeras invadem privacidade; cintas falham ou incomodam | **RF CSI passiva** (câmera desligada) + I²C opcional |
@@ -177,7 +177,7 @@ Os 5 modelos **ONNX** base são carregados no boot com orçamento controlado par
 
 ### Como o Modelo Aprende os Padrões de Cada Astronauta (`crew_id`)
 
-O EdgeSpace evita falsos positivos comparando cada astronauta **consigo mesmo** (e não com uma média genérica de solo):
+O AstroVital evita falsos positivos comparando cada astronauta **consigo mesmo** (e não com uma média genérica de solo):
 
 ```mermaid
 flowchart TD
@@ -340,7 +340,7 @@ cd frontend && pnpm install --frozen-lockfile && cd ..
 ```
 
 ```text
-Edge_Space/
+astrovital/
 ├── central/          # Orquestrador Go 1.27 (UDP :5005, IPC :5006, HTTP/WS :8000, SQLite WAL)
 ├── edge-ai/          # Worker Python 3.11+ (DSP CSI, 5 ONNX + crew_id, Motor Causal + SLM)
 ├── firmware/         # Firmware homogêneo ESP-IDF v5.x (5× ESP32-S3 + Auto-Discovery I²C)
@@ -384,5 +384,5 @@ make contracts-validate
 
 ---
 
-**EdgeSpace** — *Inteligência de saúde autônoma para a fronteira final.*  
+**AstroVital** — *Inteligência de saúde autônoma para a fronteira final.*  
 Desenvolvido para o **NASA Space Apps Challenge** para levar um Flight Surgeon autônomo junto com a tripulação.
