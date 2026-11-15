@@ -57,11 +57,15 @@ export default function LeisurePage() {
 function BookCard({ book, onDownload }: { book: Book; onDownload: () => void }) {
   const { t } = useI18n()
   return (
-    <Card label={book.title}>
-      <h2 className={styles.name}>{book.title}</h2>
-      <p className={styles.text}>{book.author}</p>
-      <p className={styles.text}>{t(`genre.${book.genre}` as MessageKey)}</p>
-      <Button onClick={onDownload}>{t('leisure.download')}</Button>
+    <Card label={book.title} className={styles.book}>
+      <div className={styles.cover}>
+        <h2 className={styles.name}>{book.title}</h2>
+        <p className={styles.text}>{book.author}</p>
+      </div>
+      <p className={styles.genre}>{t(`genre.${book.genre}` as MessageKey)}</p>
+      <Button icon="download" onClick={onDownload}>
+        {t('leisure.download')}
+      </Button>
     </Card>
   )
 }

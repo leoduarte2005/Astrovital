@@ -6,16 +6,6 @@
   /* padding: var(--space-4) calc(var(--touch-min) + var(--space-3)) var(--space-4) var(--space-4); */
 }
 
-.bar {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-2);
-  background-color: transparent;
-  z-index: 2;
-  padding: var(--space-3);
-}
 
 .stage {
   position: relative;
@@ -51,7 +41,7 @@
 /* Stacked vital charts on the right, like the crew card on the left. Stops short of the chat tab. */
 .charts {
   position: absolute;
-  top: 0;
+  top: calc(var(--touch-min) + var(--space-5));
   right: 0;
   bottom: 0;
   z-index: var(--z-drawer);

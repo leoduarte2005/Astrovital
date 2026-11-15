@@ -1,16 +1,13 @@
 import { useLayoutEffect, useState } from 'react'
 import { TwinCanvas, type TwinAnchorId } from '@/features/twin3d'
-import { HomeMenu } from '@/features/navigation'
 import { CrewInfoCard, ShelterOverlay } from '@/features/crew'
-import { hasOrganCharts, OrganCharts, vitalFeed } from '@/features/vitals'
+import { hasOrganCharts, MetricsPanel, OrganCharts, vitalFeed } from '@/features/vitals'
 import { statureM } from '@/lib/model/stature'
 import { getDataSource } from '@/lib/data'
 import { crewStateStore, useCrewState } from '@/lib/data/crewState'
 import { useSession } from '@/lib/data/session'
 import { useI18n } from '@/lib/i18n'
-import { navigate } from '@/lib/utils/hashRoute'
 import { Button } from '@/ui/Button'
-import { IconButton } from '@/ui/IconButton'
 import styles from './HomePage.module.css'
 
 export default function HomePage() {
@@ -49,16 +46,14 @@ export default function HomePage() {
 
   return (
     <main className={styles.root}>
-      <header className={styles.bar}>
-        <IconButton icon="swap" label={t('home.switchCrew')} onClick={() => navigate('/crew')} />
-        <HomeMenu />
-      </header>
       <section className={styles.stage}>
         {confirmed ? (
           <>
             <TwinCanvas skinTone={crew.skinTone} heightM={statureM(crew.nationality)} onSelect={setSelected} />
             <div className={styles.floating}>
-              <CrewInfoCard member={crew} />
+              <CrewInfoCard member={crew}>
+                <MetricsPanel />
+              </CrewInfoCard>
             </div>
             {selected !== null && hasOrganCharts(selected) && (
               <div className={styles.charts}>
