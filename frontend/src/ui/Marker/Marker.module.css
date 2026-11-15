@@ -11,7 +11,7 @@
 .ring {
   position: absolute;
   inset: 0;
-  border: var(--border-thin) solid var(--ink);
+  border: var(--border-thin) solid var(--marker-color, var(--ink));
   border-radius: 50%;
 }
 
@@ -24,7 +24,7 @@
   height: 4px;
   margin: -2px 0 0 -2px;
   border-radius: 50%;
-  background: var(--ink);
+  background: var(--marker-color, var(--ink));
 }
 
 /* Zero-size anchor at the centre of the ring; the leader and tag are drawn from it. */
@@ -47,7 +47,7 @@
 .horizontal {
   position: absolute;
   height: var(--border-thin);
-  background: var(--ink);
+  background: var(--marker-color, var(--ink));
 }
 
 .diagonal {
@@ -75,7 +75,12 @@
 .tag .chip {
   padding: 0 var(--space-2);
   font-size: var(--text-xs);
-  border-color: var(--ink);
+  border-color: var(--marker-color, var(--ink));
+}
+
+/* Presentation only: the marker shows its chip on hover but takes no click, so no pointer cursor. */
+.root.passive {
+  cursor: default;
 }
 
 /* Hover-only parts. Growth, cursor and leader need a pointer device. */

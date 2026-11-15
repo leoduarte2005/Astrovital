@@ -4,7 +4,8 @@ interface SegmentedControlProps<T extends string> {
   /** Accessible name of the group (translated). */
   label: string
   options: { value: T; label: string }[]
-  value: T
+  /** null: no option chosen. */
+  value: T | null
   onChange: (value: T) => void
 }
 
