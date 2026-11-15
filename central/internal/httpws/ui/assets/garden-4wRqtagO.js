@@ -1,0 +1,1 @@
+import{t as e}from"./index-D5Y35pXx.js";import{t}from"./jsx-runtime-DNzAGvAt.js";var n=t();function r(){return(0,n.jsx)(e,{titleKey:`nav.garden`})}export{r as default};

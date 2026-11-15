@@ -1,36 +1,22 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>EdgeSpace Central — Offline Placeholder UI</title>
-  <link rel="stylesheet" href="./style.css">
-</head>
-<body>
-  <h1>EdgeSpace Central</h1>
-  <div class="meta">Offline embedded placeholder UI (CSP self-only).</div>
-  <div>
-    Endpoints:
-    <a href="/healthz">/healthz</a> |
-    <a href="/api/metrics">/api/metrics</a> |
-    <a href="/api/crew">/api/crew</a> |
-    <a href="/api/alerts">/api/alerts</a> |
-    <a href="/api/outbox">/api/outbox</a>
-  </div>
-  <div class="controls">
-    <button type="button" data-crew="crew_001">SET_CREW crew_001</button>
-    <button type="button" data-crew="crew_002">SET_CREW crew_002</button>
-    <button type="button" data-crew="crew_003">SET_CREW crew_003</button>
-  </div>
-  <div class="controls">
-    <input id="chatInput" type="text" value="dor de cabeca" placeholder="Clinical question">
-    <button type="button" id="sendChatBtn">Send CHAT_MSG</button>
-  </div>
-  <h3>Live Snapshot</h3>
-  <pre id="telemetry">waiting...</pre>
-  <h3>WebSocket /ws (<span id="status">connecting</span>)</h3>
-  <pre id="log"></pre>
-  <script src="./app.js"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="dark" />
+    <title>Edge Space</title>
+    <script type="module" crossorigin src="./assets/index-D5Y35pXx.js"></script>
+    <link rel="modulepreload" crossorigin href="./assets/rolldown-runtime-XKyaHtl9.js">
+    <link rel="modulepreload" crossorigin href="./assets/jsx-runtime-DNzAGvAt.js">
+    <link rel="modulepreload" crossorigin href="./assets/data-Nx-wC-Xx.js">
+    <link rel="modulepreload" crossorigin href="./assets/Icon-D_WvM0oP.js">
+    <link rel="modulepreload" crossorigin href="./assets/hashRoute-YaoiWBzA.js">
+    <link rel="modulepreload" crossorigin href="./assets/Button-CIMA2VkY.js">
+    <link rel="stylesheet" crossorigin href="./assets/Icon-Cwc-yu1c.css">
+    <link rel="stylesheet" crossorigin href="./assets/Button-CfLscffr.css">
+    <link rel="stylesheet" crossorigin href="./assets/index-DFKRexKV.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
 </html>
-

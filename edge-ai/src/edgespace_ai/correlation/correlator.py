@@ -19,7 +19,12 @@ from ..ipc.protocol import (
 from .causal_graph import CausalGraph
 from .clinical_store import ClinicalStore
 from .disambiguator import Disambiguator
-from .symptom_extractor import SymptomExtractor, _normalize_text
+from .symptom_extractor import (
+    SymptomExtractor,
+    _normalize_text,
+    detect_followup_polarity,
+    is_pure_greeting,
+)
 from ..clinical import ClinicalRepository
 
 CLINICAL_DISCLAIMER = (
@@ -131,8 +136,8 @@ class ClinicalCorrelator:
         default_kb = Path(__file__).resolve().parents[3] / "knowledge-base" / "nasa_causal_graph.yaml"
         kb_path = Path(knowledge_base_path) if knowledge_base_path else default_kb
 
-        self.symptom_extractor = SymptomExtractor()
         self.clinical_store = ClinicalStore(db_path=db_path, knowledge_base_path=kb_path)
+        self.symptom_extractor = SymptomExtractor(clinical_store=self.clinical_store)
         self.db_path = Path(db_path) if db_path is not None else None
         self.causal_graph = CausalGraph(
             knowledge_base_path=kb_path,
@@ -160,10 +165,41 @@ class ClinicalCorrelator:
                 memory=repo.memory(req.crew_id)
             profile_kwargs = {k: crew[k] for k in CrewProfile.model_fields if k in crew}
             req=req.model_copy(update={"profile":CrewProfile(**profile_kwargs)})
-            last=next((m["fact_value"] for m in memory if m["fact_key"]=="last_question_id" and m["fact_type"]=="PREFERENCE"),None)
-            answer=_normalize_text(req.text).strip(".! ")
-            if last and answer in ("sim","yes","nao","no"):
-                memory_updates.append(dict(fact_type="ANSWERED_TOPIC",fact_key=last,fact_value="yes" if answer in ("sim","yes") else "no",confidence=1.0,source_role="user"))
+
+        answered_questions: dict[str, str] = {
+            str(m["fact_key"]): str(m["fact_value"])
+            for m in memory
+            if m.get("fact_type") == "ANSWERED_TOPIC" and m.get("fact_key") and m.get("fact_value") in ("yes", "no")
+        }
+        last = next(
+            (m["fact_value"] for m in memory if m["fact_key"] == "last_question_id" and m["fact_type"] == "PREFERENCE"),
+            None,
+        )
+        if not last and req.recent_history:
+            for msg in reversed(req.recent_history):
+                if msg.role == "assistant":
+                    msg_norm = _normalize_text(msg.content)
+                    for cond in self.causal_graph.conditions:
+                        for q in cond.disambiguation_questions:
+                            if q.prompt and _normalize_text(q.prompt) in msg_norm:
+                                last = q.id
+                                break
+                        if last:
+                            break
+                    break
+
+        polarity = detect_followup_polarity(req.text)
+        if last and polarity in ("yes", "no"):
+            answered_questions[last] = polarity
+            memory_updates.append(
+                dict(
+                    fact_type="ANSWERED_TOPIC",
+                    fact_key=last,
+                    fact_value=polarity,
+                    confidence=1.0,
+                    source_role="user",
+                )
+            )
         extracted = self.symptom_extractor.extract(
             req.text,
             recent_history=req.recent_history,
@@ -177,12 +213,17 @@ class ClinicalCorrelator:
             thresholds=thresholds,
             profile=req.profile,
             baseline=baseline,
+            answered_questions=answered_questions or None,
         )
 
-        store_docs = self.clinical_store.search(
-            req.text,
-            concepts=extracted.concepts,
-            limit=3,
+        store_docs = (
+            list(extracted.fallback_docs)
+            if extracted.fallback_docs
+            else self.clinical_store.search(
+                req.text,
+                concepts=extracted.concepts,
+                limit=3,
+            )
         )
 
         top_hypotheses = assessment.hypotheses
@@ -211,18 +252,50 @@ class ClinicalCorrelator:
                 with ClinicalRepository(self.db_path) as repo:
                     objective = repo.assess_fixture(req.crew_id, assessment.metrics, allow_engineering=True)
 
+            crew_label = req.profile.name if (req.profile and req.profile.name) else "tripulante"
+            telemetry_str = _format_telemetry_summary(assessment.metrics, req.profile)
+
+            if extracted.is_greeting and not extracted.fallback_docs:
+                greeting_text = (
+                    f"Olá, {crew_label}. Telemetria atual nominal ({telemetry_str}). "
+                    "Como está se sentindo e como posso ajudar hoje?"
+                )
+                return ChatCorrelateRespPayload(
+                    matched_condition_ids=[m["condition_id"] for m in objective["matches"]] if objective else None,
+                    max_severity=objective["max_severity"] if objective else None,
+                    blocked_actions=objective["blocked_actions"] if objective else None,
+                    memory_updates=memory_updates or None,
+                    text=greeting_text,
+                    differentials=None,
+                    evidence=evidence_nominal or None,
+                    countermeasures=[
+                        "Manter monitoramento contínuo de sinais vitais e ambiente da cabine.",
+                    ],
+                    source_ids=["EDGESPACE-AI-V1"],
+                    escalation=Escalation.LOCAL,
+                    disclaimer=CLINICAL_DISCLAIMER,
+                    disambiguation_question=None,
+                    actions=None,
+                )
+
             clarification_prompt = (
                 "Não identifiquei sintomas específicos no seu relato e os sensores estão nominais. "
                 "Pode detalhar o que está sentindo (localização da dor, duração, náusea, tontura, "
                 "alteração visual ou falta de ar)?"
             )
+            fts_note = ""
+            if extracted.fallback_docs:
+                titles = "; ".join(d.title for d in extracted.fallback_docs[:2])
+                fts_note = f" Referências NASA próximas recuperadas via FTS5: {titles}."
+            source_ids_nom = [d.source_id or d.doc_id for d in store_docs[:2] if (d.source_id or d.doc_id)] or ["EDGESPACE-AI-V1"]
             return ChatCorrelateRespPayload(
                 matched_condition_ids=[m["condition_id"] for m in objective["matches"]] if objective else None,
                 max_severity=objective["max_severity"] if objective else None,
                 blocked_actions=objective["blocked_actions"] if objective else None,
                 memory_updates=memory_updates or None,
                 text=(
-                    "Nenhum sintoma específico foi reconhecido na mensagem e a telemetria atual está nominal. "
+                    f"Entendido, {crew_label} — nenhum sintoma específico foi reconhecido na mensagem, "
+                    f"e a telemetria atual ({telemetry_str}) está nominal.{fts_note} "
                     "Por favor, detalhe os sintomas (localização, intensidade e duração) para correlação clínica."
                 ),
                 differentials=None,
@@ -231,7 +304,7 @@ class ClinicalCorrelator:
                     "Descrever localização, intensidade e duração dos sintomas para nova avaliação.",
                     "Manter monitoramento contínuo de sinais vitais e ambiente da cabine.",
                 ],
-                source_ids=["EDGESPACE-AI-V1"],
+                source_ids=source_ids_nom,
                 escalation=Escalation.LOCAL,
                 disclaimer=CLINICAL_DISCLAIMER,
                 disambiguation_question=clarification_prompt,
@@ -366,13 +439,23 @@ class ClinicalCorrelator:
             source_ids.append("EDGESPACE-AI-V1")
 
         if top is not None:
-            summary_text = (
-                f"Hipótese principal: {top.condition.name} (prioridade heurística {top.posterior:.0%}). "
-                f"Foram avaliados {len(extracted.concepts)} sintomas e {len(peripherals)} leituras periféricas."
+            summary_text = _build_clinical_summary_text(
+                crew_profile=req.profile,
+                concepts=extracted.concepts,
+                metrics=assessment.metrics,
+                top=top,
+                second=top_hypotheses[1] if len(top_hypotheses) > 1 else None,
+                countermeasures=countermeasures,
+                disambig_prompt=disambig.question.prompt if disambig else None,
+                actions=actions,
+                breaches=assessment.threshold_breaches,
             )
         else:
+            crew_label = req.profile.name if (req.profile and req.profile.name) else "tripulante"
+            telemetry_str = _format_telemetry_summary(assessment.metrics, req.profile)
             summary_text = (
-                f"Avaliação inicial para '{req.text.strip()}': {len(peripherals)} leituras periféricas analisadas."
+                f"Entendido, {crew_label} — avaliação inicial para '{req.text.strip()}' "
+                f"cruzada com a telemetria atual ({telemetry_str})."
             )
 
         return ChatCorrelateRespPayload(
@@ -422,3 +505,122 @@ def _sensors_are_nominal(metrics: dict[str, Any]) -> bool:
     if isinstance(anomaly, (int, float)) and anomaly >= 0.50:
         return False
     return True
+
+
+_CONCEPT_PT_LABELS: dict[str, str] = {
+    "headache": "cefaleia (dor de cabeça)",
+    "photophobia": "fotofobia (sensibilidade à luz)",
+    "visual_disturbance": "distorção/alteração visual",
+    "blurred_vision": "visão turva/embaçada",
+    "eye_pressure": "pressão ocular",
+    "nasal_congestion": "congestão nasal",
+    "facial_puffiness": "edema facial",
+    "fluid_shift": "redistribuição cefálica de fluidos",
+    "papilledema": "papiledema",
+    "dizziness": "tontura",
+    "fatigue": "fadiga",
+    "dyspnea": "dispneia (falta de ar)",
+    "confusion": "confusão cognitiva",
+    "nausea": "náusea",
+    "flushed_skin": "rubor facial",
+    "cyanosis": "cianose",
+    "insomnia": "insônia",
+    "malaise": "mal-estar",
+    "rash_infection": "lesão/erupção cutânea",
+    "flank_pain": "dor em flanco",
+    "gi_slowdown": "lentidão gastrointestinal",
+    "back_pain": "dor lombar",
+    "hematuria": "hematúria",
+    "dysuria": "disúria",
+    "joint_pain": "dor articular",
+    "muscle_pain": "dor muscular",
+    "muscle_weakness": "fraqueza muscular",
+    "limb_swelling": "edema em membro",
+    "bone_pain": "dor óssea",
+    "orthostatic_intolerance": "intolerância ortostática",
+    "abdominal_pain": "dor abdominal",
+    "paresthesia": "parestesia (formigamento)",
+    "chest_pain": "dor torácica",
+}
+
+
+def _format_symptoms_pt(concepts: Sequence[str]) -> str:
+    labels: list[str] = []
+    seen: set[str] = set()
+    for c in concepts:
+        if c == "blurred_vision" and "visual_disturbance" in concepts:
+            continue
+        lbl = _CONCEPT_PT_LABELS.get(c, c.replace("_", " "))
+        if lbl not in seen:
+            seen.add(lbl)
+            labels.append(lbl)
+    if not labels:
+        return "alterações clínicas relatadas"
+    if len(labels) == 1:
+        return labels[0]
+    return ", ".join(labels[:-1]) + f" e {labels[-1]}"
+
+
+def _format_telemetry_summary(metrics: dict[str, Any], profile: Optional[CrewProfile]) -> str:
+    parts: list[str] = []
+    if isinstance(metrics.get("co2_ppm"), (int, float)):
+        parts.append(f"CO2 SCD40={metrics['co2_ppm']:.0f} ppm")
+    if isinstance(metrics.get("spo2_pct"), (int, float)):
+        parts.append(f"SpO2 MAX30102={metrics['spo2_pct']:.1f}%")
+    if isinstance(metrics.get("heart_rate_bpm"), (int, float)):
+        parts.append(f"FC={metrics['heart_rate_bpm']:.0f} bpm")
+    if isinstance(metrics.get("temp_c"), (int, float)):
+        parts.append(f"Temp={metrics['temp_c']:.1f}°C")
+    if metrics.get("posture"):
+        parts.append(f"postura={metrics['posture']}")
+    day = metrics.get("mission_day") or (profile.mission_day if profile else None)
+    if isinstance(day, (int, float)) and day > 0:
+        parts.append(f"dia {int(day)} de missão")
+    return ", ".join(parts) if parts else "leituras periféricas em monitoramento"
+
+
+def _build_clinical_summary_text(
+    *,
+    crew_profile: Optional[CrewProfile],
+    concepts: Sequence[str],
+    metrics: dict[str, Any],
+    top: Any,
+    second: Any,
+    countermeasures: Sequence[str],
+    disambig_prompt: Optional[str],
+    actions: Sequence[str],
+    breaches: Sequence[str],
+) -> str:
+    crew_label = crew_profile.name if (crew_profile and crew_profile.name) else "tripulante"
+    telemetry_str = _format_telemetry_summary(metrics, crew_profile)
+
+    if concepts:
+        s1 = f"Entendido, {crew_label} — registrei {_format_symptoms_pt(concepts)}."
+    else:
+        s1 = f"Entendido, {crew_label} — identifiquei desvios relevantes na telemetria atual."
+
+    if breaches:
+        sensor_note = f"com alertas ativos ({'; '.join(breaches[:2])})"
+    elif isinstance(metrics.get("co2_ppm"), (int, float)) and metrics["co2_ppm"] < 1500.0:
+        sensor_note = "com CO2 em faixa nominal, reduzindo a chance de hipercapnia primária"
+    else:
+        sensor_note = "cruzados diretamente com sua queixa clínica"
+    s2 = f"Na telemetria deste instante ({telemetry_str}), os dados foram avaliados {sensor_note}."
+
+    diff_clause = ""
+    if second is not None and second.posterior >= 0.08 and second.condition.id != top.condition.id:
+        diff_clause = f", mantendo {second.condition.name} ({second.posterior:.0%}) como diferencial"
+    s3 = (
+        f"A hipótese principal pela base {top.condition.source_id} é "
+        f"{top.condition.name} ({top.posterior:.0%}){diff_clause}."
+    )
+
+    cm_raw = countermeasures[0] if countermeasures else "Manter monitoramento contínuo de sinais vitais."
+    cm_clean = re.sub(r"^\d+\.\s*", "", cm_raw).strip()
+    amsler_hint = " (ação OPEN_AMSLER_GRID recomendada)" if "OPEN_AMSLER_GRID" in actions and "amsler" not in cm_clean.lower() else ""
+    s4 = f"Conduta imediata: {cm_clean}{amsler_hint}"
+
+    sentences = [s1, s2, s3, s4]
+    if disambig_prompt:
+        sentences.append(disambig_prompt.strip())
+    return " ".join(sentences)

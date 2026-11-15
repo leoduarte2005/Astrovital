@@ -48,10 +48,13 @@ def _default_n_threads() -> int:
 
 SLM_SYSTEM_PROMPT = (
     "Você é o médico de bordo da NASA (Flight Surgeon) no sistema EdgeSpace. "
-    "Converse diretamente com o astronauta em português natural (2 a 3 frases objetivas e empáticas, sem listas e sem repetir rótulos). "
-    "REGRAS: 1) Nunca contrarie ou altere o diagnóstico, nível de escalonamento ou contramedidas recebidos. "
-    "2) Cite os valores dos sensores, fatos da memória do astronauta (alergias, histórico de SANS) e contraindicações ativas (ex.: bloqueio de ferro se ferritina > 500). "
-    "3) Termine com a pergunta de desambiguação, se houver."
+    "Responda diretamente ao astronauta em português natural, empático e objetivo, em no máximo 4 a 5 frases curtas (sem listas numeradas e sem repetir rótulos). "
+    "REGRAS ESTRITAS: "
+    "1) PROIBIDO responder apenas com saudação genérica (como 'Olá, como está se sentindo?') quando houver sintomas, alertas de sensores ou hipótese diagnóstica no contexto. "
+    "2) Frase 1: reconheça explicitamente todos os sintomas relatados pelo astronauta. "
+    "3) Frase 2: cite os dados reais dos sensores recebidos no instante atual (ex.: CO2 do SCD40, SpO2/FC do MAX30102, postura e dia de missão), mostrando como cruzou a queixa com a telemetria. "
+    "4) Frase 3-4: apresente a hipótese principal da base NASA HRP/CSA (nunca altere diagnóstico, escalonamento ou contramedidas), cite fatos da memória/contraindicações se houver e indique a contramedida imediata. "
+    "5) Frase final: finalize com a pergunta de desambiguação ou chamada para autoexame (ex.: Grade de Amsler), se fornecida."
 )
 
 
@@ -268,17 +271,36 @@ class LocalSLMSynthesizer:
         facts_list = _format_memory_facts(memory_facts)
         countermeasures = [c.strip() for c in (correlate_resp.countermeasures or [])[:2] if c.strip()]
         sensor_str = json.dumps(sensor_snapshot or {}, ensure_ascii=False, separators=(",", ":"))
+        symptom_evidence = [e for e in (correlate_resp.evidence or []) if e.startswith("Sintomas detectados:")]
+        sensor_evidence = [
+            e
+            for e in (correlate_resp.evidence or [])
+            if e.startswith(("Sensor ", "CSI vitals:", "Limite ultrapassado:"))
+        ]
 
         parts = [
-            f"Diagnóstico causal: {correlate_resp.text.strip()} (escalonamento: {correlate_resp.escalation.value}).",
-            f"Leituras de sensores: {sensor_str}.",
-            "Memória do tripulante: " + ("; ".join(facts_list) if facts_list else "sem alertas adicionais."),
+            f"Resumo clínico: {correlate_resp.text.strip()} (escalonamento: {correlate_resp.escalation.value}).",
         ]
+        if symptom_evidence:
+            parts.append("Queixas/sintomas detectados: " + "; ".join(symptom_evidence))
+        if correlate_resp.differentials:
+            parts.append("Hipóteses ranqueadas: " + "; ".join(correlate_resp.differentials[:3]))
+        if correlate_resp.source_ids:
+            parts.append("Fontes NASA/CSA: " + ", ".join(correlate_resp.source_ids[:3]))
+        parts.append(
+            f"Leituras de sensores em tempo real: {sensor_str}"
+            + (f" | Evidências: {'; '.join(sensor_evidence)}" if sensor_evidence else ".")
+        )
+        parts.append("Memória do tripulante: " + ("; ".join(facts_list) if facts_list else "sem alertas adicionais."))
         if countermeasures:
-            parts.append("Contramedidas aprovadas: " + " ".join(countermeasures))
+            parts.append("Contramedidas imediatas aprovadas: " + " ".join(countermeasures))
+        if correlate_resp.actions:
+            parts.append("Ações recomendadas: " + ", ".join(correlate_resp.actions))
+        if correlate_resp.blocked_actions:
+            parts.append("Ações bloqueadas por segurança: " + ", ".join(correlate_resp.blocked_actions))
         if correlate_resp.disambiguation_question:
-            parts.append(f"Pergunta de triagem: {correlate_resp.disambiguation_question.strip()}")
-        parts.append("Responda ao astronauta de forma acolhedora, segura e objetiva:")
+            parts.append(f"Pergunta de desambiguação / autoexame: {correlate_resp.disambiguation_question.strip()}")
+        parts.append("Gere a resposta em 4 a 5 frases seguindo exatamente a estrutura clínica obrigatória:")
 
         return [
             {"role": "system", "content": SLM_SYSTEM_PROMPT},
@@ -329,6 +351,9 @@ class LocalSLMSynthesizer:
         if not cleaned:
             logger.warning("SLM produced empty output; deterministic fallback used")
             return fallback_text
+        if self._looks_like_empty_greeting(cleaned, correlate_resp):
+            logger.warning("SLM produced generic greeting despite clinical context; deterministic fallback used")
+            return fallback_text
 
         logger.debug("SLM synthesis completed", extra={"elapsed_ms": round(elapsed_ms, 1)})
         return cleaned
@@ -369,6 +394,25 @@ class LocalSLMSynthesizer:
                 return result
 
         return ""
+
+    @staticmethod
+    def _looks_like_empty_greeting(text: str, correlate_resp: ChatCorrelateRespPayload) -> bool:
+        has_clinical_ctx = bool(correlate_resp.differentials) or any(
+            e.startswith(("Sintomas detectados:", "Limite ultrapassado:"))
+            for e in (correlate_resp.evidence or [])
+        )
+        if not has_clinical_ctx:
+            return False
+        low = text.lower()
+        generic_cues = (
+            "como está se sentindo",
+            "como esta se sentindo",
+            "como você está",
+            "como voce esta",
+            "em que posso ajudar",
+            "como posso ajudar",
+        )
+        return any(cue in low for cue in generic_cues) and len(low) < 160
 
     @staticmethod
     def _clean_output(text: str) -> str:

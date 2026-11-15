@@ -319,6 +319,16 @@ class ClinicalStore:
                 conn.close()
 
     _CONCEPT_SEARCH_EXPANSIONS: dict[str, tuple[str, ...]] = {
+        "headache": ("cefaleia", "headache", "sans", "co2", "hypercapnia"),
+        "photophobia": ("fotofobia", "photophobia", "luz", "ocular", "sans", "visual", "neuro-ocular"),
+        "visual_disturbance": ("visao", "visual", "ocular", "amsler", "sans", "turva", "macular"),
+        "blurred_vision": ("visao", "blurred", "ocular", "amsler", "sans", "turva"),
+        "eye_pressure": ("ocular", "pressao", "sans", "viip", "onsd"),
+        "dizziness": ("tontura", "dizziness", "ortostatica", "co2", "hypoxia"),
+        "fatigue": ("fadiga", "fatigue", "sono", "sleep", "circadiano"),
+        "dyspnea": ("dispneia", "dyspnea", "respiratoria", "hypoxia", "co2"),
+        "nausea": ("nausea", "enjoo", "radiation", "gi", "vestibular"),
+        "insomnia": ("insonia", "insomnia", "sono", "sleep", "circadiano"),
         "muscle_pain": ("muscular", "muscle", "fitness", "ared", "ossea", "bone"),
         "muscle_weakness": ("fraqueza", "weakness", "fitness", "muscular", "ared"),
         "limb_swelling": ("cardiovascular", "fluid", "edema", "dcs", "stasis"),

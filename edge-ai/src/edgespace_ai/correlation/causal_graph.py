@@ -164,7 +164,57 @@ class CausalGraph:
             )
             conditions.append(CausalCondition(id=row['condition_id'],name=row['name'],source_id=row['source_id'],subsystem=row['subsystem'],prior=row['prior'],default_escalation=Escalation(row['default_escalation']),symptoms=symptoms,sensor_rules=tuple(rules),countermeasures=tuple(row['countermeasures']),actions=tuple(row['actions']),disambiguation_questions=questions))
         if len(conditions)<19: raise ValueError('SQLite clinical graph is incomplete; apply operational migrations')
-        return conditions
+
+        # Enrich SQLite conditions with YAML clinical refinements (photophobia, visual_disturbance,
+        # Amsler/Thigh Cuffs/Complexo B protocol actions & countermeasures) without breaking SQLite IDs.
+        yaml_by_id = {c.id: c for c in self._load_conditions(self.knowledge_base_path)} if self.knowledge_base_path.is_file() else {}
+        sqlite_to_yaml = {
+            "SANS": "sans_viip",
+            "HYPERCAPNIA": "hypercapnia_co2",
+            "RADIATION_ACUTE": "radiation_ros",
+            "RADIATION_CNS": "cns_radiation_effects",
+            "SLEEP_CIRCADIAN": "sleep_immune_deprivation",
+        }
+        enriched: list[CausalCondition] = []
+        for cond in conditions:
+            yaml_id = sqlite_to_yaml.get(cond.id)
+            ycond = yaml_by_id.get(yaml_id) if yaml_id else None
+            if ycond is not None:
+                merged_symptoms = dict(cond.symptoms)
+                for sk, sw in ycond.symptoms.items():
+                    merged_symptoms.setdefault(sk, sw)
+                merged_actions = list(cond.actions)
+                if cond.id == "SANS":
+                    for act in ycond.actions:
+                        if act not in merged_actions:
+                            merged_actions.insert(0, act) if act == "OPEN_AMSLER_GRID" else merged_actions.append(act)
+                merged_cms = cond.countermeasures
+                merged_rules = cond.sensor_rules
+                if cond.id == "SANS" and ycond.sensor_rules:
+                    existing_desc = {r.description for r in cond.sensor_rules}
+                    extra_rules = [
+                        r for r in ycond.sensor_rules
+                        if r.metric == "co2_ppm" and r.description not in existing_desc
+                    ]
+                    merged_rules = (*cond.sensor_rules, *extra_rules)
+                enriched.append(
+                    CausalCondition(
+                        id=cond.id,
+                        name=cond.name,
+                        source_id=cond.source_id,
+                        subsystem=cond.subsystem,
+                        prior=cond.prior,
+                        default_escalation=cond.default_escalation,
+                        symptoms=merged_symptoms,
+                        sensor_rules=merged_rules,
+                        countermeasures=merged_cms,
+                        actions=tuple(merged_actions),
+                        disambiguation_questions=cond.disambiguation_questions,
+                    )
+                )
+            else:
+                enriched.append(cond)
+        return enriched
 
     def evaluate(
         self,
@@ -175,6 +225,7 @@ class CausalGraph:
         thresholds: Optional[dict[str, Threshold]] = None,
         profile: Optional[CrewProfile] = None,
         baseline: Optional[CrewBaseline] = None,
+        answered_questions: Optional[dict[str, str]] = None,
     ) -> CausalAssessment:
         """Evaluate P(H|E) over all causal conditions given symptoms and telemetry."""
         metrics, breaches, red_breach, yellow_breach = self._extract_metrics(
@@ -209,6 +260,12 @@ class CausalGraph:
             if concept in symptoms.concepts:metrics[metric]=1
         if not self.conditions:
             return CausalAssessment(hypotheses=[], metrics=metrics)
+
+        questions_by_id: dict[str, DisambiguationQuestion] = {}
+        for c in self.conditions:
+            for q in c.disambiguation_questions:
+                if q.id and q.id not in questions_by_id:
+                    questions_by_id[q.id] = q
 
         log_scores: list[float] = []
         details: list[tuple[tuple[str, ...], tuple[str, ...]]] = []
@@ -254,6 +311,28 @@ class CausalGraph:
                 log_p += math.log(2.5)
             if cond.id in ("hypoxia","HYPOXIA") and any("spo2_pct" in b for b in breaches):
                 log_p += math.log(2.5)
+
+            # Multi-turn Bayesian update from answered disambiguation questions
+            if answered_questions:
+                for q_id, ans in answered_questions.items():
+                    q_obj = questions_by_id.get(q_id)
+                    if q_obj is None:
+                        continue
+                    if cond.id == q_obj.owner_condition_id:
+                        p_yes = q_obj.yes_likelihood
+                    elif any(c in cond.symptoms for c in q_obj.positive_concepts):
+                        p_yes = 0.50
+                    else:
+                        p_yes = q_obj.no_likelihood
+                    p_yes = min(max(p_yes, 1e-4), 1.0 - 1e-4)
+                    if ans == "yes":
+                        log_p += math.log(p_yes)
+                        if cond.id == q_obj.owner_condition_id:
+                            matched_sens.append(f"Triagem positiva ({q_id})")
+                    elif ans == "no":
+                        log_p += math.log(1.0 - p_yes)
+                        if cond.id == q_obj.owner_condition_id:
+                            matched_sens.append(f"Triagem negativa ({q_id})")
 
             if self.db_path is not None and not matched_sym and (not cond.sensor_rules or not all(r.matches(metrics, longitudinal=long_row) for r in cond.sensor_rules)):
                 continue

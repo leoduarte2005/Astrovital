@@ -1,9 +1,0 @@
-body { font-family: monospace; background: #0b1017; color: #d8e2ec; margin: 2rem; }
-h1 { color: #5ccfe6; margin-bottom: 0.25rem; }
-.meta { color: #8b9bb4; margin-bottom: 1rem; }
-.controls { margin: 0.75rem 0; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-button, input { font-family: monospace; background: #131b26; color: #d8e2ec; border: 1px solid #2d3b50; padding: 0.4rem 0.7rem; }
-button { cursor: pointer; }
-button:hover { border-color: #5ccfe6; }
-pre { background: #131b26; padding: 1rem; border: 1px solid #263244; overflow-x: auto; }
-a { color: #80cbc4; }

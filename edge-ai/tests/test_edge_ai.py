@@ -13,7 +13,14 @@ import numpy as np
 import pytest
 
 from edgespace_ai.adaptation import BaselineRegistry, CalibrationEngine
-from edgespace_ai.correlation import ClinicalCorrelator, ClinicalStore, SymptomExtractor
+from edgespace_ai.correlation import (
+    ClinicalCorrelator,
+    ClinicalStore,
+    LocalSLMSynthesizer,
+    SLM_SYSTEM_PROMPT,
+    SymptomExtractor,
+    is_pure_greeting,
+)
 from edgespace_ai.dsp import (
     FEATURE_DIM,
     CSIProcessor,
@@ -35,6 +42,7 @@ from edgespace_ai.ipc import (
     CSIWindowPayload,
     CalibrationStepPayload,
     ChatCorrelateReqPayload,
+    ChatMessage,
     CrewProfile,
     Escalation,
     IPCHandler,
@@ -1152,3 +1160,177 @@ def test_correlator_permanent_facts_and_allergy_contraindications(tmp_path: Path
         assert ftype in updates and 0.0 < updates[ftype]["confidence"] <= 1.0
     assert resp.blocked_actions and "CHECK_VENTILATION" in resp.blocked_actions
     assert not any("yaml_fallback" in r.message.lower() or "fallback" in r.message.lower() for r in caplog.records)
+
+
+def test_greeting_with_headache_photophobia_diagnoses_sans_and_cites_telemetry(tmp_path: Path) -> None:
+    from edgespace_ai.correlation.causal_graph import CausalGraph
+
+    assert is_pure_greeting("Olá") is True
+    assert is_pure_greeting("Bom dia!") is True
+    assert is_pure_greeting("ola, estou com dores de cabeça ao olhar para a luz") is False
+    assert is_pure_greeting("oi, dor") is False
+
+    ext = SymptomExtractor()
+    extracted = ext.extract("ola, estou com dores de cabeça ao olhar para a luz")
+    assert "headache" in extracted.concepts
+    assert "photophobia" in extracted.concepts
+
+    ts = now_us()
+    peripherals = [
+        PeripheralReading(type=Peripheral.SCD40, value=640.0, unit="ppm", timestamp_us=ts),
+        PeripheralReading(type=Peripheral.MAX30102, value=98.2, unit="%", timestamp_us=ts),
+        PeripheralReading(type=Peripheral.MAX30102, value=70.0, unit="bpm", timestamp_us=ts),
+    ]
+    inference = AIInferencePayload(
+        cycle_seq_first=12,
+        posture="supine",
+        respiration_hz=0.23,
+        heart_rate_bpm=70.0,
+        hrv_ms=50.0,
+        anomaly_score=0.45,
+        confidence=0.84,
+    )
+    profile = CrewProfile(crew_id="crew_003", name="Eng. Sato", mission_day=12)
+
+    yaml_graph = CausalGraph(allow_yaml_for_tests=True)
+    yaml_assess = yaml_graph.evaluate(
+        symptoms=extracted,
+        peripherals=peripherals,
+        inference=inference,
+        profile=profile,
+    )
+    assert yaml_assess.hypotheses[0].condition.id == "sans_viip"
+    assert "hypercapnia_co2" in [h.condition.id for h in yaml_assess.hypotheses[:4]]
+    assert "OPEN_AMSLER_GRID" in yaml_assess.hypotheses[0].condition.actions
+    yaml_cm = " ".join(yaml_assess.hypotheses[0].condition.countermeasures).lower()
+    assert "thigh cuffs" in yaml_cm and "complexo b" in yaml_cm
+
+    db_file = tmp_path / "sans_photo.db"
+    _apply_real_migrations(db_file)
+    import sqlite3
+    with sqlite3.connect(db_file) as c:
+        c.execute("DELETE FROM mission_context_events")
+        c.execute("DELETE FROM telemetry_daily_rollups")
+        c.commit()
+    correlator = ClinicalCorrelator(db_path=db_file)
+
+    for phrase in (
+        "ola, estou com dores de cabeça ao olhar para a luz",
+        "estou com dores de cabeça ao olhar para a luz",
+    ):
+        resp = correlator.correlate(
+            ChatCorrelateReqPayload(text=phrase, crew_id="crew_003", profile=profile),
+            peripherals=peripherals,
+            inference=inference,
+        )
+        ev_text = " ".join(resp.evidence or [])
+        assert "headache" in ev_text and "photophobia" in ev_text
+        assert resp.differentials and "SANS" in resp.differentials[0]
+        assert any("Hipercapnia" in d or "CO2" in d for d in resp.differentials[1:])
+        assert resp.actions and "OPEN_AMSLER_GRID" in resp.actions
+        assert resp.countermeasures
+        low_text = resp.text.lower()
+        assert "como está se sentindo" not in low_text
+        assert "cefaleia" in low_text and "fotofobia" in low_text
+        assert "scd40" in low_text and "max30102" in low_text and "supine" in low_text
+        assert resp.disambiguation_question is not None and "amsler" in resp.disambiguation_question.lower()
+
+    fts_ext = SymptomExtractor(clinical_store=ClinicalStore(db_path=db_file))
+    fts_res = fts_ext.extract("desconforto retiniano em microgravidade")
+    assert 1 <= len(fts_res.fallback_docs) <= 2
+
+
+def test_multiturn_bayesian_update_and_slm_prompt_guard(tmp_path: Path) -> None:
+    import re as _re
+    from edgespace_ai.correlation.causal_graph import CausalGraph
+
+    ts = now_us()
+    peripherals = [
+        PeripheralReading(type=Peripheral.SCD40, value=620.0, unit="ppm", timestamp_us=ts),
+        PeripheralReading(type=Peripheral.MAX30102, value=98.0, unit="%", timestamp_us=ts),
+        PeripheralReading(type=Peripheral.MAX30102, value=72.0, unit="bpm", timestamp_us=ts),
+    ]
+    inference = AIInferencePayload(
+        cycle_seq_first=20,
+        posture="supine",
+        respiration_hz=0.22,
+        heart_rate_bpm=72.0,
+        hrv_ms=48.0,
+        anomaly_score=0.42,
+        confidence=0.82,
+    )
+    profile = CrewProfile(crew_id="crew_003", name="Eng. Sato", mission_day=12)
+
+    yaml_graph = CausalGraph(allow_yaml_for_tests=True)
+    ext = SymptomExtractor()
+    sym_t1 = ext.extract("ola, estou com dores de cabeça ao olhar para a luz")
+    a_t1 = yaml_graph.evaluate(symptoms=sym_t1, peripherals=peripherals, inference=inference, profile=profile)
+    p_sans_t1 = next(h.posterior for h in a_t1.hypotheses if h.condition.id == "sans_viip")
+
+    sym_t2 = ext.extract(
+        "sim, está meio embaçada",
+        recent_history=[ChatMessage(sent_at_us=ts - 1000, role="user", content="ola, estou com dores de cabeça ao olhar para a luz")],
+    )
+    assert "headache" in sym_t2.concepts and "photophobia" in sym_t2.concepts
+    assert "visual_disturbance" in sym_t2.concepts
+    a_t2_yes = yaml_graph.evaluate(
+        symptoms=sym_t2,
+        peripherals=peripherals,
+        inference=inference,
+        profile=profile,
+        answered_questions={"amsler_grid": "yes"},
+    )
+    p_sans_t2_yes = next(h.posterior for h in a_t2_yes.hypotheses if h.condition.id == "sans_viip")
+    assert p_sans_t2_yes > p_sans_t1
+
+    db_file = tmp_path / "multiturn.db"
+    _apply_real_migrations(db_file)
+    correlator = ClinicalCorrelator(db_path=db_file)
+
+    turn1 = correlator.correlate(
+        ChatCorrelateReqPayload(
+            text="ola, estou com dores de cabeça ao olhar para a luz",
+            crew_id="crew_003",
+            profile=profile,
+        ),
+        peripherals=peripherals,
+        inference=inference,
+    )
+    assert turn1.differentials and turn1.disambiguation_question
+    m1 = _re.search(r"P=([0-9.]+)", turn1.differentials[0])
+    assert m1 is not None
+    p1_sqlite = float(m1.group(1))
+
+    turn2 = correlator.correlate(
+        ChatCorrelateReqPayload(
+            text="sim, está meio embaçada",
+            crew_id="crew_003",
+            profile=profile,
+            recent_history=[
+                ChatMessage(sent_at_us=ts - 2000, role="user", content="ola, estou com dores de cabeça ao olhar para a luz"),
+                ChatMessage(sent_at_us=ts - 1000, role="assistant", content=turn1.disambiguation_question),
+            ],
+        ),
+        peripherals=peripherals,
+        inference=inference,
+    )
+    assert turn2.differentials and "SANS" in turn2.differentials[0]
+    m2 = _re.search(r"P=([0-9.]+)", turn2.differentials[0])
+    assert m2 is not None
+    assert float(m2.group(1)) > p1_sqlite
+
+    assert "PROIBIDO" in SLM_SYSTEM_PROMPT and "Grade de Amsler" in SLM_SYSTEM_PROMPT
+
+    class _GreetingMockLlama:
+        def create_chat_completion(self, **_kwargs):
+            return {"choices": [{"message": {"content": "Olá, Eng. Sato! Como está se sentindo hoje?"}}]}
+
+    synth = LocalSLMSynthesizer(llm=_GreetingMockLlama(), auto_load=False)
+    try:
+        msgs = synth.build_messages(turn1, [], {"co2_ppm": 620.0, "spo2_pct": 98.0, "posture": "supine", "mission_day": 12})
+        assert "Sintomas detectados:" in msgs[1]["content"]
+        final_text = synth.synthesize_response(turn1, [], {"co2_ppm": 620.0, "spo2_pct": 98.0})
+        assert final_text == turn1.text
+        assert "como está se sentindo" not in final_text.lower()
+    finally:
+        synth.close()

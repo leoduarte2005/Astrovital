@@ -5,9 +5,10 @@ from __future__ import annotations
 import re
 import unicodedata
 from dataclasses import dataclass
-from typing import Iterable, Sequence
+from typing import Any, Optional, Sequence
 
 from ..ipc.protocol import ChatMessage
+from .clinical_store import ClinicalDocument, ClinicalStore
 
 
 def _normalize_text(text: str) -> str:
@@ -19,19 +20,60 @@ def _normalize_text(text: str) -> str:
 SYMPTOM_LEXICON: dict[str, tuple[str, ...]] = {
     "headache": (
         "dor de cabeca",
+        "dores de cabeca",
+        "dor na cabeca",
+        "dores na cabeca",
         "cabeca doendo",
         "cefaleia",
+        "cefaleias",
         "enxaqueca",
         "pressao na cabeca",
         "headache",
+        "headaches",
         "migraine",
         "head pressure",
+    ),
+    "photophobia": (
+        "ao olhar para a luz",
+        "olhar para a luz",
+        "sensibilidade a luz",
+        "incomodo com a luz",
+        "fotofobia",
+        "luz incomoda",
+        "ardencia nos olhos com luz",
+        "photophobia",
+        "light sensitivity",
+        "sensitive to light",
+    ),
+    "visual_disturbance": (
+        "visao turva",
+        "visao embacada",
+        "vista embacada",
+        "meio embacada",
+        "esta embacada",
+        "embacada",
+        "embacado",
+        "enxergando mal",
+        "mancha na visao",
+        "linhas tortas",
+        "linhas onduladas",
+        "escotoma",
+        "blurred vision",
+        "blurry vision",
+        "visual distortion",
+        "visual disturbance",
     ),
     "blurred_vision": (
         "visao turva",
         "visao embacada",
         "vista embacada",
+        "meio embacada",
+        "esta embacada",
+        "embacada",
+        "embacado",
         "enxergando mal",
+        "mancha na visao",
+        "linhas tortas",
         "escotoma",
         "linhas onduladas",
         "grade de amsler",
@@ -77,6 +119,7 @@ SYMPTOM_LEXICON: dict[str, tuple[str, ...]] = {
     "papilledema": ("papiledema", "papilledema", "optic disc"),
     "dizziness": (
         "tontura",
+        "tonturas",
         "tonto",
         "tonta",
         "vertigem",
@@ -125,8 +168,11 @@ SYMPTOM_LEXICON: dict[str, tuple[str, ...]] = {
     ),
     "nausea": (
         "nausea",
+        "nauseas",
         "enjoo",
+        "enjoos",
         "enjoado",
+        "enjada",
         "vomito",
         "vomitos",
         "vomitar",
@@ -323,6 +369,110 @@ _EVA_KEYWORDS = ("eva", "extraveicular", "caminhada espacial", "airlock", "despr
 _RADIATION_KEYWORDS = ("radiacao", "radiation", "spe", "gcr", "tempestade solar", "solar particle", "dosimetro")
 
 
+_COMPLAINT_CUES = frozenset(
+    {
+        "dor",
+        "dores",
+        "tontura",
+        "tonturas",
+        "enjoo",
+        "enjoos",
+        "visao",
+        "vista",
+        "cansaco",
+        "fadiga",
+        "luz",
+        "febre",
+        "formigamento",
+        "nausea",
+        "nauseas",
+        "vomito",
+        "vomitos",
+        "cabeca",
+        "olho",
+        "olhos",
+        "peito",
+        "barriga",
+        "estomago",
+        "perna",
+        "pernas",
+        "costas",
+        "incomodo",
+        "ardencia",
+        "pressao",
+        "inchaco",
+        "fraqueza",
+        "insonia",
+        "cefaleia",
+        "enxaqueca",
+        "fotofobia",
+        "mal",
+        "pain",
+        "ache",
+        "headache",
+        "headaches",
+        "dizziness",
+        "dizzy",
+        "vision",
+        "light",
+        "fever",
+        "tingling",
+        "tired",
+        "fatigue",
+        "breath",
+        "photophobia",
+    }
+)
+_GREETING_WORDS = frozenset(
+    {"ola", "oi", "bom", "dia", "boa", "tarde", "noite", "hello", "hi", "hey", "tudo", "bem", "saudacoes"}
+)
+_NON_CLINICAL_STOPWORDS = frozenset(
+    {
+        "ola", "oi", "bom", "boa", "dia", "tarde", "noite", "hello", "hi", "hey",
+        "estou", "esta", "tenho", "sinto", "sentindo", "com", "sem", "para", "por",
+        "que", "uma", "uns", "umas", "das", "dos", "nas", "nos", "nao", "sim", "yes",
+        "bem", "mal", "muito", "pouco", "meio", "aqui", "hoje", "agora", "preciso",
+        "ajuda", "dor", "dores", "and", "the", "with", "for", "feel", "feeling",
+        "have", "having", "very", "not", "help",
+    }
+)
+
+
+def is_pure_greeting(text: str) -> bool:
+    """True only when message has <= 3 words, contains a greeting, and has zero clinical cues."""
+    norm = _normalize_text(text)
+    if not norm or _match_lexicon(norm):
+        return False
+    if "falta de ar" in norm or "shortness of breath" in norm:
+        return False
+    words = [w for w in re.sub(r"[^a-z0-9 ]", " ", norm).split() if w]
+    if not words or len(words) > 3:
+        return False
+    if any(w in _COMPLAINT_CUES for w in words):
+        return False
+    return any(w in _GREETING_WORDS for w in words)
+
+
+def detect_followup_polarity(text: str) -> Optional[str]:
+    """Detect affirmative ('yes') or negative ('no') disambiguation replies in PT/EN."""
+    norm = _normalize_text(text)
+    cleaned = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", norm)).strip()
+    if not cleaned:
+        return None
+    if cleaned in _FOLLOWUP_ANSWERS:
+        return "no" if cleaned in {"nao", "no", "not sure", "nao sei"} else "yes"
+    tokens = cleaned.split()
+    if len(tokens) > 12:
+        return None
+    if tokens[0] in {"sim", "yes", "positivo", "claro"} or cleaned.startswith(
+        ("com certeza", "acho que sim", "esta sim", "tenho sim", "sinto sim")
+    ):
+        return "yes"
+    if tokens[0] in {"nao", "no", "negativo", "nenhum", "nenhuma", "nada"}:
+        return "no"
+    return None
+
+
 @dataclass(frozen=True)
 class ExtractedSymptoms:
     """Extracted clinical concepts and context cues from chat text and history."""
@@ -332,10 +482,15 @@ class ExtractedSymptoms:
     eva_context: bool
     radiation_context: bool
     answered_topics: tuple[str, ...]
+    fallback_docs: tuple[ClinicalDocument, ...] = ()
+    is_greeting: bool = False
 
 
 class SymptomExtractor:
     """Maps free-form Portuguese and English chat text to clinical symptom concepts."""
+
+    def __init__(self, *, clinical_store: Optional[ClinicalStore] = None) -> None:
+        self.clinical_store = clinical_store
 
     def extract(
         self,
@@ -345,6 +500,7 @@ class SymptomExtractor:
         summary_24h: str | None = None,
     ) -> ExtractedSymptoms:
         current_norm = _normalize_text(text)
+        pure_greeting = is_pure_greeting(text)
 
         history_texts: list[str] = []
         if recent_history:
@@ -357,11 +513,35 @@ class SymptomExtractor:
         combined = " ".join([current_norm, *history_texts]).strip()
 
         # Symptoms come from the current message only. History/summary may add symptoms
-        # only when the current message is a bare follow-up answer (e.g. "sim", "no"),
+        # only when the current message is a follow-up answer (e.g. "sim", "sim, está meio embaçada"),
         # so a stale "headache" from earlier turns never leaks into a new complaint.
         matched = _match_lexicon(current_norm)
+        polarity = detect_followup_polarity(current_norm)
         if not matched and _is_followup_answer(current_norm):
             matched = _match_lexicon(" ".join(history_texts))
+        elif polarity is not None and history_texts:
+            hist_matched = _match_lexicon(" ".join(history_texts))
+            for k, v in hist_matched.items():
+                matched.setdefault(k, list(v))
+
+        fallback_docs: tuple[ClinicalDocument, ...] = ()
+        if not matched and not pure_greeting and not _is_followup_answer(current_norm) and self.clinical_store is not None:
+            relevant_tokens = [
+                tok
+                for tok in re.findall(r"[a-z0-9]{3,}", current_norm)
+                if tok not in _NON_CLINICAL_STOPWORDS
+            ]
+            if relevant_tokens:
+                try:
+                    docs = self.clinical_store.search(" ".join(relevant_tokens), limit=2)
+                    fallback_docs = tuple(docs[:2])
+                    for doc in fallback_docs:
+                        doc_norm = _normalize_text(f"{doc.title} {doc.snippet}")
+                        if any(tok in doc_norm for tok in relevant_tokens):
+                            for k, v in _match_lexicon(doc_norm).items():
+                                matched.setdefault(k, [f"fts5:{doc.doc_id}:{v[0]}"])
+                except Exception:
+                    fallback_docs = ()
 
         eva_ctx = any(_phrase_in_text(kw, combined) for kw in _EVA_KEYWORDS)
         rad_ctx = any(_phrase_in_text(kw, combined) for kw in _RADIATION_KEYWORDS)
@@ -382,6 +562,8 @@ class SymptomExtractor:
             eva_context=eva_ctx,
             radiation_context=rad_ctx,
             answered_topics=tuple(answered_topics),
+            fallback_docs=fallback_docs,
+            is_greeting=pure_greeting,
         )
 
 

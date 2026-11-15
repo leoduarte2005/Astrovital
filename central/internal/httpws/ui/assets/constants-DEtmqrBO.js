@@ -1,0 +1,1 @@
+var e=`Edge Space`;export{e as t};
