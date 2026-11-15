@@ -629,6 +629,10 @@ VALUES ('amsler_grid', 'Amsler SQL', '["NEURO_OCULAR_SANS"]', 'SQL desc', '["Ste
 	if err != nil || prof.Profile.Name != "Dr. Vega" || prof.Thresholds["co2_ppm"].YellowHigh != 800 {
 		t.Fatalf("GetCrewProfile M1: %+v err=%v", prof, err)
 	}
+	crewList, err := s.Reader().ListCrew(ctx)
+	if err != nil || len(crewList) != 1 || crewList[0].CrewID != "crew_sql" || crewList[0].Role != "Science" || crewList[0].MissionDay != 10 || crewList[0].CalibrationRequired {
+		t.Fatalf("ListCrew M1: %+v err=%v", crewList, err)
+	}
 
 	cid := "crew_sql"
 	now := time.Now().UnixMicro()
@@ -672,3 +676,230 @@ VALUES ('amsler_grid', 'Amsler SQL', '["NEURO_OCULAR_SANS"]', 'SQL desc', '["Ste
 		t.Fatalf("GetProtocol M1: %+v err=%v", proto, err)
 	}
 }
+
+// TestStoreWithRealDatabaseMigrations applies the real database/migrations/*.sql files
+// (no temp schema, no in-memory fallback) and asserts every read/write hits SQLite tables.
+func TestStoreWithRealDatabaseMigrations(t *testing.T) {
+	realMigDir, err := filepath.Abs(filepath.Join("..", "..", "..", "database", "migrations"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, f := range []string{"0001_operational_schema.sql", "0002_operational_seeds.sql"} {
+		if _, err := os.Stat(filepath.Join(realMigDir, f)); err != nil {
+			t.Fatalf("real migration %s missing in %s: %v", f, realMigDir, err)
+		}
+	}
+
+	dir := tempDir(t)
+	dbPath := filepath.Join(dir, "real.db")
+
+	var logBuf bytes.Buffer
+	logger := slog.New(slog.NewJSONHandler(&logBuf, &slog.HandlerOptions{Level: slog.LevelWarn}))
+
+	s, err := New(Config{DBPath: dbPath, MigrationsDir: realMigDir, BatchInterval: 20 * time.Millisecond}, Deps{Logger: logger})
+	if err != nil {
+		t.Fatalf("New with real migrations: %v", err)
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- s.Run(ctx) }()
+	defer func() {
+		cancel()
+		<-done
+		waitFilesGone(dbPath)
+	}()
+
+	if strings.Contains(logBuf.String(), `"level":"WARN"`) || strings.Contains(logBuf.String(), `"level":"ERROR"`) {
+		t.Fatalf("unexpected warn/error log while applying real migrations: %s", logBuf.String())
+	}
+
+	count := func(query string, args ...any) int {
+		t.Helper()
+		var n int
+		if err := s.writerDB.QueryRow(query, args...).Scan(&n); err != nil {
+			t.Fatalf("%s: %v", query, err)
+		}
+		return n
+	}
+
+	// Real tables created by 0001 and seeded by 0002.
+	for _, tbl := range []string{
+		"cluster_nodes", "crew_profiles", "telemetry_timeseries", "peripheral_readings",
+		"alerts_audit", "store_and_forward_outbox", "self_exams", "chat_messages",
+		"protocols", "clinical_reports", "clinical_reports_fts",
+	} {
+		if n := count(`SELECT COUNT(1) FROM sqlite_master WHERE name = ?`, tbl); n == 0 {
+			t.Fatalf("table %s not created by real migrations", tbl)
+		}
+	}
+	if n := count(`SELECT COUNT(1) FROM crew_profiles`); n != 3 {
+		t.Fatalf("crew_profiles rows = %d, want 3", n)
+	}
+	if n := count(`SELECT COUNT(1) FROM protocols`); n == 0 {
+		t.Fatal("protocols seed empty")
+	}
+	if n := count(`SELECT COUNT(1) FROM clinical_reports`); n == 0 {
+		t.Fatal("clinical_reports seed empty")
+	}
+	if n := count(`SELECT COUNT(1) FROM clinical_reports_fts`); n == 0 {
+		t.Fatal("clinical_reports_fts not populated by triggers")
+	}
+
+	// ListCrew from SQLite.
+	crew, err := s.Reader().ListCrew(ctx)
+	if err != nil {
+		t.Fatalf("ListCrew: %v", err)
+	}
+	byID := map[string]contracts.CrewSummary{}
+	for _, c := range crew {
+		byID[c.CrewID] = c
+	}
+	expectedCrew := map[string]struct {
+		role        string
+		missionDay  int
+		calRequired bool
+	}{
+		"crew_001": {role: "Commander", missionDay: 42, calRequired: false},
+		"crew_002": {role: "Flight Surgeon", missionDay: 42, calRequired: false},
+		"crew_003": {role: "Flight Engineer", missionDay: 42, calRequired: true},
+	}
+	for id, exp := range expectedCrew {
+		c, ok := byID[id]
+		if !ok {
+			t.Fatalf("ListCrew missing %s: %+v", id, crew)
+		}
+		if c.Role != exp.role || c.MissionDay != exp.missionDay || c.CalibrationRequired != exp.calRequired {
+			t.Fatalf("ListCrew[%s] = %+v, want role=%q missionDay=%d calRequired=%v",
+				id, c, exp.role, exp.missionDay, exp.calRequired)
+		}
+	}
+
+	// GetCrewProfile reads crew_profiles + thresholds_json.
+	p1, err := s.GetCrewProfile(ctx, "crew_001")
+	if err != nil || p1.Profile.Name != "Cmdr. Silva" || p1.BaselinePath != "models/profiles/baseline_crew_001.json" {
+		t.Fatalf("GetCrewProfile crew_001: %+v err=%v", p1, err)
+	}
+	for _, metric := range []string{"co2_ppm", "spo2_pct", "heart_rate_bpm"} {
+		if _, ok := p1.Thresholds[metric]; !ok {
+			t.Fatalf("GetCrewProfile crew_001 missing threshold %q: %+v", metric, p1.Thresholds)
+		}
+	}
+	if p1.Thresholds["co2_ppm"].YellowHigh != 1000 || p1.Thresholds["co2_ppm"].RedHigh != 3500 ||
+		p1.Thresholds["spo2_pct"].YellowLow != 94 || p1.Thresholds["spo2_pct"].RedLow != 90 ||
+		p1.Thresholds["heart_rate_bpm"].YellowHigh != 110 || p1.Thresholds["heart_rate_bpm"].RedHigh != 140 ||
+		p1.Thresholds["heart_rate_bpm"].YellowLow != 45 || p1.Thresholds["heart_rate_bpm"].RedLow != 38 {
+		t.Fatalf("GetCrewProfile crew_001 unexpected thresholds: %+v", p1.Thresholds)
+	}
+	p3, err := s.GetCrewProfile(ctx, "crew_003")
+	if err != nil || p3.Profile.Name != "Eng. Sato" || p3.BaselinePath != "" {
+		t.Fatalf("GetCrewProfile crew_003: %+v err=%v", p3, err)
+	}
+
+	// GetProtocol reads all 5 seeded protocols with non-empty Steps and Subsystems from SQLite.
+	for _, protoID := range []string{"amsler_grid", "capillary_blood", "ultrasound_onsd", "blood_pressure", "temperature"} {
+		proto, err := s.GetProtocol(ctx, protoID)
+		if err != nil || proto.ProtocolID != protoID || len(proto.Steps) == 0 || len(proto.Subsystems) == 0 {
+			t.Fatalf("GetProtocol %s: %+v err=%v", protoID, proto, err)
+		}
+		var dbName string
+		if err := s.writerDB.QueryRow(`SELECT name FROM protocols WHERE protocol_id = ?`, protoID).Scan(&dbName); err != nil || dbName != proto.Name {
+			t.Fatalf("protocol %s name from SQLite %q != GetProtocol %q err=%v", protoID, dbName, proto.Name, err)
+		}
+	}
+
+	// Writes.
+	if err := s.SaveNodeID(ctx, "AA:BB:CC:DD:EE:01", 1); err != nil {
+		t.Fatalf("SaveNodeID: %v", err)
+	}
+	cid := "crew_001"
+	now := time.Now().UnixMicro()
+	if err := s.SaveTelemetry1Hz(ctx, Telemetry1HzRecord{
+		TsUs: now - 2_000_000, CrewID: &cid, MissionMode: contracts.ModeCabinTomography,
+		Vitals: contracts.VitalsData{HeartRateBpm: 60, SpO2Pct: 99}, Environment: contracts.EnvironmentData{CO2Ppm: 500},
+	}); err != nil {
+		t.Fatalf("SaveTelemetry1Hz #1: %v", err)
+	}
+	if err := s.SaveTelemetry1Hz(ctx, Telemetry1HzRecord{
+		TsUs: now - 1_500_000, CrewID: &cid, MissionMode: contracts.ModeCabinTomography,
+		Vitals: contracts.VitalsData{HeartRateBpm: 70, SpO2Pct: 97}, Environment: contracts.EnvironmentData{CO2Ppm: 700},
+	}); err != nil {
+		t.Fatalf("SaveTelemetry1Hz #2: %v", err)
+	}
+	if err := s.SavePeripheral1Hz(ctx, now, []PeripheralReadingRecord{
+		{NodeID: 0, Type: contracts.PeripheralSCD40, Value: 650, Unit: "ppm", TsUs: now},
+	}); err != nil {
+		t.Fatalf("SavePeripheral1Hz: %v", err)
+	}
+	if err := s.SaveAlertAndOutbox(ctx, AlertWriteRecord{
+		TsUs: now, CrewID: &cid, WriteOutbox: true,
+		Alert: contracts.AlertEventPayload{
+			Subsystem: contracts.SubsystemRespiratoryAtmosphere, Severity: contracts.SeverityRed,
+			Message: "Real DB alert", Countermeasure: "Ventilate", Escalation: contracts.EscalationStoreAndForward,
+		},
+	}); err != nil {
+		t.Fatalf("SaveAlertAndOutbox: %v", err)
+	}
+	if err := s.SaveSelfExam(ctx, cid, contracts.SelfExamPayload{ExamType: "amsler", Result: "ok"}, now); err != nil {
+		t.Fatalf("SaveSelfExam: %v", err)
+	}
+	if err := s.SaveChatExchange(ctx, cid, contracts.ChatMsgPayload{Text: "hi"}, contracts.ChatCorrelateRespPayload{Text: "hello"}, now); err != nil {
+		t.Fatalf("SaveChatExchange: %v", err)
+	}
+	if err := s.Flush(ctx); err != nil {
+		t.Fatalf("Flush: %v", err)
+	}
+
+	// Direct SQLite verification (COUNT > 0 in real tables, not the in-memory fallback).
+	for tbl, min := range map[string]int{
+		"cluster_nodes":            1,
+		"telemetry_timeseries":     2,
+		"peripheral_readings":      1,
+		"alerts_audit":             1,
+		"store_and_forward_outbox": 1,
+		"self_exams":               1,
+		"chat_messages":            2,
+	} {
+		if n := count(`SELECT COUNT(1) FROM ` + tbl); n < min {
+			t.Fatalf("%s rows = %d, want >= %d", tbl, n, min)
+		}
+	}
+	if n := count(`SELECT COUNT(1) FROM cluster_nodes WHERE mac = ? AND node_id = 1`, "AA:BB:CC:DD:EE:01"); n != 1 {
+		t.Fatalf("cluster_nodes missing SaveNodeID row, n=%d", n)
+	}
+	if n := count(`SELECT COUNT(1) FROM telemetry_timeseries WHERE crew_id = ?`, cid); n != 2 {
+		t.Fatalf("telemetry_timeseries rows for %s = %d, want 2", cid, n)
+	}
+	if n := count(`SELECT COUNT(1) FROM peripheral_readings WHERE sensor_type = ?`, string(contracts.PeripheralSCD40)); n == 0 {
+		t.Fatal("peripheral_readings missing SCD40 row")
+	}
+	if n := count(`SELECT COUNT(1) FROM alerts_audit WHERE message = 'Real DB alert'`); n != 1 {
+		t.Fatalf("alerts_audit matching rows = %d, want 1", n)
+	}
+
+	// Reads back through the Store API (backed by the same tables).
+	nodes, err := s.LoadNodeIDs(ctx)
+	if err != nil || nodes["AA:BB:CC:DD:EE:01"] != 1 {
+		t.Fatalf("LoadNodeIDs: %+v err=%v", nodes, err)
+	}
+	tsResp, err := s.QueryTimeseries(ctx, cid, "", now-10_000_000, now, 10)
+	if err != nil || len(tsResp.Buckets) != 1 || tsResp.Buckets[0].Vitals.HeartRateBpm != 65 {
+		t.Fatalf("QueryTimeseries: %+v err=%v", tsResp, err)
+	}
+	summary, err := s.Summary24h(ctx, cid)
+	if err != nil || !strings.Contains(summary, "samples=2") {
+		t.Fatalf("Summary24h: %q err=%v", summary, err)
+	}
+	hist, err := s.RecentChat(ctx, cid, 10)
+	if err != nil || len(hist) != 2 {
+		t.Fatalf("RecentChat: %+v err=%v", hist, err)
+	}
+	alerts, err := s.ListAlerts(ctx, 10)
+	if err != nil || len(alerts) != 1 || alerts[0].Message != "Real DB alert" {
+		t.Fatalf("ListAlerts: %+v err=%v", alerts, err)
+	}
+	outbox, err := s.ListOutbox(ctx)
+	if err != nil || len(outbox) != 1 {
+		t.Fatalf("ListOutbox: %+v err=%v", outbox, err)
+	}
+}
+

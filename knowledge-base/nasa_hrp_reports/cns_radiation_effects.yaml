@@ -1,0 +1,61 @@
+id: HRP-RISK-RAD-CNS
+seed_id: cns_radiation_effects
+title: Efeitos da Radiação no SNC e no Desempenho / CNS and Performance Effects
+hazard: Space Radiation
+category: BEHAVIORAL_BIOCHEMICAL
+subsystems:
+  - NEUROBEHAVIORAL_RADIATION
+problem: NASA aponta possíveis efeitos cognitivos, motores e comportamentais da radiação. Séries de radiação são só contexto; sem efeito clínico individual inferido.
+symptoms:
+  pt:
+    - lapso de atenção
+    - lentidão cognitiva
+    - cefaleia
+    - dor de cabeça
+    - fadiga
+    - tontura
+  en:
+    - attention lapse
+    - slowed cognition
+    - headache
+    - fatigue
+    - dizziness
+    - radiation
+    - CNS
+sensor_signatures:
+  - sensor: Central
+    metric: radiation_context
+    op: eq
+    threshold: 1.0
+    causal_weight: 2.0
+    weight_basis: heuristic_pending_clinical_review
+  - sensor: CSI
+    metric: anomaly_score
+    op: gte
+    threshold: 0.4
+    causal_weight: 1.5
+    weight_basis: causal_graph:likelihood_ratio
+detection:
+  - Testes cognitivos curtos
+  - Séries de radiação (contexto)
+  - Autorrelato
+countermeasures:
+  - order: 1
+    action: Contextualizar radiação e autorrelatos
+    protocol: null
+  - order: 2
+    action: Reduzir tarefas críticas em fadiga
+    protocol: null
+  - order: 3
+    action: Revisão pelo cirurgião de voo
+    protocol: null
+escalation:
+  default: STORE_AND_FORWARD
+  LOCAL: Redução de tarefas críticas.
+  CREW: Avisar tripulante se desempenho cair.
+  STORE_AND_FORWARD: Relatório ao cirurgião de voo.
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Acute and Late CNS Effects from Space Radiation
+  section: Evidence Report
+  source_id: NASA-HRP-RAD-CNS
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

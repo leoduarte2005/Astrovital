@@ -1,0 +1,59 @@
+id: HRP-RISK-BHP
+seed_id: behavioral_health_psychiatric
+title: Saúde Comportamental e Psiquiátrica / Behavioral Health and Psychiatric Disorders
+hazard: Isolation and Confinement
+category: BEHAVIORAL_BIOCHEMICAL
+subsystems:
+  - NEUROBEHAVIORAL_RADIATION
+problem: Isolamento, confinamento e estresse prolongado elevam risco de depressão, ansiedade e queda de desempenho.
+symptoms:
+  pt:
+    - humor deprimido
+    - ansiedade
+    - insônia
+    - irritabilidade
+    - apatia
+  en:
+    - low mood
+    - anxiety
+    - insomnia
+    - irritability
+    - apathy
+    - depression
+sensor_signatures:
+  - sensor: CSI/MAX30102
+    metric: hrv_ms
+    op: lte
+    threshold: 30.0
+    causal_weight: 2.0
+    weight_basis: heuristic_pending_clinical_review
+  - sensor: CSI
+    metric: anomaly_score
+    op: gte
+    threshold: 0.4
+    causal_weight: 1.5
+    weight_basis: causal_graph:likelihood_ratio
+detection:
+  - Check-in de humor (SELF_EXAM)
+  - Sono e HRV via CSI
+  - Testes cognitivos curtos
+countermeasures:
+  - order: 1
+    action: Apoio entre pares e rotina social estruturada
+    protocol: null
+  - order: 2
+    action: Exercício físico e luz adequada
+    protocol: null
+  - order: 3
+    action: Sessão de suporte psicológico remoto assíncrono
+    protocol: null
+escalation:
+  default: CREW
+  LOCAL: Autocuidado e rotina.
+  CREW: Apoio do Comandante/pares se piora por 3 dias.
+  STORE_AND_FORWARD: 'Risco de segurança: Store-and-Forward prioritário.'
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Cognitive or Behavioral Conditions and Psychiatric Disorders
+  section: Evidence Report
+  source_id: NASA-HRP-BHP
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

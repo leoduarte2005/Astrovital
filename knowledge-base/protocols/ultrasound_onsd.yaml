@@ -1,0 +1,42 @@
+id: ultrasound_onsd
+title: Ultrassom Point-of-Care (Bainha do Nervo Óptico - ONSD)
+duration_s: 300
+materials:
+  - Sonda linear de ultrassom
+  - Gel acústico estéril
+  - Gaze limpa
+steps:
+  - text: Aplique gel acústico estéril sobre a pálpebra superior fechada.
+    image: protocols/onsd_gel.svg
+    timer_s: 15
+    safety_note: Nunca aplique o transdutor diretamente na córnea.
+  - text: Posicione a sonda linear sem comprimir o globo e obtenha corte transverso e sagital.
+    image: protocols/onsd_probe.svg
+    timer_s: 60
+    safety_note: Reduza a potência acústica (modo oftálmico, MI <= 0.23).
+  - text: Meça o diâmetro da bainha do nervo óptico 3 mm atrás da retina.
+    image: protocols/onsd_measure.svg
+    timer_s: 60
+    safety_note: Alerta se ONSD > 5.0 mm.
+  - text: Repita no olho contralateral, limpe o gel e registre ambos em SELF_EXAM.
+    image: protocols/onsd_record.svg
+    timer_s: 45
+    safety_note: Solicite apoio de outro tripulante para estabilizar o exame.
+result_schema:
+  type: object
+  required:
+    - onsd_od_mm
+    - onsd_os_mm
+  properties:
+    onsd_od_mm:
+      type: number
+      minimum: 1.0
+      maximum: 12.0
+    onsd_os_mm:
+      type: number
+      minimum: 1.0
+      maximum: 12.0
+linked_risks:
+  - HRP-RISK-SANS
+  - HRP-HAZ-GRAVITY
+  - HRP-HAZ-DISTANCE

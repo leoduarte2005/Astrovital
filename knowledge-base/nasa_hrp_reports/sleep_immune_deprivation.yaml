@@ -1,0 +1,92 @@
+id: HRP-RISK-SLEEP
+seed_id: sleep_immune_deprivation
+title: Privação de Sono / Desregulação Circadiana e Imune
+hazard: Isolation and Confinement
+category: BEHAVIORAL_BIOCHEMICAL
+subsystems:
+  - IMMUNE_HEMATO_NUTRITION
+problem: Sono curto prejudica remodelação sanguínea, eleva cortisol e CRP e favorece reativação de vírus latentes. Monitorar arquitetura do sono, HRV e hidratação; ajuste circadiano e Nutrition SMO.
+symptoms:
+  pt:
+    - fadiga
+    - insônia
+    - cefaleia
+    - confusão
+    - mal-estar
+    - lesão cutânea
+    - sono curto
+    - hidratação baixa
+  en:
+    - fatigue
+    - insomnia
+    - headache
+    - confusion
+    - malaise
+    - skin lesion
+    - short sleep
+    - low hydration
+    - dehydration
+    - cortisol
+    - CRP
+sensor_signatures:
+  - sensor: CSI/MAX30102
+    metric: hrv_ms
+    op: lte
+    threshold: 30.0
+    causal_weight: 2.6
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: MAX30102
+    metric: temp_c
+    op: gte
+    threshold: 37.5
+    causal_weight: 2.2
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: MAX30102
+    metric: heart_rate_bpm
+    op: gte
+    threshold: 78.0
+    causal_weight: 1.4
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: CSI
+    metric: sleep_duration_h
+    op: lt
+    threshold: 6.0
+    causal_weight: 2.0
+    weight_basis: heuristic_pending_clinical_review
+  - sensor: Autoexame
+    metric: hydration_index
+    op: lt
+    threshold: 0.5
+    causal_weight: 1.8
+    weight_basis: heuristic_pending_clinical_review
+    note: Hidratação baixa
+detection:
+  - Arquitetura do sono e HRV via CSI (MODE_REST_VITALS)
+  - 'Autoexame: temperatura e hidratação'
+  - Testes cognitivos curtos
+countermeasures:
+  - order: 1
+    action: 'Ajuste circadiano: luz e horários de repouso (ADJUST_LIGHTING_CIRCADIAN)'
+    protocol: null
+  - order: 2
+    action: Reduzir luz azul 2h antes do repouso
+    protocol: null
+  - order: 3
+    action: 'Nutrition SMO: hidratação e plano alimentar'
+    protocol: null
+  - order: 4
+    action: Suspender estimulantes 6h antes do sono
+    protocol: null
+  - order: 5
+    action: 'Febre ou lesão: registrar SELF_EXAM'
+    protocol: temperature
+escalation:
+  default: LOCAL
+  LOCAL: Ajustes de iluminação, sono e hidratação.
+  CREW: 'Febre ou desempenho comprometido: avisar tripulante.'
+  STORE_AND_FORWARD: 'Tendência persistente: relatório ao cirurgião de voo.'
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Performance and Behavioral Health Decrements due to Inadequate Sleep/Circadian Misalignment; BMed
+  section: Evidence Report
+  source_id: NASA-HRP-BMed-IMMUNE
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

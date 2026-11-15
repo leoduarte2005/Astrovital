@@ -1,0 +1,61 @@
+id: HRP-RISK-ONE-CARBON
+seed_id: one_carbon_b_vitamins
+title: Metabolismo de Um Carbono e Vitaminas B (SANS)
+hazard: Gravity Fields
+category: BEHAVIORAL_BIOCHEMICAL
+subsystems:
+  - NEURO_OCULAR_SANS
+problem: Alterações no metabolismo de um carbono (folato, B6, B12) associam-se a SANS. Complexo B é contramedida bioquímica; não substitui avaliação oftalmológica.
+symptoms:
+  pt:
+    - visão turva
+    - cefaleia
+    - dor de cabeça
+    - fadiga
+    - formigamento
+  en:
+    - blurred vision
+    - headache
+    - fatigue
+    - tingling
+    - SANS
+    - VIIP
+    - B-complex
+    - homocysteine
+sensor_signatures:
+  - sensor: Autoexame
+    metric: homocysteine_umol_l
+    op: gte
+    threshold: null
+    causal_weight: 1.5
+    weight_basis: heuristic_pending_clinical_review
+    note: Sem valor ISS transcrito
+  - sensor: SCD40
+    metric: co2_ppm
+    op: lt
+    threshold: 1500.0
+    causal_weight: 1.6
+    weight_basis: causal_graph:likelihood_ratio
+detection:
+  - 'Autoexame: Amsler e sangue capilar'
+  - CO2 normal
+countermeasures:
+  - order: 1
+    action: Grade de Amsler
+    protocol: amsler_grid
+  - order: 2
+    action: Complexo B (folato, B6, B12) conforme protocolo
+    protocol: capillary_blood
+  - order: 3
+    action: Relatório ao cirurgião de voo
+    protocol: null
+escalation:
+  default: CREW
+  LOCAL: Complexo B e Amsler autônomos.
+  CREW: 'Distorção Amsler: avisar tripulante.'
+  STORE_AND_FORWARD: 'Persistência: Store-and-Forward.'
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of SANS; one-carbon metabolism
+  section: Evidence Report
+  source_id: NASA-HRP-ONE-CARBON
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

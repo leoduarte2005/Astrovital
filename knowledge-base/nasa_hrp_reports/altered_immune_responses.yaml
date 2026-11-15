@@ -1,0 +1,62 @@
+id: HRP-RISK-IMMUNE
+seed_id: altered_immune_responses
+title: Resposta Imune Alterada / Altered Immune Response
+hazard: Gravity Fields
+category: PHYSIOLOGICAL
+subsystems:
+  - IMMUNE_HEMATO_NUTRITION
+problem: Estresse, privação de sono e microgravidade desregulam a imunidade e permitem reativação de vírus latentes, com sinais cutâneos e febre.
+symptoms:
+  pt:
+    - febre
+    - lesão cutânea
+    - erupção
+    - fadiga
+    - mal-estar
+  en:
+    - fever
+    - rash
+    - skin lesion
+    - fatigue
+    - malaise
+    - latent virus reactivation
+sensor_signatures:
+  - sensor: MAX30102/CSI
+    metric: temp_c
+    op: gte
+    threshold: 37.5
+    causal_weight: 2.2
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: CSI
+    metric: hrv_ms
+    op: lte
+    threshold: 30.0
+    causal_weight: 2.6
+    weight_basis: causal_graph:likelihood_ratio
+detection:
+  - 'Autoexame: temperatura'
+  - 'Autoexame: sangue capilar (marcadores imunes)'
+  - HRV via CSI
+countermeasures:
+  - order: 1
+    action: Medir temperatura
+    protocol: temperature
+  - order: 2
+    action: Amostra capilar para marcadores imunes
+    protocol: capillary_blood
+  - order: 3
+    action: Reduzir estresse e proteger o sono
+    protocol: null
+  - order: 4
+    action: Registrar lesões cutâneas em SELF_EXAM
+    protocol: null
+escalation:
+  default: LOCAL
+  LOCAL: Monitorar febre baixa e sintomas leves.
+  CREW: 'Temperatura >= 37.8 C ou lesões: avisar tripulante.'
+  STORE_AND_FORWARD: 'Febre persistente: Store-and-Forward.'
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Health Event due to Altered Immune Response
+  section: Evidence Report
+  source_id: NASA-HRP-IMMUNE
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

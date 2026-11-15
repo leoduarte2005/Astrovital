@@ -1,0 +1,58 @@
+id: HRP-RISK-FITNESS
+seed_id: reduced_cardiorespiratory_fitness
+title: Redução da Capacidade Cardiorrespiratória e Muscular
+hazard: Gravity Fields
+category: PHYSIOLOGICAL
+subsystems:
+  - MUSCULOSKELETAL_POSTURE
+problem: Descondicionamento em microgravidade reduz VO2max, força e resistência, limitando EVA e resposta a emergências.
+symptoms:
+  pt:
+    - fadiga ao esforço
+    - fraqueza
+    - falta de ar ao esforço
+    - palpitação
+  en:
+    - exertional fatigue
+    - weakness
+    - exertional dyspnea
+    - palpitations
+    - deconditioning
+sensor_signatures:
+  - sensor: MAX30102
+    metric: heart_rate_bpm
+    op: gte
+    threshold: 90.0
+    causal_weight: 1.5
+    weight_basis: heuristic_pending_clinical_review
+    note: FC elevada em carga leve
+  - sensor: CSI
+    metric: exercise_cadence_hz
+    op: lt
+    threshold: 0.5
+    causal_weight: 1.5
+    weight_basis: heuristic_pending_clinical_review
+    note: Queda de cadência em treino
+detection:
+  - Cinemática e cadência em MODE_COUNTERMEASURE_EXERCISE
+  - FC no esforço (MAX30102)
+countermeasures:
+  - order: 1
+    action: Exercício aeróbico e resistivo diário (ARED, esteira, cicloergômetro)
+    protocol: null
+  - order: 2
+    action: Progressão de carga e registro de tendência
+    protocol: null
+  - order: 3
+    action: Revisar nutrição e recuperação
+    protocol: null
+escalation:
+  default: LOCAL
+  LOCAL: Ajuste de programa de treino.
+  CREW: Não aplicável rotineiramente.
+  STORE_AND_FORWARD: 'Queda persistente: relatório ao cirurgião de voo.'
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Reduced Physical Performance / Impaired Cardiorespiratory Fitness
+  section: Evidence Report
+  source_id: NASA-HRP-FITNESS
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.

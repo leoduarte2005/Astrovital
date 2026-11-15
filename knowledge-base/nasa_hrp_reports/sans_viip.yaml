@@ -1,0 +1,86 @@
+id: HRP-RISK-SANS
+seed_id: sans_viip
+title: SANS / VIIP (Fluid Shift Cefálico)
+hazard: Gravity Fields
+category: PHYSIOLOGICAL
+subsystems:
+  - NEURO_OCULAR_SANS
+problem: 'Alterações estruturais de olho e cérebro associadas ao voo espacial por deslocamento cefálico de fluidos. Quadro: cefaleia, visão turva, pressão ocular, papiledema. Sensores ESP32/Wi-Fi não confirmam SANS; Amsler e ONSD (> 5.0 mm) são triagem a bordo.'
+symptoms:
+  pt:
+    - cefaleia
+    - dor de cabeça
+    - visão turva
+    - pressão ocular
+    - papiledema
+    - congestão nasal
+    - face inchada
+  en:
+    - headache
+    - blurred vision
+    - eye pressure
+    - papilledema
+    - nasal congestion
+    - facial puffiness
+    - fluid shift
+    - SANS
+    - VIIP
+sensor_signatures:
+  - sensor: SCD40
+    metric: co2_ppm
+    op: lt
+    threshold: 1500.0
+    causal_weight: 1.6
+    weight_basis: causal_graph:likelihood_ratio
+    note: CO2 nominal afasta hipercapnia
+  - sensor: CSI
+    metric: posture
+    op: in
+    threshold:
+      - supine
+      - prone
+    causal_weight: 1.8
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: Central
+    metric: mission_day
+    op: gte
+    threshold: 7.0
+    causal_weight: 2.1
+    weight_basis: causal_graph:likelihood_ratio
+  - sensor: CSI
+    metric: anomaly_score
+    op: gte
+    threshold: 0.4
+    causal_weight: 1.5
+    weight_basis: causal_graph:likelihood_ratio
+detection:
+  - 'Autoexame: Grade de Amsler (SELF_EXAM)'
+  - 'Autoexame: ultrassom ONSD > 5.0 mm'
+  - CO2 ambiente (SCD40) normal
+  - Postura via CSI
+countermeasures:
+  - order: 1
+    action: Grade de Amsler
+    protocol: amsler_grid
+  - order: 2
+    action: Thigh Cuffs (Braslet) ou LBNP para reduzir fluid shift cefálico
+    protocol: blood_pressure
+  - order: 3
+    action: Ultrassom ONSD bilateral
+    protocol: ultrasound_onsd
+  - order: 4
+    action: Complexo B (folato, B6, B12) conforme protocolo NASA-HRP-SANS
+    protocol: capillary_blood
+  - order: 5
+    action: Registrar SELF_EXAM e encaminhar ao cirurgião de voo
+    protocol: null
+escalation:
+  default: CREW
+  LOCAL: Triagem Amsler e Thigh Cuffs autônomos.
+  CREW: 'ONSD requer segundo tripulante; ONSD > 5.0 mm ou distorção Amsler: avisar Comandante.'
+  STORE_AND_FORWARD: 'Distorção persistente por 2 dias ou ONSD > 5.0 mm: pacote Store-and-Forward.'
+source:
+  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of SANS
+  section: 'Evidence Report: Spaceflight Associated Neuro-ocular Syndrome'
+  source_id: NASA-HRP-SANS
+disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.
