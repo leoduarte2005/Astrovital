@@ -1,6 +1,6 @@
-# Edge Space — UI
+# Astro Vital — UI
 
-Interface web offline da estação médica do Edge Space: monitoramento, análise e orientação de saúde de astronautas a partir de uma rede IoT local (ESP32-S3 + Orange Pi 4 Pro). Este repositório contém somente a UI.
+Interface web offline da estação médica do Astro Vital (antes Edge Space): monitoramento, análise e orientação de saúde de astronautas a partir de uma rede IoT local (ESP32-S3 + Orange Pi 4 Pro). Este repositório contém somente a UI.
 
 **Responsável:** Rafael (Membro 3).
 

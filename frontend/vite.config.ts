@@ -1,4 +1,4 @@
-import { createReadStream, statSync } from 'node:fs'
+import { createReadStream, readFileSync, statSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { extname, isAbsolute, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -39,10 +39,27 @@ function serveModels(): Plugin {
   }
 }
 
-// Dev and preview only: the WebSocket of the local central, same origin as the UI.
-// Not part of dist/. Override with EDGE_CENTRAL in .env or the environment: a bare host ("10.37.51.130")
-// gets http:// and port 8000.
-const CENTRAL_DEFAULT = 'http://10.37.51.130:8000'
+const STATION_MODEL = fileURLToPath(new URL('./data/models/iss/international_space_station.glb', import.meta.url))
+
+/**
+ * Copies the ISS model into `dist/` on build, so the demo (dist embedded in the central) shows it.
+ * The rest of `data/models` stays out of the build.
+ */
+function emitStationModel(): Plugin {
+  return {
+    name: 'emit-station-model',
+    apply: 'build',
+    generateBundle() {
+      this.emitFile({
+        type: 'asset',
+        fileName: 'models/iss/international_space_station.glb',
+        source: readFileSync(STATION_MODEL),
+      })
+    },
+  }
+}
+
+const CENTRAL_DEFAULT = 'http://192.168.0.25:8000'
 const CENTRAL_PORT = '8000'
 
 function centralTarget(raw: string | undefined): string {
@@ -59,7 +76,7 @@ const centralProxy = { '/ws': { target: CENTRAL, ws: true }, '/api': { target: C
 
 export default defineConfig({
   base: './',
-  plugins: [react(), serveModels()],
+  plugins: [react(), serveModels(), emitStationModel()],
   server: { proxy: centralProxy },
   preview: { proxy: centralProxy },
   resolve: {
