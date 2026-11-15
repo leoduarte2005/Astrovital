@@ -14,7 +14,7 @@
 #include "esp_csi_gain_ctrl.h"
 
 #define CSI_QUEUE_SIZE 50
-#define UDP_PORT 5556
+#define UDP_PORT 5005
 
 typedef struct {
     wifi_pkt_rx_ctrl_t rx_ctrl;
