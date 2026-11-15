@@ -25,6 +25,7 @@ class Settings(BaseSettings):
     models_dir: Path = Field(default=Path("./models"), description="Directory containing ONNX models")
     db_path: Path = Field(default=Path("../data/edgespace.db"), description="SQLite database path")
     ort_threads: int = Field(default=2, ge=1, le=64, description="ONNX Runtime intra-op thread count")
+    disable_slm: bool = Field(default=False, description="Disable local GGUF SLM conversational synthesizer")
 
     log_level: str = Field(default="INFO", description="Structured log level")
     ipc_hi_pri_cap: int = Field(default=64, ge=1, description="High-priority queue capacity")

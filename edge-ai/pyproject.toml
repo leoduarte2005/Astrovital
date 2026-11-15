@@ -22,6 +22,9 @@ train = [
     "skl2onnx>=1.16.0",
     "onnx>=1.15.0",
 ]
+slm = [
+    "llama-cpp-python>=0.3.0",
+]
 test = [
     "pytest>=8.0.0",
 ]

@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from ..adaptation.baseline_registry import CrewBaseline
 from ..ipc.protocol import (
@@ -74,6 +74,48 @@ class ClinicalCorrelator:
 
         top_hypotheses = assessment.hypotheses
         top = top_hypotheses[0] if top_hypotheses else None
+
+        sensors_nominal = (
+            not assessment.red_breach
+            and not assessment.yellow_breach
+            and not assessment.threshold_breaches
+            and _sensors_are_nominal(assessment.metrics)
+        )
+        if not extracted.concepts and sensors_nominal:
+            evidence_nominal: list[str] = []
+            for reading in peripherals:
+                evidence_nominal.append(f"Sensor {reading.type.value}: {reading.value:.2f} {reading.unit}")
+            if inference is not None:
+                evidence_nominal.append(
+                    f"CSI vitals: posture={inference.posture}, HR={inference.heart_rate_bpm:.1f} bpm, "
+                    f"RR={inference.respiration_hz * 60.0:.1f} bpm, anomaly={inference.anomaly_score:.2f}, "
+                    f"conf={inference.confidence:.2f}"
+                )
+            for doc in store_docs[:2]:
+                evidence_nominal.append(f"Base clínica ({doc.source}): {doc.doc_id} - {doc.title}")
+
+            clarification_prompt = (
+                "Não identifiquei sintomas específicos no seu relato e os sensores estão nominais. "
+                "Pode detalhar o que está sentindo (localização da dor, duração, náusea, tontura, "
+                "alteração visual ou falta de ar)?"
+            )
+            return ChatCorrelateRespPayload(
+                text=(
+                    "Nenhum sintoma específico foi reconhecido na mensagem e a telemetria atual está nominal. "
+                    "Por favor, detalhe os sintomas (localização, intensidade e duração) para correlação clínica."
+                ),
+                differentials=None,
+                evidence=evidence_nominal or None,
+                countermeasures=[
+                    "Descrever localização, intensidade e duração dos sintomas para nova avaliação.",
+                    "Manter monitoramento contínuo de sinais vitais e ambiente da cabine.",
+                ],
+                source_ids=["EDGESPACE-AI-V1"],
+                escalation=Escalation.LOCAL,
+                disclaimer=CLINICAL_DISCLAIMER,
+                disambiguation_question=clarification_prompt,
+                actions=None,
+            )
 
         # Evidence list
         evidence: list[str] = []
@@ -153,3 +195,34 @@ class ClinicalCorrelator:
             disambiguation_question=disambig.question.prompt if disambig else None,
             actions=actions or None,
         )
+
+
+def _sensors_are_nominal(metrics: dict[str, Any]) -> bool:
+    """Return True when all observed sensor readings and context flags are nominal."""
+    if metrics.get("eva_context", 0.0) >= 1.0 or metrics.get("radiation_context", 0.0) >= 1.0:
+        return False
+    co2 = metrics.get("co2_ppm")
+    if isinstance(co2, (int, float)) and co2 >= 1500.0:
+        return False
+    spo2 = metrics.get("spo2_pct")
+    if isinstance(spo2, (int, float)) and spo2 <= 94.0:
+        return False
+    pressure = metrics.get("pressure_hpa")
+    if isinstance(pressure, (int, float)) and pressure <= 750.0:
+        return False
+    temp = metrics.get("temp_c")
+    if isinstance(temp, (int, float)) and temp >= 37.5:
+        return False
+    hr = metrics.get("heart_rate_bpm")
+    if isinstance(hr, (int, float)) and (hr >= 95.0 or hr <= 45.0):
+        return False
+    rr = metrics.get("respiration_hz")
+    if isinstance(rr, (int, float)) and rr >= 0.32:
+        return False
+    hrv = metrics.get("hrv_ms")
+    if isinstance(hrv, (int, float)) and hrv <= 30.0:
+        return False
+    anomaly = metrics.get("anomaly_score")
+    if isinstance(anomaly, (int, float)) and anomaly >= 0.50:
+        return False
+    return True

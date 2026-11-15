@@ -128,6 +128,8 @@ SYMPTOM_LEXICON: dict[str, tuple[str, ...]] = {
         "enjoo",
         "enjoado",
         "vomito",
+        "vomitos",
+        "vomitar",
         "ansia",
         "vomiting",
         "queasy",
@@ -156,11 +158,30 @@ SYMPTOM_LEXICON: dict[str, tuple[str, ...]] = {
     ),
     "flank_pain": (
         "dor no flanco",
+        "dor nas costas",
+        "dor ao urinar",
+        "pedra no rim",
+        "calculo renal",
         "colica renal",
         "dor irradiando para virilha",
         "flank pain",
         "kidney pain",
+        "kidney stone",
         "renal colic",
+    ),
+    "gi_slowdown": (
+        "constipacao",
+        "prisao de ventre",
+        "intestino preso",
+        "intestino travado",
+        "estufamento",
+        "estufado",
+        "gases",
+        "digestao lenta",
+        "bloating",
+        "bloated",
+        "constipation",
+        "constipated",
     ),
     "back_pain": ("dor lombar", "dor nas costas", "lombalgia", "back pain", "lower back"),
     "hematuria": ("sangue na urina", "urina escura", "hematuria", "blood in urine", "dark urine"),
@@ -170,11 +191,122 @@ SYMPTOM_LEXICON: dict[str, tuple[str, ...]] = {
         "dor nas juntas",
         "artralgia",
         "juntas doendo",
+        "joelho doi",
+        "dor no joelho",
+        "ombro doi",
+        "dor no ombro",
+        "tornozelo doi",
+        "dor no tornozelo",
+        "punho doi",
+        "cotovelo doi",
         "joint pain",
         "arthralgia",
+        "knee pain",
+        "shoulder pain",
         "bends",
     ),
-    "abdominal_pain": ("dor abdominal", "dor na barriga", "estomago doendo", "abdominal pain", "stomach pain"),
+    "muscle_pain": (
+        "dor muscular",
+        "dor na perna",
+        "dor nas pernas",
+        "perna doi",
+        "pernas doem",
+        "perna doendo",
+        "pernas doendo",
+        "dor na coxa",
+        "coxa doi",
+        "dor na panturrilha",
+        "panturrilha doi",
+        "panturrilha doendo",
+        "dor no braco",
+        "braco doi",
+        "caimbra",
+        "caimbras",
+        "mialgia",
+        "muscle pain",
+        "leg pain",
+        "calf pain",
+        "thigh pain",
+        "arm pain",
+        "myalgia",
+        "soreness",
+        "sore leg",
+        "muscle ache",
+    ),
+    "muscle_weakness": (
+        "fraqueza muscular",
+        "fraqueza",
+        "perna fraca",
+        "pernas fracas",
+        "sem forca",
+        "perda de forca",
+        "dificuldade para andar",
+        "dificuldade ao andar",
+        "quando tento andar",
+        "ao andar",
+        "ao caminhar",
+        "intolerancia ao exercicio",
+        "cansaco ao andar",
+        "muscle weakness",
+        "weakness",
+        "weak legs",
+        "difficulty walking",
+        "exercise intolerance",
+    ),
+    "limb_swelling": (
+        "perna inchada",
+        "inchaco na perna",
+        "inchaco nas pernas",
+        "panturrilha inchada",
+        "edema na perna",
+        "tornozelo inchado",
+        "inchaco no pe",
+        "leg swelling",
+        "swollen leg",
+        "calf swelling",
+        "swollen ankle",
+        "dvt",
+        "tvp",
+    ),
+    "bone_pain": (
+        "dor ossea",
+        "dor no osso",
+        "dor nos ossos",
+        "dor no quadril",
+        "quadril doi",
+        "bone pain",
+        "hip pain",
+    ),
+    "orthostatic_intolerance": (
+        "tontura ao levantar",
+        "tontura em pe",
+        "pressao baixa",
+        "palpitacao",
+        "palpitacoes",
+        "pre-sincope",
+        "quase desmaiei",
+        "desmaio",
+        "orthostatic dizziness",
+        "presyncope",
+        "palpitations",
+        "hypotension",
+        "fainting",
+    ),
+    "abdominal_pain": (
+        "dor de barriga",
+        "dor na barriga",
+        "barriga doendo",
+        "dor abdominal",
+        "dor no estomago",
+        "estomago doendo",
+        "colica",
+        "stomach ache",
+        "stomachache",
+        "stomach pain",
+        "abdominal pain",
+        "belly pain",
+        "cramps",
+    ),
     "paresthesia": (
         "formigamento",
         "dormencia",
@@ -224,11 +356,12 @@ class SymptomExtractor:
 
         combined = " ".join([current_norm, *history_texts]).strip()
 
-        matched: dict[str, list[str]] = {}
-        for concept, phrases in SYMPTOM_LEXICON.items():
-            hits = [p for p in phrases if _phrase_in_text(p, combined)]
-            if hits:
-                matched[concept] = hits
+        # Symptoms come from the current message only. History/summary may add symptoms
+        # only when the current message is a bare follow-up answer (e.g. "sim", "no"),
+        # so a stale "headache" from earlier turns never leaks into a new complaint.
+        matched = _match_lexicon(current_norm)
+        if not matched and _is_followup_answer(current_norm):
+            matched = _match_lexicon(" ".join(history_texts))
 
         eva_ctx = any(_phrase_in_text(kw, combined) for kw in _EVA_KEYWORDS)
         rad_ctx = any(_phrase_in_text(kw, combined) for kw in _RADIATION_KEYWORDS)
@@ -250,6 +383,30 @@ class SymptomExtractor:
             radiation_context=rad_ctx,
             answered_topics=tuple(answered_topics),
         )
+
+
+_FOLLOWUP_ANSWERS = frozenset(
+    {"sim", "nao", "yes", "no", "talvez", "maybe", "um pouco", "bastante", "a little", "not sure", "nao sei"}
+)
+
+
+def _is_followup_answer(norm_text: str) -> bool:
+    """True when the message is only a short yes/no style reply to a disambiguation question."""
+    cleaned = re.sub(r"[^a-z0-9 ]", " ", norm_text)
+    cleaned = re.sub(r"\s+", " ", cleaned).strip()
+    return cleaned in _FOLLOWUP_ANSWERS
+
+
+def _match_lexicon(norm_text: str) -> dict[str, list[str]]:
+    """Return lexicon concepts found in already-normalized text. Never invents a default symptom."""
+    matched: dict[str, list[str]] = {}
+    if not norm_text:
+        return matched
+    for concept, phrases in SYMPTOM_LEXICON.items():
+        hits = [p for p in phrases if _phrase_in_text(p, norm_text)]
+        if hits:
+            matched[concept] = hits
+    return matched
 
 
 def _phrase_in_text(phrase: str, text: str) -> bool:

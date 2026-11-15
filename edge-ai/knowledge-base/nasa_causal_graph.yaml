@@ -210,6 +210,9 @@ conditions:
       hematuria: 0.95
       nausea: 0.60
       dysuria: 0.85
+      abdominal_pain: 0.45
+      bone_pain: 0.80
+      muscle_weakness: 0.50
     sensor_rules:
       - metric: "mission_day"
         op: "gte"
@@ -246,7 +249,7 @@ conditions:
     symptoms:
       fatigue: 0.80
       joint_pain: 0.85
-      abdominal_pain: 0.80
+      abdominal_pain: 0.55
       malaise: 0.65
       dizziness: 0.45
     sensor_rules:
@@ -360,3 +363,179 @@ conditions:
         positive_concepts: ["nausea", "malaise"]
         yes_likelihood: 0.85
         no_likelihood: 0.15
+
+  - id: "gi_motility_microbiome"
+    name: "Lentidão Gastrointestinal e Disbiose em Microgravidade"
+    source_id: "NASA-HRP-GI-MICROBIOME"
+    subsystem: "IMMUNE_HEMATO_NUTRITION"
+    prior: 0.14
+    default_escalation: "LOCAL"
+    symptoms:
+      abdominal_pain: 0.90
+      gi_slowdown: 0.95
+      nausea: 0.70
+      malaise: 0.45
+    sensor_rules:
+      - metric: "humidity_pct"
+        op: "lt"
+        value: 35.0
+        likelihood_ratio: 1.7
+        description: "Baixa umidade da cabine no BME280 favorece desidratação e lentidão GI"
+      - metric: "mission_day"
+        op: "gte"
+        value: 5.0
+        likelihood_ratio: 1.6
+        description: "Redução de motilidade GI e alterações de microbioma/farmacocinética em microgravidade"
+      - metric: "temp_c"
+        op: "gte"
+        value: 26.0
+        likelihood_ratio: 1.4
+        description: "Temperatura elevada na cabine aumenta perda hídrica basal"
+      - metric: "heart_rate_bpm"
+        op: "gte"
+        value: 85.0
+        likelihood_ratio: 1.3
+        description: "Elevação discreta da FC associada a desconforto abdominal ou hipovolemia leve"
+    countermeasures:
+      - "1. Reforçar hidratação fracionada (> 2.5 L/dia) e monitorar ingesta hídrica/diurese."
+      - "2. Ajustar dieta de bordo priorizando fibras prebióticas e refeições leves de fácil digestão."
+      - "3. Revisar e ajustar horário de medicação oral considerando absorção GI lentificada (NASA HRP GI Pharmacokinetics)."
+      - "4. Monitorar febre, vômitos persistentes ou irradiação para flanco e registrar evolução em SELF_EXAM."
+    actions:
+      - "INCREASE_HYDRATION"
+      - "REVIEW_NUTRITION_FIBER"
+      - "ADJUST_ORAL_MED_TIMING"
+      - "LOG_SELF_EXAM"
+    disambiguation_questions:
+      - id: "gi_localization"
+        prompt: "A dor é acompanhada de estufamento/constipação, náusea ou irradia para a lateral das costas (flanco)?"
+        positive_concepts: ["gi_slowdown", "nausea", "flank_pain"]
+        yes_likelihood: 0.85
+        no_likelihood: 0.15
+
+  - id: "reduced_cardiorespiratory_fitness"
+    name: "Descondicionamento Musculoesquelético e Cardiorrespiratório"
+    source_id: "NASA-HRP-FITNESS"
+    subsystem: "MUSCULOSKELETAL_POSTURE"
+    prior: 0.14
+    default_escalation: "LOCAL"
+    symptoms:
+      muscle_pain: 0.90
+      muscle_weakness: 0.95
+      fatigue: 0.85
+      bone_pain: 0.75
+      joint_pain: 0.60
+      dyspnea: 0.55
+    sensor_rules:
+      - metric: "mission_day"
+        op: "gte"
+        value: 7.0
+        likelihood_ratio: 1.8
+        description: "Atrofia muscular e perda óssea progressiva em microgravidade (>= 7 dias)"
+      - metric: "heart_rate_bpm"
+        op: "gte"
+        value: 85.0
+        likelihood_ratio: 1.4
+        description: "Sobrecarga cardiovascular relativa durante esforço ou deambulação"
+      - metric: "posture"
+        op: "in"
+        values: ["exercising", "standing", "upright"]
+        likelihood_ratio: 1.5
+        description: "Sintoma manifestado sob carga ou tentativa de locomoção"
+    countermeasures:
+      - "1. Avaliar intensidade, simetria e localização da dor na perna (muscular vs articular vs panturrilha)."
+      - "2. Revisar sessões recentes de exercício resistivo/aeróbico (ARED e esteira T2) e ajustar carga progressiva."
+      - "3. Garantir hidratação adequada, ingestão proteica e vitamina D conforme protocolo de bordo."
+      - "4. Se houver inchaço unilateral ou dor aguda ao toque na panturrilha, executar protocolo vascular/ultrassom."
+    actions:
+      - "CHECK_ARED_COMPLIANCE"
+      - "LOG_SELF_EXAM"
+      - "REVIEW_NUTRITION_LOG"
+    disambiguation_questions:
+      - id: "muscle_vs_vte"
+        prompt: "A dor na perna piora ao caminhar/fazer esforço com sensação de fraqueza, ou há inchaço, calor e vermelhidão em apenas uma panturrilha?"
+        positive_concepts: ["limb_swelling", "muscle_pain", "muscle_weakness"]
+        yes_likelihood: 0.85
+        no_likelihood: 0.15
+
+  - id: "venous_thromboembolism_stasis"
+    name: "Estase Venosa / Suspeita de Trombose de Membro (VTE)"
+    source_id: "NASA-HRP-VTE-ISS"
+    subsystem: "CARDIOVASCULAR_FLUIDS"
+    prior: 0.06
+    default_escalation: "STORE_AND_FORWARD"
+    symptoms:
+      limb_swelling: 0.95
+      muscle_pain: 0.85
+      muscle_weakness: 0.65
+      dyspnea: 0.65
+      chest_pain: 0.75
+    sensor_rules:
+      - metric: "mission_day"
+        op: "gte"
+        value: 5.0
+        likelihood_ratio: 1.7
+        description: "Estase venosa associada ao fluid shift em microgravidade"
+      - metric: "spo2_pct"
+        op: "lte"
+        value: 94.0
+        likelihood_ratio: 2.5
+        description: "Dessaturação sugere risco de embolia pulmonar secundária"
+      - metric: "heart_rate_bpm"
+        op: "gte"
+        value: 95.0
+        likelihood_ratio: 1.8
+        description: "Taquicardia associada a dor vascular ou sobrecarga cardiopulmonar"
+    countermeasures:
+      - "1. NÃO massagear o membro dolorido; manter o membro em repouso e medir circunferência bilateral das panturrilhas."
+      - "2. Executar ultrassom venoso compressivo a bordo (protocolo NASA ISS VTE) se disponível."
+      - "3. Monitorar SpO2, falta de ar ou dor torácica contínua no MAX30102/CSI."
+      - "4. Encaminhar imediatamente alerta ao Flight Surgeon (Store-and-Forward)."
+    actions:
+      - "PERFORM_VASCULAR_ULTRASOUND"
+      - "MONITOR_SPO2"
+      - "ESCALATE_FLIGHT_SURGEON"
+    disambiguation_questions:
+      - id: "vte_unilateral"
+        prompt: "O inchaço ou dor está localizado em apenas uma perna/panturrilha, com aumento de temperatura local ou falta de ar?"
+        positive_concepts: ["limb_swelling", "dyspnea", "chest_pain"]
+        yes_likelihood: 0.90
+        no_likelihood: 0.10
+
+  - id: "cv_fluid_shift_orthostatic"
+    name: "Fluid Shift Cardiovascular e Intolerância Ortostática"
+    source_id: "NASA-HRP-CV-FLUID"
+    subsystem: "CARDIOVASCULAR_FLUIDS"
+    prior: 0.10
+    default_escalation: "CREW"
+    symptoms:
+      orthostatic_intolerance: 0.95
+      dizziness: 0.85
+      fatigue: 0.70
+      muscle_weakness: 0.60
+    sensor_rules:
+      - metric: "mission_day"
+        op: "gte"
+        value: 3.0
+        likelihood_ratio: 1.6
+        description: "Adaptação cardiovascular ao fluid shift em voo/reentrada"
+      - metric: "heart_rate_bpm"
+        op: "gte"
+        value: 95.0
+        likelihood_ratio: 1.8
+        description: "Taquicardia ortostática compensatória"
+    countermeasures:
+      - "1. Executar protocolo de verificação de pressão arterial e FC em repouso/ortostase (SELF_EXAM blood_pressure)."
+      - "2. Reforçar hidratação com eletrólitos/sal conforme protocolo pré-pouso e considerar Thigh Cuffs / LBNP."
+      - "3. Evitar levantamentos bruscos e monitorar tontura ou pré-síncope."
+    actions:
+      - "INCREASE_HYDRATION"
+      - "CHECK_FLUID_SHIFT_PROTOCOL"
+      - "LOG_SELF_EXAM"
+    disambiguation_questions:
+      - id: "orthostatic_trigger"
+        prompt: "Você sente tontura, palpitação ou sensação de desmaio ao ficar de pé ou mudar de posição?"
+        positive_concepts: ["orthostatic_intolerance", "dizziness"]
+        yes_likelihood: 0.90
+        no_likelihood: 0.10
+

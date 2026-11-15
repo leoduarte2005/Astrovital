@@ -96,7 +96,7 @@ func New(cfg Config, deps Deps) *Manager {
 	if cfg.SetCrewTimeout <= 0 {
 		cfg.SetCrewTimeout = DefaultSetCrewTimeout
 	}
-	if cfg.ChatTimeout <= 0 {
+	if cfg.ChatTimeout < 0 {
 		cfg.ChatTimeout = DefaultChatTimeout
 	}
 	if cfg.CalibrationTimeout <= 0 {
@@ -548,7 +548,13 @@ func (m *Manager) execChat(cmd sessionCmd) {
 			RecentHistory:   history,
 		}
 
-		ipcCtx, cancel := context.WithTimeout(cmd.ctx, m.cfg.ChatTimeout)
+		var ipcCtx context.Context
+		var cancel context.CancelFunc
+		if m.cfg.ChatTimeout > 0 {
+			ipcCtx, cancel = context.WithTimeout(cmd.ctx, m.cfg.ChatTimeout)
+		} else {
+			ipcCtx, cancel = context.WithCancel(cmd.ctx)
+		}
 		defer cancel()
 		resp, err := m.deps.IPC.SendChatCorrelate(ipcCtx, reqID, req)
 		if err != nil {

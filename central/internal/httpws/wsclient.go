@@ -195,7 +195,13 @@ func (c *wsClient) handleIncoming(ctx context.Context, data []byte) {
 }
 
 func (c *wsClient) dispatchSessionCmd(ctx context.Context, sess SessionCommander, typ contracts.WSMsgType, crewID string, msgID *string, raw json.RawMessage) {
-	cmdCtx, cancel := context.WithTimeout(ctx, 10*time.Second)
+	var cmdCtx context.Context
+	var cancel context.CancelFunc
+	if typ == contracts.WSMsgChatMsg {
+		cmdCtx, cancel = context.WithCancel(ctx)
+	} else {
+		cmdCtx, cancel = context.WithTimeout(ctx, 10*time.Second)
+	}
 	defer cancel()
 
 	switch typ {

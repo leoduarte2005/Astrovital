@@ -314,14 +314,31 @@ class ClinicalStore:
         scored.sort(key=lambda d: d.score, reverse=True)
         return scored[:limit]
 
-    @staticmethod
-    def _build_search_terms(query: str, concepts: Sequence[str]) -> list[str]:
+    _CONCEPT_SEARCH_EXPANSIONS: dict[str, tuple[str, ...]] = {
+        "muscle_pain": ("muscular", "muscle", "fitness", "ared", "ossea", "bone"),
+        "muscle_weakness": ("fraqueza", "weakness", "fitness", "muscular", "ared"),
+        "limb_swelling": ("cardiovascular", "fluid", "edema", "dcs", "stasis"),
+        "bone_pain": ("ossea", "bone", "renal", "ared"),
+        "orthostatic_intolerance": ("ortostatica", "orthostatic", "fluid", "cardiovascular"),
+        "joint_pain": ("articular", "joint", "dcs", "iron"),
+        "abdominal_pain": ("abdominal", "gi", "nutrition", "microbiome"),
+    }
+
+    @classmethod
+    def _build_search_terms(cls, query: str, concepts: Sequence[str]) -> list[str]:
         tokens = re.findall(r"\w{3,}", query.lower())
+        expanded: list[str] = []
+        for c in concepts:
+            clean_c = c.strip().lower()
+            if clean_c:
+                expanded.append(clean_c)
+                expanded.extend(clean_c.split("_"))
+                expanded.extend(cls._CONCEPT_SEARCH_EXPANSIONS.get(clean_c, ()))
         merged: list[str] = []
         seen: set[str] = set()
-        for item in [*concepts, *tokens]:
+        for item in [*expanded, *tokens]:
             clean = item.strip().lower()
-            if clean and clean not in seen:
+            if clean and len(clean) >= 3 and clean not in seen:
                 seen.add(clean)
                 merged.append(clean)
         return merged

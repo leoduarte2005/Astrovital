@@ -238,7 +238,7 @@ func (c *Client) sweepLoop(ctx context.Context) {
 			var expired []pendingReq
 			c.pendingMu.Lock()
 			for id, p := range c.pending {
-				if now.After(p.deadline) {
+				if !p.deadline.IsZero() && now.After(p.deadline) {
 					expired = append(expired, p)
 					delete(c.pending, id)
 				}

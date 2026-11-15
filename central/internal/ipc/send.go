@@ -113,10 +113,14 @@ func (c *Client) roundTripHiPri(ctx context.Context, env contracts.IPCEnvelope, 
 		return nil, ErrAIUnavailable
 	}
 	replyCh := make(chan pendingReply, 1)
+	var deadline time.Time
+	if timeout > 0 {
+		deadline = time.Now().Add(timeout)
+	}
 	c.pendingMu.Lock()
 	c.pending[reqID] = pendingReq{
 		typ:      env.Type,
-		deadline: time.Now().Add(timeout),
+		deadline: deadline,
 		replyCh:  replyCh,
 	}
 	c.pendingMu.Unlock()

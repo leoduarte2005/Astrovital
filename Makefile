@@ -16,11 +16,13 @@ RESEARCH_DEMO_PATH ?= ./var/space_health_demo.db
 
 .PHONY: help contracts-validate firmware-build firmware-flash \
         frontend-build central-build central-run-mock edge-ai-setup edge-ai-run \
-        test-e2e-ai db-research-inventory db-research-queries db-research-validate \
+        test-e2e-ai run run-win db-research-inventory db-research-queries db-research-validate \
         db-research-demo db-research-import-physiology db-research-missingness db-research-test all clean
 
 help:
 	@echo "EdgeSpace — alvos disponíveis:"
+	@echo "  run                 Compila tudo e sobe edge-ai (:5006) + Central Go (:8000) [Linux/ARM64]"
+	@echo "  run-win             Compila tudo e sobe edge-ai (:5006) + Central Go (:8000) [Windows]"
 	@echo "  contracts-validate  Valida fixtures contra JSON Schemas (tools/)          [Leonardo/M4]"
 	@echo "  db-research-inventory  Lista os datasets do pacote Space Health (offline) [Selliny/M1]"
 	@echo "  db-research-queries    Executa as consultas de exemplo em leitura         [Selliny/M1]"
@@ -105,6 +107,12 @@ test-e2e-ai:
 	@PY=edge-ai/.venv/bin/python; \
 	if [ ! -x "$$PY" ] && [ -x edge-ai/.venv/Scripts/python.exe ]; then PY=edge-ai/.venv/Scripts/python.exe; fi; \
 	PYTHONPATH=edge-ai/src "$$PY" edge-ai/tests/e2e_central_integration.py
+
+run:
+	bash scripts/run_stack.sh $(ARGS)
+
+run-win:
+	powershell -ExecutionPolicy Bypass -File scripts/run_stack.ps1 $(ARGS)
 
 all: contracts-validate frontend-build central-build
 

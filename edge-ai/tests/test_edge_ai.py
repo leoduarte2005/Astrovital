@@ -973,7 +973,91 @@ def test_golden_cases_end_to_end_with_real_sqlite(tmp_path: Path) -> None:
             f"{case['id']}: expected sqlite_fts5 citation in evidence={resp.evidence}"
         )
 
-    correlator = ClinicalCorrelator(db_path=db_file)
+
+def test_abdominal_pain_dor_de_barriga_correlation(tmp_path: Path) -> None:
+    correlator = ClinicalCorrelator(db_path=tmp_path / "missing.db")
     ts = now_us()
+
+    # Garante extração correta de sintomas GI e ausência de cefaleia
+    ext = SymptomExtractor()
+    extracted = ext.extract("estou com dor de barriga")
+    assert "abdominal_pain" in extracted.concepts
+    assert "headache" not in extracted.concepts
+
+    # Mesmo em decúbito (supine), dia 14 e CO2 nominal (cenário que antes enviesava SANS),
+    # "estou com dor de barriga" deve priorizar condição GI e nunca retornar headache/SANS no topo.
+    resp = correlator.correlate(
+        ChatCorrelateReqPayload(
+            text="estou com dor de barriga",
+            profile=CrewProfile(crew_id="ASTRO-01", name="Cmdr", mission_day=14),
+        ),
+        peripherals=[
+            PeripheralReading(type=Peripheral.SCD40, value=620.0, unit="ppm", timestamp_us=ts),
+            PeripheralReading(type=Peripheral.MAX30102, value=98.0, unit="%", timestamp_us=ts),
+            PeripheralReading(type=Peripheral.BME280, value=31.0, unit="%", timestamp_us=ts),
+        ],
+        inference=AIInferencePayload(
+            cycle_seq_first=10,
+            posture="supine",
+            respiration_hz=0.23,
+            heart_rate_bpm=72.0,
+            hrv_ms=48.0,
+            anomaly_score=0.42,
+            confidence=0.80,
+        ),
+    )
+
+    ev_joined = " ".join(resp.evidence or []).lower()
+    assert "headache" not in ev_joined
+    assert "abdominal_pain" in ev_joined
+
+    assert resp.differentials is not None and len(resp.differentials) >= 1
+    assert not resp.differentials[0].startswith("SANS")
+    assert "Gastrointestinal" in resp.differentials[0] or "gi_motility" in resp.differentials[0].lower()
+    assert "NASA-HRP-GI-MICROBIOME" in (resp.source_ids or [])
+
+    cm_text = " ".join(resp.countermeasures or []).lower()
+    assert "hidrata" in cm_text or "fibras" in cm_text
+
+    assert resp.disambiguation_question is not None
+    q_low = resp.disambiguation_question.lower()
+    assert "estufamento" in q_low or "constipação" in q_low or "flanco" in q_low
+
+
+def test_symptom_extractor_no_headache_fallback_and_nominal_clarification(tmp_path: Path) -> None:
+    ext = SymptomExtractor()
+    # "dor" isolado não deve casar headache; texto desconhecido retorna vazio
+    assert ext.extract("estou com dor").concepts == ()
+    assert ext.extract("preciso de ajuda").concepts == ()
+    assert "gi_slowdown" in ext.extract("estufamento e prisao de ventre").concepts
+    assert "flank_pain" in ext.extract("dor no flanco e pedra no rim").concepts
+    assert "nausea" in ext.extract("muito enjoo e vomito").concepts
+
+    # Sem sintomas e sensores nominais -> não força hipótese P > 0.50; pede detalhamento
+    correlator = ClinicalCorrelator(db_path=tmp_path / "missing.db")
+    ts = now_us()
+    resp = correlator.correlate(
+        ChatCorrelateReqPayload(
+            text="não estou me sentindo muito bem",
+            profile=CrewProfile(crew_id="ASTRO-01", name="Cmdr", mission_day=14),
+        ),
+        peripherals=[
+            PeripheralReading(type=Peripheral.SCD40, value=600.0, unit="ppm", timestamp_us=ts),
+            PeripheralReading(type=Peripheral.MAX30102, value=98.5, unit="%", timestamp_us=ts),
+        ],
+        inference=AIInferencePayload(
+            cycle_seq_first=11,
+            posture="supine",
+            respiration_hz=0.22,
+            heart_rate_bpm=68.0,
+            hrv_ms=52.0,
+            anomaly_score=0.15,
+            confidence=0.85,
+        ),
+    )
+    assert resp.differentials is None
+    assert "headache" not in " ".join(resp.evidence or []).lower()
+    assert resp.disambiguation_question is not None
+    assert "detalhar" in resp.disambiguation_question.lower() or "detalhe" in resp.text.lower()
 
 

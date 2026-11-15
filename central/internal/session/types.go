@@ -17,8 +17,8 @@ const (
 	DefaultCmdChCap = 16
 	// DefaultSetCrewTimeout is the CREW_ACK deadline (§4.1).
 	DefaultSetCrewTimeout = 2 * time.Second
-	// DefaultChatTimeout is the CHAT_CORRELATE_RESP deadline (§4.1).
-	DefaultChatTimeout = 5 * time.Second
+	// DefaultChatTimeout is the CHAT_CORRELATE_RESP deadline (0 = unlimited for local SLM).
+	DefaultChatTimeout = 0 * time.Second
 	// DefaultCalibrationTimeout is the CALIBRATION_FEEDBACK deadline (§4.1).
 	DefaultCalibrationTimeout = 2 * time.Second
 	// DefaultChatHistoryLimit is the number of recent messages attached to CHAT_CORRELATE_REQ.

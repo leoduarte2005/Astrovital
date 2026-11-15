@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import asyncio
 from dataclasses import dataclass, field
 import math
-from typing import Optional
+import os
+import sys
+from typing import Any, Optional
 
 import numpy as np
 from pydantic import ValidationError
@@ -12,6 +15,7 @@ from pydantic import ValidationError
 from ..adaptation.baseline_registry import BaselineRegistry
 from ..adaptation.calibration_engine import CalibrationEngine
 from ..correlation.correlator import ClinicalCorrelator
+from ..correlation.synthesizer import LocalSLMSynthesizer
 from ..dsp.csi_processor import CSIProcessor
 from ..dsp.feature_extractor import FeatureExtractor
 from ..dsp.link_fusion import LinkFusion
@@ -63,7 +67,12 @@ class IPCState:
 class IPCHandler:
     """Typed IPC v1 dispatcher connecting DSP, ONNX inference, and crew adaptation."""
 
-    def __init__(self, settings: Optional[Settings] = None) -> None:
+    def __init__(
+        self,
+        settings: Optional[Settings] = None,
+        *,
+        disable_slm: Optional[bool] = None,
+    ) -> None:
         self._settings = settings or get_settings()
         self.state = IPCState()
 
@@ -92,6 +101,21 @@ class IPCHandler:
 
         # Causal clinical correlator (SQLite FTS5 mode=ro + nasa_causal_graph.yaml fallback)
         self.correlator = ClinicalCorrelator(db_path=self._settings.db_path)
+
+        # Local GGUF SLM conversational writer (ARM64 offline, --disable-slm / env / settings)
+        slm_disabled = (
+            disable_slm
+            if disable_slm is not None
+            else (
+                bool(getattr(self._settings, "disable_slm", False))
+                or os.environ.get("EDGESPACE_DISABLE_SLM", "").strip().lower() in {"1", "true", "yes", "on"}
+                or "--disable-slm" in sys.argv
+            )
+        )
+        self.synthesizer = LocalSLMSynthesizer(
+            models_dir=self._settings.models_dir,
+            disabled=slm_disabled,
+        )
 
     async def handle(self, env: IPCEnvelope) -> Optional[IPCEnvelope]:
         """Dispatch an incoming IPCEnvelope and return a correlated reply if applicable."""
@@ -184,6 +208,23 @@ class IPCHandler:
             thresholds=thresholds,
             baseline=active_baseline,
         )
+
+        if self.synthesizer.is_ready:
+            memory_facts = _collect_memory_facts(req, crew_id=crew_id)
+            sensor_snapshot = _build_sensor_snapshot(
+                peripherals=peripherals,
+                inference=inference,
+                crew_id=crew_id,
+            )
+            synthesized_text = await asyncio.to_thread(
+                self.synthesizer.synthesize_response,
+                resp,
+                memory_facts,
+                sensor_snapshot,
+            )
+            if synthesized_text:
+                resp = resp.model_copy(update={"text": synthesized_text})
+
         logger.debug("chat correlate handled", extra={"req_id": env.req_id, "crew_id": crew_id})
         return make_envelope(
             IPCMsgType.CHAT_CORRELATE_RESP,
@@ -345,3 +386,57 @@ def _merge_valid_peripherals(
                 merged[(r.type, r.unit.strip().lower())] = r
 
     return list(merged.values())
+
+
+def _collect_memory_facts(req: ChatCorrelateReqPayload, *, crew_id: Optional[str]) -> list[str]:
+    """Extract compact persistent crew context and profile cues for SLM grounding."""
+    facts: list[str] = []
+    if req.profile is not None:
+        parts = [req.profile.name]
+        if req.profile.role:
+            parts.append(req.profile.role)
+        if req.profile.mission_day is not None:
+            parts.append(f"dia {req.profile.mission_day}")
+        facts.append("Tripulante: " + ", ".join(parts))
+    elif crew_id:
+        facts.append(f"crew_id={crew_id}")
+    if req.summary_24h:
+        facts.append(f"Resumo 24h: {req.summary_24h.strip()[:180]}")
+    if req.recent_history:
+        user_turns = [m.content.strip()[:80] for m in req.recent_history if m.role == "user" and m.content.strip()]
+        if user_turns:
+            facts.append("Queixa recente: " + " | ".join(user_turns[-2:]))
+    return facts
+
+
+def _build_sensor_snapshot(
+    *,
+    peripherals: list[PeripheralReading],
+    inference: Optional[AIInferencePayload],
+    crew_id: Optional[str],
+) -> dict[str, Any]:
+    """Serialize latest ESP32-S3 peripheral readings and CSI inference with semantic labels."""
+    snapshot: dict[str, Any] = {}
+    for r in peripherals:
+        u = r.unit.strip().lower()
+        if r.type == Peripheral.SCD40:
+            snapshot["CO2_ppm"] = round(r.value, 1)
+        elif r.type == Peripheral.MAX30102 and "%" in u:
+            snapshot["SpO2_pct"] = round(r.value, 1)
+        elif r.type == Peripheral.MAX30102 and "bpm" in u:
+            snapshot["FC_oximetro_bpm"] = round(r.value, 1)
+        elif r.type == Peripheral.BME280 and ("c" in u or "deg" in u):
+            snapshot["Temp_C"] = round(r.value, 1)
+        elif r.type == Peripheral.BME280 and "rh" in u:
+            snapshot["Umidade_pct"] = round(r.value, 1)
+        elif r.type == Peripheral.BME280 and "pa" in u:
+            snapshot["Pressao_hPa"] = round(r.value, 1)
+        else:
+            snapshot[f"{r.type.value}_{r.unit}"] = round(r.value, 2)
+    if inference is not None:
+        snapshot["CSI_postura"] = inference.posture
+        snapshot["CSI_FC_bpm"] = round(inference.heart_rate_bpm, 1)
+        snapshot["CSI_FR_rpm"] = round(inference.respiration_hz * 60.0, 1)
+        snapshot["CSI_anomalia"] = round(inference.anomaly_score, 2)
+    return snapshot
+
