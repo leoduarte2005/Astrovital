@@ -13,6 +13,31 @@
   height: 100%;
 }
 
+/* Heart marker: positioned by JS transform each frame. Hidden until the first projection. */
+.marker {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  border: var(--border-thin) solid var(--ink);
+  border-radius: 50%;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.marker::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
 .status {
   position: absolute;
   inset: 0;

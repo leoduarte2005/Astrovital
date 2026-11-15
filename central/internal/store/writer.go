@@ -111,6 +111,13 @@ func execCmd(ctx context.Context, conn *sql.Conn, c Cmd) error {
 	case Exec:
 		_, err := conn.ExecContext(ctx, v.Query, v.Args...)
 		return err
+	case Statements:
+		for _, item := range v.Items {
+			if _, err := conn.ExecContext(ctx, item.Query, item.Args...); err != nil {
+				return err
+			}
+		}
+		return nil
 	case RegistrySet:
 		_, err := conn.ExecContext(ctx,
 			`INSERT INTO central_registry(key,value,updated_us) VALUES (?,?,?)

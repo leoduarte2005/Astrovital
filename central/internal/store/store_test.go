@@ -759,8 +759,8 @@ func TestStoreWithRealDatabaseMigrations(t *testing.T) {
 		missionDay  int
 		calRequired bool
 	}{
-		"crew_001": {role: "Commander", missionDay: 42, calRequired: false},
-		"crew_002": {role: "Flight Surgeon", missionDay: 42, calRequired: false},
+		"crew_001": {role: "Commander", missionDay: 42, calRequired: true},
+		"crew_002": {role: "Flight Surgeon", missionDay: 42, calRequired: true},
 		"crew_003": {role: "Flight Engineer", missionDay: 42, calRequired: true},
 	}
 	for id, exp := range expectedCrew {
@@ -902,4 +902,3 @@ func TestStoreWithRealDatabaseMigrations(t *testing.T) {
 		t.Fatalf("ListOutbox: %+v err=%v", outbox, err)
 	}
 }
-

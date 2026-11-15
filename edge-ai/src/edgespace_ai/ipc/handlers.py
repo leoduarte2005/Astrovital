@@ -96,7 +96,7 @@ class IPCHandler:
         self.anomaly_scorer = AnomalyScorer(self.session_manager)
 
         # Multi-astronaut baseline registry & incremental EMA calibration
-        self.baseline_registry = BaselineRegistry(models_dir=self._settings.models_dir)
+        self.baseline_registry = BaselineRegistry(models_dir=self._settings.models_dir,db_path=self._settings.db_path)
         self.calibration_engine = CalibrationEngine(self.baseline_registry)
 
         # Causal clinical correlator (SQLite FTS5 mode=ro + nasa_causal_graph.yaml fallback)
@@ -145,18 +145,14 @@ class IPCHandler:
                 req_id=env.req_id,
             )
 
-        self.state.active_crew_id = req.crew_id
-        self.state.baseline_path = req.baseline_path
-        if req.thresholds is not None:
-            self.state.thresholds = dict(req.thresholds)
-
-        _, baseline_found = self.baseline_registry.set_active_crew(
-            req.crew_id,
-            baseline_path=req.baseline_path,
-        )
-        # Optionally load crew-specific ONNX autoencoder if present
-        if self.session_manager.load_crew_autoencoder(req.crew_id, req.baseline_path) is not None:
-            baseline_found = True
+        try:
+            _,baseline_found=self.baseline_registry.set_active_crew(req.crew_id,baseline_path=req.baseline_path)
+        except (KeyError,ValueError) as exc:
+            return make_envelope(IPCMsgType.CREW_ACK,CrewAckPayload(ok=False,baseline_found=False,error=str(exc)),crew_id=req.crew_id,req_id=env.req_id)
+        self.state.active_crew_id=req.crew_id
+        self.state.baseline_path=req.baseline_path
+        if req.thresholds is not None:self.state.thresholds=dict(req.thresholds)
+        self.session_manager.load_crew_autoencoder(req.crew_id,req.baseline_path)
 
         logger.info(
             "active crew updated",
@@ -191,6 +187,7 @@ class IPCHandler:
             )
 
         crew_id = req.crew_id or env.crew_id or self.state.active_crew_id
+        req=req.model_copy(update={"crew_id":crew_id})
         peripherals = _merge_valid_peripherals(
             state_readings=self.state.latest_peripherals,
             req_readings=req.last_peripherals,
@@ -258,6 +255,7 @@ class IPCHandler:
         return make_envelope(
             IPCMsgType.CALIBRATION_FEEDBACK,
             CalibrationFeedbackPayload(
+                baseline_update=dict(result.baseline.to_dict(),feature_schema_id='EDGESPACE_DSP64_V1',calibration_status='READY' if result.progress==100 and result.baseline.sample_count>0 else 'CALIBRATING',clean_window_ratio=result.quality,covered_postures=[req.step_id],step_id=req.step_id,progress=result.progress),
                 step_id=result.step_id,
                 progress=result.progress,
                 quality=result.quality,

@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import json
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -23,11 +24,16 @@ class ClinicalDocument:
     snippet: str
     score: float
     source: str  # "sqlite_fts5" | "yaml_fallback"
+    source_id: str = ""
 
 
 def load_yaml_file(path: Path) -> dict[str, Any]:
     """Load a YAML file using PyYAML when installed, or a built-in pure-Python YAML parser."""
     text = path.read_text(encoding="utf-8")
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
     try:
         import yaml  # type: ignore[import-untyped]
 
@@ -192,7 +198,7 @@ class ClinicalStore:
         fts_hits = self._search_sqlite_fts5(terms, limit=limit)
         if fts_hits:
             return fts_hits
-        return self._search_yaml_fallback(terms, limit=limit)
+        return [] if self._explicit_db_path else self._search_yaml_fallback(terms, limit=limit)
 
     def _search_sqlite_fts5(self, terms: Sequence[str], *, limit: int) -> list[ClinicalDocument]:
         if not self.db_path.is_file() and not self._explicit_db_path:
@@ -237,6 +243,7 @@ class ClinicalStore:
                     col_values = dict(zip(col_names, row[2:]))
                     doc_id = str(
                         col_values.get("protocol_id")
+                        or col_values.get("report_id")
                         or col_values.get("id")
                         or col_values.get("source_id")
                         or f"{table_name}:{rowid}"
@@ -245,10 +252,18 @@ class ClinicalStore:
                     subsystem = str(col_values.get("subsystem") or col_values.get("subsystems") or "")
                     snippet = str(
                         col_values.get("description")
+                        or col_values.get("problem")
+                        or col_values.get("content_text")
                         or col_values.get("content")
                         or col_values.get("steps")
                         or title
                     )
+                    source_id=str(col_values.get('source_id') or '')
+                    if col_values.get('report_id'):
+                        ref=conn.execute('SELECT source_id,payload_json,category FROM clinical_reports WHERE report_id=?',(doc_id,)).fetchone()
+                        if ref:
+                            if ref[2]=='HAZARD':continue
+                            source_id=ref[0]
                     results.append(
                         ClinicalDocument(
                             doc_id=doc_id,
@@ -256,7 +271,7 @@ class ClinicalStore:
                             subsystem=subsystem,
                             snippet=snippet[:280],
                             score=-bm25_score,  # lower bm25 is better match in SQLite FTS5
-                            source="sqlite_fts5",
+                            source="sqlite_fts5",source_id=source_id,
                         )
                     )
                 if results:
@@ -265,6 +280,7 @@ class ClinicalStore:
             results.sort(key=lambda d: d.score, reverse=True)
             return results[:limit]
         except Exception as exc:
+            if self._explicit_db_path: raise RuntimeError("SQLite clinical search failed") from exc
             logger.debug("sqlite fts5 query skipped/fallback", extra={"err": str(exc)})
             return []
         finally:

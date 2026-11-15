@@ -1,0 +1,133 @@
+{
+  "schema_version": 1,
+  "report_id": "sans_viip",
+  "source_id": "NASA-SANS",
+  "hazard_id": "GRAVITY_FIELDS",
+  "category": "PHYSIOLOGICAL",
+  "title": "SANS / alterações neuro-oculares",
+  "problem": "Mudanças oculares associadas ao voo espacial requerem avaliação específica; CSI e CO2 não confirmam SANS.",
+  "primary_symptoms": [
+    "visão turva",
+    "blurred vision",
+    "metamorfopsia",
+    "cefaleia",
+    "dor de cabeça",
+    "pressão ocular",
+    "papiledema",
+    "congestão nasal",
+    "face inchada",
+    "headache",
+    "eye pressure",
+    "papilledema",
+    "nasal congestion",
+    "facial puffiness",
+    "fluid shift",
+    "SANS",
+    "VIIP"
+  ],
+  "secondary_symptoms": [
+    "cefaleia",
+    "headache"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "SANS",
+      "name": "SANS / alterações neuro-oculares",
+      "source_id": "NASA-SANS",
+      "subsystem": "NEURO_OCULAR_SANS",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "visão turva",
+        "blurred vision",
+        "metamorfopsia",
+        "cefaleia",
+        "headache",
+        "dor de cabeça",
+        "pressão ocular",
+        "papiledema",
+        "congestão nasal",
+        "face inchada",
+        "eye pressure",
+        "papilledema",
+        "nasal congestion",
+        "facial puffiness",
+        "fluid shift",
+        "SANS",
+        "VIIP"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "amsler_grid",
+        "ultrasound_onsd"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "amsler_abnormal",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há distorção na grade de Amsler ou alteração visual nova?",
+          "positive_concepts": [
+            "visão turva",
+            "blurred vision",
+            "metamorfopsia"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "amsler_grid"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "START_B_COMPLEX",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ],
+  "research_countermeasures": [
+    "Thigh Cuff e suplementação de vitaminas B são intervenções investigadas, não condutas automáticas deste software."
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-SANS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of SANS",
+      "section": "Evidence Report: Spaceflight Associated Neuro-ocular Syndrome",
+      "source_id": "NASA-HRP-SANS"
+    },
+    "detection": [
+      "Autoexame: Grade de Amsler (SELF_EXAM)",
+      "Autoexame: ultrassom ONSD > 5.0 mm",
+      "CO2 ambiente (SCD40) normal",
+      "Postura via CSI"
+    ]
+  }
+}

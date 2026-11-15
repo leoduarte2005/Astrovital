@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "report_id": "behavioral_health_psychiatric",
+  "source_id": "NASA-BEHAVIOR",
+  "hazard_id": "ISOLATION_CONFINEMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Saúde comportamental",
+  "problem": "Isolamento e exigências da missão podem afetar saúde comportamental; respostas subjetivas exigem avaliação contextual e suporte.",
+  "primary_symptoms": [
+    "humor deprimido",
+    "ansiedade",
+    "insônia",
+    "irritabilidade",
+    "apatia",
+    "low mood",
+    "anxiety",
+    "insomnia",
+    "irritability",
+    "apathy",
+    "depression"
+  ],
+  "secondary_symptoms": [
+    "isolamento",
+    "alterações de sono"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "BEHAVIORAL_HEALTH",
+      "name": "Saúde comportamental",
+      "source_id": "NASA-BEHAVIOR",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "humor deprimido",
+        "ansiedade",
+        "isolamento",
+        "alterações de sono",
+        "insônia",
+        "irritabilidade",
+        "apatia",
+        "low mood",
+        "anxiety",
+        "insomnia",
+        "irritability",
+        "apathy",
+        "depression"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "behavioral_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "distress_score",
+          "op": "GE",
+          "threshold_value": 8,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Você deseja apoio de outro tripulante ou contato com a equipe de suporte?",
+          "positive_concepts": [
+            "humor deprimido",
+            "ansiedade"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "behavioral_check"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "ISOLATE_IN_DISTRESS",
+          "guard_metric": "requests_help",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-BHP",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Cognitive or Behavioral Conditions and Psychiatric Disorders",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-BHP"
+    },
+    "detection": [
+      "Check-in de humor (SELF_EXAM)",
+      "Sono e HRV via CSI",
+      "Testes cognitivos curtos"
+    ]
+  }
+}

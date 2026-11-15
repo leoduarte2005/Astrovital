@@ -1,42 +1,63 @@
-id: ultrasound_onsd
-title: Ultrassom Point-of-Care (Bainha do Nervo Óptico - ONSD)
-duration_s: 300
-materials:
-  - Sonda linear de ultrassom
-  - Gel acústico estéril
-  - Gaze limpa
-steps:
-  - text: Aplique gel acústico estéril sobre a pálpebra superior fechada.
-    image: protocols/onsd_gel.svg
-    timer_s: 15
-    safety_note: Nunca aplique o transdutor diretamente na córnea.
-  - text: Posicione a sonda linear sem comprimir o globo e obtenha corte transverso e sagital.
-    image: protocols/onsd_probe.svg
-    timer_s: 60
-    safety_note: Reduza a potência acústica (modo oftálmico, MI <= 0.23).
-  - text: Meça o diâmetro da bainha do nervo óptico 3 mm atrás da retina.
-    image: protocols/onsd_measure.svg
-    timer_s: 60
-    safety_note: Alerta se ONSD > 5.0 mm.
-  - text: Repita no olho contralateral, limpe o gel e registre ambos em SELF_EXAM.
-    image: protocols/onsd_record.svg
-    timer_s: 45
-    safety_note: Solicite apoio de outro tripulante para estabilizar o exame.
-result_schema:
-  type: object
-  required:
-    - onsd_od_mm
-    - onsd_os_mm
-  properties:
-    onsd_od_mm:
-      type: number
-      minimum: 1.0
-      maximum: 12.0
-    onsd_os_mm:
-      type: number
-      minimum: 1.0
-      maximum: 12.0
-linked_risks:
-  - HRP-RISK-SANS
-  - HRP-HAZ-GRAVITY
-  - HRP-HAZ-DISTANCE
+{
+  "schema_version": 1,
+  "protocol_id": "ultrasound_onsd",
+  "name": "Registro de ultrassom ocular",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-SANS",
+  "subsystems": [
+    "NEURO_OCULAR_SANS"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "ultrassom validado",
+    "operador habilitado"
+  ],
+  "steps": [
+    "Confirmar treinamento e autorização para aquisição ocular.",
+    "Adquirir imagens conforme procedimento aprovado da missão.",
+    "Registrar medidas, lado e interpretação do profissional; manter ausente o que não foi medido."
+  ],
+  "rich_steps": [
+    {
+      "text": "Confirmar treinamento e autorização para aquisição ocular.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": "Requer profissional habilitado e autorização."
+    },
+    {
+      "text": "Adquirir imagens conforme procedimento aprovado da missão.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": "Requer profissional habilitado e autorização."
+    },
+    {
+      "text": "Registrar medidas, lado e interpretação do profissional; manter ausente o que não foi medido.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": "Requer profissional habilitado e autorização."
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "right_onsd_mm": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "left_onsd_mm": {
+        "type": [
+          "number",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "SANS"
+  ],
+  "requires_trained_operator": true
+}

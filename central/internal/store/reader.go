@@ -33,6 +33,9 @@ func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
 		return nil, fmt.Errorf("store: inspect crew_profiles: %w", err)
 	}
 	if !hasCols(cols, "crew_id", "name") {
+		if s.operational {
+			return nil, s.schemaError("crew_profiles", nil)
+		}
 		return s.fallback.listCrew(), nil
 	}
 
@@ -50,6 +53,9 @@ func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
 		selectCols = append(selectCols, "COALESCE(baseline_path,'')")
 	}
 
+	if s.operational {
+		selectCols = append(selectCols, "COALESCE((SELECT calibration_status FROM individual_baselines b WHERE b.crew_id=crew_profiles.crew_id AND b.is_active=1),'REQUIRES_CALIBRATION')")
+	}
 	q := fmt.Sprintf("SELECT %s FROM crew_profiles ORDER BY crew_id", strings.Join(selectCols, ","))
 	rows, err := s.readerDB.QueryContext(ctx, q)
 	if err != nil {
@@ -61,6 +67,7 @@ func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
 	for rows.Next() {
 		var c contracts.CrewSummary
 		var baselinePath string
+		var calibrationStatus string
 		dest := []any{&c.CrewID, &c.Name}
 		if hasRole {
 			dest = append(dest, &c.Role)
@@ -71,10 +78,16 @@ func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
 		if hasBase {
 			dest = append(dest, &baselinePath)
 		}
+		if s.operational {
+			dest = append(dest, &calibrationStatus)
+		}
 		if err := rows.Scan(dest...); err != nil {
 			return nil, fmt.Errorf("store: scan crew: %w", err)
 		}
 		c.CalibrationRequired = baselinePath == ""
+		if s.operational {
+			c.CalibrationRequired = calibrationStatus != "READY"
+		}
 		out = append(out, c)
 	}
 	return out, rows.Err()

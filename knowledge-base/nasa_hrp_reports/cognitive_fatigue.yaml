@@ -1,0 +1,83 @@
+{
+  "schema_version": 1,
+  "report_id": "cognitive_fatigue",
+  "source_id": "NASA-SLEEP",
+  "hazard_id": "DISTANCE_FROM_EARTH",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Fadiga cognitiva e sobrecarga",
+  "problem": "Carga de trabalho e sono devem contextualizar lapsos em tarefas de atenção; o teste sintético não diagnostica doença.",
+  "primary_symptoms": [
+    "lapsos de atenção"
+  ],
+  "secondary_symptoms": [
+    "lentidão",
+    "sonolência"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_EXAM quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "COGNITIVE_FATIGUE",
+      "name": "Fadiga cognitiva e sobrecarga",
+      "source_id": "NASA-SLEEP",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "lapsos de atenção",
+        "lentidão",
+        "sonolência"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "cognitive_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "pvt_lapses",
+          "op": "GT",
+          "threshold_value": 5,
+          "source_sensor": "SELF_EXAM",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Houve privação de sono ou aumento de carga antes dos lapsos?",
+          "positive_concepts": [
+            "lapsos de atenção"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "cognitive_check"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "OPERATE_CRITICAL_EQUIPMENT",
+          "guard_metric": "pvt_lapses",
+          "guard_op": "GT",
+          "guard_value": 5,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}

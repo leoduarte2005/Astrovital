@@ -333,6 +333,7 @@ def run_e2e(
     with tempfile.TemporaryDirectory(prefix="edgespace_e2e_") as tmp_dir_str:
         tmp_dir = Path(tmp_dir_str)
         central_db = tmp_dir / "central_e2e.db"
+        subprocess.run([sys.executable,str(REPO_ROOT/"database/tools/operational.py"),"migrate","--db",str(central_db)],check=True,capture_output=True)
 
         worker_env = os.environ.copy()
         worker_env["PYTHONPATH"] = str(EDGE_AI_DIR / "src")

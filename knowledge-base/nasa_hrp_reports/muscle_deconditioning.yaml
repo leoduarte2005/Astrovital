@@ -1,0 +1,112 @@
+{
+  "schema_version": 1,
+  "report_id": "reduced_cardiorespiratory_fitness",
+  "source_id": "NASA-FITNESS",
+  "hazard_id": "GRAVITY_FIELDS",
+  "category": "PHYSIOLOGICAL",
+  "title": "Descondicionamento muscular",
+  "problem": "Redução de força e capacidade física deve ser acompanhada com medidas funcionais e contexto de exercício.",
+  "primary_symptoms": [
+    "fraqueza",
+    "perda de força",
+    "fadiga ao esforço",
+    "falta de ar ao esforço",
+    "palpitação",
+    "exertional fatigue",
+    "weakness",
+    "exertional dyspnea",
+    "palpitations",
+    "deconditioning"
+  ],
+  "secondary_symptoms": [
+    "intolerância ao esforço"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_EXAM quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "MUSCLE_DECONDITIONING",
+      "name": "Descondicionamento muscular",
+      "source_id": "NASA-FITNESS",
+      "subsystem": "MUSCULOSKELETAL_POSTURE",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "fraqueza",
+        "perda de força",
+        "intolerância ao esforço",
+        "fadiga ao esforço",
+        "falta de ar ao esforço",
+        "palpitação",
+        "exertional fatigue",
+        "weakness",
+        "exertional dyspnea",
+        "palpitations",
+        "deconditioning"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "musculoskeletal_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "strength_decline_pct",
+          "op": "GT",
+          "threshold_value": 15,
+          "source_sensor": "SELF_EXAM",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "A perda de força persiste fora do período de recuperação do exercício?",
+          "positive_concepts": [
+            "fraqueza",
+            "perda de força"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "musculoskeletal_check"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "RESUME_HEAVY_EXERCISE",
+          "guard_metric": "chest_pain",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-FITNESS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Reduced Physical Performance / Impaired Cardiorespiratory Fitness",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-FITNESS"
+    },
+    "detection": [
+      "Cinemática e cadência em MODE_COUNTERMEASURE_EXERCISE",
+      "FC no esforço (MAX30102)"
+    ]
+  }
+}

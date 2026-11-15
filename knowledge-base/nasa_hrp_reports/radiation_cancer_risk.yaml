@@ -1,50 +1,106 @@
-id: HRP-RISK-RAD-CANCER
-seed_id: radiation_cancer_risk
-title: Risco de Câncer por Radiação / Radiation Carcinogenesis
-hazard: Space Radiation
-category: PHYSIOLOGICAL
-subsystems:
-  - NEUROBEHAVIORAL_RADIATION
-problem: Exposição cumulativa a GCR e SPE aumenta o risco de câncer ao longo da carreira. Risco de longo prazo; sem inferência de dose individual a bordo.
-symptoms:
-  pt:
-    - radiação
-    - exposição cumulativa
-    - dose acumulada
-  en:
-    - radiation
-    - cumulative exposure
-    - carcinogenesis
-    - cancer risk
-    - GCR
-sensor_signatures:
-  - sensor: DOSIMETER/Central
-    metric: cumulative_dose_msv
-    op: gte
-    threshold: null
-    causal_weight: 1.0
-    weight_basis: heuristic_pending_clinical_review
-    note: Limiar definido pela agência; não inferido aqui
-detection:
-  - Dosímetros pessoais
-  - Séries de radiação da missão (contexto)
-countermeasures:
-  - order: 1
-    action: Minimizar exposição com abrigo em SPE
-    protocol: null
-  - order: 2
-    action: Registrar dose cumulativa
-    protocol: null
-  - order: 3
-    action: Revisão periódica pelo cirurgião de voo
-    protocol: null
-escalation:
-  default: STORE_AND_FORWARD
-  LOCAL: Registro de dose.
-  CREW: Não aplicável (risco crônico).
-  STORE_AND_FORWARD: Relatório periódico de dose acumulada.
-source:
-  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Radiation Carcinogenesis; NASA-STD-3001 Vol. 1/2
-  section: Radiation exposure limits
-  source_id: NASA-HRP-RAD-CANCER
-disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.
+{
+  "schema_version": 1,
+  "report_id": "radiation_cancer_risk",
+  "source_id": "NASA-RADIATION-CANCER",
+  "hazard_id": "SPACE_RADIATION",
+  "category": "PHYSIOLOGICAL",
+  "title": "Risco de Câncer por Radiação / Radiation Carcinogenesis",
+  "problem": "Exposição cumulativa a GCR e SPE aumenta o risco de câncer ao longo da carreira. Risco de longo prazo; sem inferência de dose individual a bordo.",
+  "primary_symptoms": [
+    "radiação",
+    "exposição cumulativa",
+    "dose acumulada",
+    "radiation",
+    "cumulative exposure",
+    "carcinogenesis",
+    "cancer risk",
+    "GCR"
+  ],
+  "secondary_symptoms": [],
+  "detection": [
+    "Dosímetros pessoais",
+    "Séries de radiação da missão (contexto)"
+  ],
+  "scientific_scope": "Referência de risco; regras, priors e limiares são fixtures de engenharia, não validação clínica.",
+  "legacy_reference": {
+    "id": "HRP-RISK-RAD-CANCER",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Radiation Carcinogenesis; NASA-STD-3001 Vol. 1/2",
+      "section": "Radiation exposure limits",
+      "source_id": "NASA-HRP-RAD-CANCER"
+    }
+  },
+  "conditions": [
+    {
+      "condition_id": "RADIATION_CANCER_RISK",
+      "name": "Risco de Câncer por Radiação / Radiation Carcinogenesis",
+      "source_id": "NASA-RADIATION-CANCER",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.03,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "radiação",
+        "exposição cumulativa",
+        "dose acumulada",
+        "radiation",
+        "cumulative exposure",
+        "carcinogenesis",
+        "cancer risk",
+        "GCR"
+      ],
+      "countermeasures": [
+        "Registrar exposição e contexto.",
+        "Aplicar apenas o procedimento autorizado e solicitar avaliação da equipe responsável."
+      ],
+      "actions": [
+        "MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "radiation_long_term_review",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "MISSION_CONTEXT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Sinal de teste para revisão contextual, não diagnóstico."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há contexto documentado para este risco?",
+          "positive_concepts": [
+            "radiação",
+            "exposição cumulativa",
+            "dose acumulada",
+            "radiation",
+            "cumulative exposure",
+            "carcinogenesis",
+            "cancer risk",
+            "GCR"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "symptom_review"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Não iniciar tratamento sem autorização clínica."
+        }
+      ]
+    }
+  ]
+}

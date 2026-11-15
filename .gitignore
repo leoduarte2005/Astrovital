@@ -7,3 +7,11 @@ __pycache__/
 
 # Snapshot completo de pesquisa: mantido localmente e distribuído separadamente.
 /database/space_health_sqlite/space_health.db
+
+/firmware/build/
+**/.venv/
+**/node_modules/
+**/.pytest_cache/
+**/*.egg-info/
+*.py[cod]
+/frontend/dist/

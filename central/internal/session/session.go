@@ -666,6 +666,17 @@ func (m *Manager) execCalibrationStep(cmd sessionCmd) {
 			cmd.replyCh <- cmdReply{err: err}
 			return
 		}
+		if len(fb.BaselineUpdate) > 0 {
+			if saver, ok := m.deps.Store.(interface {
+				SaveBaseline(context.Context, string, []byte, int64) error
+			}); ok {
+				if err := saver.SaveBaseline(cmd.ctx, targetCrew, []byte(fb.BaselineUpdate), m.cfg.Now().UnixMicro()); err != nil {
+					cmd.replyCh <- cmdReply{err: err}
+					return
+				}
+			}
+			fb.BaselineUpdate = nil
+		}
 		m.emitUI(UIEvent{
 			Type:                contracts.WSMsgCalibrationFeedback,
 			TsUs:                m.cfg.Now().UnixMicro(),

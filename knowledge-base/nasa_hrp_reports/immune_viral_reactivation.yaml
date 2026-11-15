@@ -1,0 +1,117 @@
+{
+  "schema_version": 1,
+  "report_id": "altered_immune_responses",
+  "source_id": "NASA-IMMUNE",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "PHYSIOLOGICAL",
+  "title": "Imunidade alterada e reativação viral",
+  "problem": "Alterações imunológicas e reativação de vírus latentes são investigadas com amostras biológicas; rash isolado não identifica o agente.",
+  "primary_symptoms": [
+    "rash",
+    "erupção cutânea",
+    "febre",
+    "lesão cutânea",
+    "erupção",
+    "fadiga",
+    "mal-estar",
+    "fever",
+    "skin lesion",
+    "fatigue",
+    "malaise",
+    "latent virus reactivation"
+  ],
+  "secondary_symptoms": [
+    "febre",
+    "fadiga"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "IMMUNE_VIRAL_REACTIVATION",
+      "name": "Imunidade alterada e reativação viral",
+      "source_id": "NASA-IMMUNE",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "rash",
+        "erupção cutânea",
+        "febre",
+        "fadiga",
+        "lesão cutânea",
+        "erupção",
+        "mal-estar",
+        "fever",
+        "skin lesion",
+        "fatigue",
+        "malaise",
+        "latent virus reactivation"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "temperature"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "rash",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "O rash é novo e há febre ou resultado laboratorial associado?",
+          "positive_concepts": [
+            "rash",
+            "erupção cutânea"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "temperature"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "SHARE_UNCLEAN_EQUIPMENT",
+          "guard_metric": "rash",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-IMMUNE",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Health Event due to Altered Immune Response",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-IMMUNE"
+    },
+    "detection": [
+      "Autoexame: temperatura",
+      "Autoexame: sangue capilar (marcadores imunes)",
+      "HRV via CSI"
+    ]
+  }
+}

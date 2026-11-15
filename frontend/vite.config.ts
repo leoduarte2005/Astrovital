@@ -2,7 +2,7 @@ import { createReadStream, statSync } from 'node:fs'
 import type { IncomingMessage, ServerResponse } from 'node:http'
 import { extname, isAbsolute, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { defineConfig, type Plugin } from 'vite'
+import { defineConfig, loadEnv, type Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 
 // Chromium 90 baseline (provisional). lightningcss encodes version as major << 16.
@@ -39,9 +39,29 @@ function serveModels(): Plugin {
   }
 }
 
+// Dev and preview only: the WebSocket of the local central, same origin as the UI.
+// Not part of dist/. Override with EDGE_CENTRAL in .env or the environment: a bare host ("10.37.51.130")
+// gets http:// and port 8000.
+const CENTRAL_DEFAULT = 'http://10.37.51.130:8000'
+const CENTRAL_PORT = '8000'
+
+function centralTarget(raw: string | undefined): string {
+  const value = raw?.trim() ?? ''
+  if (value === '') return CENTRAL_DEFAULT
+  const url = new URL(/^https?:\/\//.test(value) ? value : `http://${value}`)
+  if (url.port === '') url.port = CENTRAL_PORT
+  return url.origin
+}
+
+// .env is read here: Vite exposes it to the app only through import.meta.env, not to this config.
+const CENTRAL = centralTarget(loadEnv('development', process.cwd(), '').EDGE_CENTRAL)
+const centralProxy = { '/ws': { target: CENTRAL, ws: true }, '/api': { target: CENTRAL } }
+
 export default defineConfig({
   base: './',
   plugins: [react(), serveModels()],
+  server: { proxy: centralProxy },
+  preview: { proxy: centralProxy },
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },

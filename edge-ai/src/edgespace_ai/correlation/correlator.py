@@ -13,11 +13,13 @@ from ..ipc.protocol import (
     Escalation,
     PeripheralReading,
     Threshold,
+    CrewProfile,
 )
 from .causal_graph import CausalGraph
 from .clinical_store import ClinicalStore
 from .disambiguator import Disambiguator
-from .symptom_extractor import SymptomExtractor
+from .symptom_extractor import SymptomExtractor, _normalize_text
+from ..clinical import ClinicalRepository
 
 CLINICAL_DISCLAIMER = (
     "Apoio à decisão clínica a bordo; não substitui avaliação do Flight Surgeon."
@@ -38,7 +40,8 @@ class ClinicalCorrelator:
 
         self.symptom_extractor = SymptomExtractor()
         self.clinical_store = ClinicalStore(db_path=db_path, knowledge_base_path=kb_path)
-        self.causal_graph = CausalGraph(knowledge_base_path=kb_path)
+        self.db_path=Path(db_path) if db_path is not None else None
+        self.causal_graph = CausalGraph(knowledge_base_path=kb_path,db_path=db_path)
         self.disambiguator = Disambiguator()
 
     def correlate(
@@ -51,6 +54,18 @@ class ClinicalCorrelator:
         baseline: Optional[CrewBaseline] = None,
     ) -> ChatCorrelateRespPayload:
         """Run end-to-end clinical causal correlation and build ``CHAT_CORRELATE_RESP``."""
+        objective=None
+        memory=[]
+        memory_updates=[]
+        if self.db_path is not None and req.crew_id:
+            with ClinicalRepository(self.db_path) as repo:
+                crew=repo.crew(req.crew_id)
+                memory=repo.memory(req.crew_id)
+            req=req.model_copy(update={"profile":CrewProfile(crew_id=crew["crew_id"],name=crew["name"],role=crew["role"],mission_day=crew["mission_day"],age=crew["age"])})
+            last=next((m["fact_value"] for m in memory if m["fact_key"]=="last_question_id" and m["fact_type"]=="PREFERENCE"),None)
+            answer=_normalize_text(req.text).strip(".! ")
+            if last and answer in ("sim","yes","nao","no"):
+                memory_updates.append(dict(fact_type="ANSWERED_TOPIC",fact_key=last,fact_value="yes" if answer in ("sim","yes") else "no",confidence=1.0,source_role="user"))
         extracted = self.symptom_extractor.extract(
             req.text,
             recent_history=req.recent_history,
@@ -145,7 +160,7 @@ class ClinicalCorrelator:
         # Disambiguation question via information gain
         disambig = self.disambiguator.select_question(
             top_hypotheses,
-            answered_topics=extracted.answered_topics,
+            answered_topics=set(extracted.answered_topics)|{m["fact_key"] for m in memory+memory_updates if m.get("fact_type")=="ANSWERED_TOPIC"},
             observed_concepts=extracted.concepts,
         )
 
@@ -164,19 +179,29 @@ class ClinicalCorrelator:
         ]
         actions = list(top.condition.actions) if top else []
 
+        if self.db_path is not None:
+            with ClinicalRepository(self.db_path) as repo:
+                if req.crew_id:objective=repo.assess_fixture(req.crew_id,assessment.metrics,allow_engineering=True)
+                for row in repo.connection.execute('SELECT * FROM causal_contraindications'):
+                    if repo.compare(assessment.metrics.get(row['guard_metric']),row['guard_op'],row['guard_value']):
+                        actions=[a for a in actions if a!=row['blocked_action']]
+                        evidence.append('Ação bloqueada: '+row['blocked_action']+' — '+row['rationale'])
+            if disambig:
+                memory_updates.append(dict(fact_type='PREFERENCE',fact_key='last_question_id',fact_value=disambig.question.id,confidence=1.0,source_role='assistant'))
         source_ids: list[str] = []
         for h in top_hypotheses[:2]:
             if h.posterior >= 0.15 and h.condition.source_id not in source_ids:
                 source_ids.append(h.condition.source_id)
         for doc in store_docs:
-            if doc.doc_id not in source_ids:
-                source_ids.append(doc.doc_id)
+            source=doc.source_id or doc.doc_id
+            if source not in source_ids:
+                source_ids.append(source)
         if not source_ids:
             source_ids.append("EDGESPACE-AI-V1")
 
         if top is not None:
             summary_text = (
-                f"Hipótese principal: {top.condition.name} (probabilidade posterior {top.posterior:.0%}). "
+                f"Hipótese principal: {top.condition.name} (prioridade heurística {top.posterior:.0%}). "
                 f"Foram avaliados {len(extracted.concepts)} sintomas e {len(peripherals)} leituras periféricas."
             )
         else:
@@ -185,6 +210,11 @@ class ClinicalCorrelator:
             )
 
         return ChatCorrelateRespPayload(
+            matched_condition_ids=[m["condition_id"] for m in objective["matches"]] if objective else None,
+            max_severity=objective["max_severity"] if objective else None,
+            blocked_actions=objective["blocked_actions"] if objective else None,
+            memory_updates=memory_updates or None,
+            model_status="ENGINEERING_TEST_ONLY",
             text=summary_text,
             differentials=differentials or None,
             evidence=evidence or None,

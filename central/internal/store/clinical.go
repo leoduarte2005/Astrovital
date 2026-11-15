@@ -45,6 +45,7 @@ type Telemetry1HzRecord struct {
 
 // PeripheralReadingRecord is a 1 Hz I2C reading for peripheral_readings.
 type PeripheralReadingRecord struct {
+	CrewID *string
 	NodeID uint8
 	Type   contracts.Peripheral
 	Value  float64
@@ -236,6 +237,14 @@ func (s *Store) tableCols(ctx context.Context, table string) (map[string]bool, e
 	return cols, rows.Err()
 }
 
+// schemaError prevents an operational database from silently falling back to RAM.
+func (s *Store) schemaError(table string, err error) error {
+	if err != nil {
+		return fmt.Errorf("store: operational %s: %w", table, err)
+	}
+	return fmt.Errorf("store: operational %s is missing required columns", table)
+}
+
 func hasCols(cols map[string]bool, req ...string) bool {
 	for _, r := range req {
 		if !cols[strings.ToLower(r)] {
@@ -392,6 +401,10 @@ func (s *Store) GetCrewProfile(ctx context.Context, id string) (CrewProfileRecor
 		return rec, nil
 	}
 
+	if s.operational {
+		return CrewProfileRecord{}, s.schemaError("crew_profiles", err)
+	}
+
 	s.fallback.mu.RLock()
 	defer s.fallback.mu.RUnlock()
 	rec, ok := s.fallback.crew[id]
@@ -435,6 +448,10 @@ func (s *Store) SaveTelemetry1Hz(ctx context.Context, rec Telemetry1HzRecord) er
 		}, false)
 	}
 
+	if s.operational {
+		return s.schemaError("telemetry_timeseries", err)
+	}
+
 	s.fallback.mu.Lock()
 	s.fallback.timeseries = appendBounded(s.fallback.timeseries, rec, fallbackTimeseriesCap)
 	s.fallback.mu.Unlock()
@@ -453,14 +470,21 @@ func (s *Store) SavePeripheral1Hz(ctx context.Context, tsUs int64, readings []Pe
 			if rts <= 0 {
 				rts = tsUs
 			}
-			if err := s.writeNowOrEnqueue(ctx, Exec{
-				Query: `INSERT INTO peripheral_readings(ts_us, node_id, sensor_type, value, unit) VALUES (?,?,?,?,?)`,
-				Args:  []any{rts, int(r.NodeID), string(r.Type), r.Value, r.Unit},
-			}, false); err != nil {
+			query := `INSERT INTO peripheral_readings(ts_us, node_id, sensor_type, value, unit) VALUES (?,?,?,?,?)`
+			args := []any{rts, int(r.NodeID), string(r.Type), r.Value, r.Unit}
+			if cols["crew_id"] {
+				query = `INSERT INTO peripheral_readings(ts_us, node_id, sensor_type, value, unit, crew_id) VALUES (?,?,?,?,?,?)`
+				args = append(args, nullableCrew(r.CrewID))
+			}
+			if err := s.writeNowOrEnqueue(ctx, Exec{Query: query, Args: args}, false); err != nil {
 				return err
 			}
 		}
 		return nil
+	}
+
+	if s.operational {
+		return s.schemaError("peripheral_readings", err)
 	}
 
 	s.fallback.mu.Lock()
@@ -502,6 +526,10 @@ func (s *Store) SaveAlertAndOutbox(ctx context.Context, rec AlertWriteRecord) er
 			})
 		}
 		return nil
+	}
+
+	if s.operational {
+		return s.schemaError("alerts_audit", err)
 	}
 
 	s.fallback.mu.Lock()
@@ -549,6 +577,10 @@ func (s *Store) SaveOutbox(ctx context.Context, rec contracts.OutboxRecord) erro
 			Args: []any{rec.OutboxID, rec.TsUs, string(rec.Subsystem), string(rec.Severity), rec.Message, rec.Destination, sentInt},
 		}, false)
 	}
+	if s.operational {
+		return s.schemaError("store_and_forward_outbox", err)
+	}
+
 	s.fallback.mu.Lock()
 	s.fallback.outbox = appendBounded(s.fallback.outbox, rec, fallbackOutboxCap)
 	s.fallback.mu.Unlock()
@@ -559,11 +591,34 @@ func (s *Store) SaveOutbox(ctx context.Context, rec contracts.OutboxRecord) erro
 func (s *Store) SaveSelfExam(ctx context.Context, crewID string, exam contracts.SelfExamPayload, tsUs int64) error {
 	cols, err := s.tableCols(ctx, "self_exams")
 	if err == nil && hasCols(cols, "ts_us", "crew_id", "exam_type", "result") {
+		if hasCols(cols, "protocol_id", "payload_json", "abnormal_flag") {
+			payload, err := json.Marshal(exam)
+			if err != nil {
+				return err
+			}
+			var protocolID sql.NullString
+			err = s.readerDB.QueryRowContext(ctx, `SELECT protocol_id FROM protocols WHERE protocol_id=?`, exam.ExamType).Scan(&protocolID)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
+			var result struct {
+				Abnormal bool `json:"abnormal_flag"`
+			}
+			_ = json.Unmarshal([]byte(exam.Result), &result)
+			return s.writeNowOrEnqueue(ctx, Exec{
+				Query: `INSERT INTO self_exams(ts_us,crew_id,exam_type,result,observations,protocol_id,payload_json,abnormal_flag) VALUES (?,?,?,?,?,?,?,?)`,
+				Args:  []any{tsUs, crewID, exam.ExamType, exam.Result, exam.Observations, protocolID, string(payload), result.Abnormal},
+			}, false)
+		}
 		return s.writeNowOrEnqueue(ctx, Exec{
 			Query: `INSERT INTO self_exams(ts_us, crew_id, exam_type, result, observations) VALUES (?,?,?,?,?)`,
 			Args:  []any{tsUs, crewID, exam.ExamType, exam.Result, exam.Observations},
 		}, false)
 	}
+	if s.operational {
+		return s.schemaError("self_exams", err)
+	}
+
 	s.fallback.mu.Lock()
 	s.fallback.exams = appendBounded(s.fallback.exams, examLogEntry{TsUs: tsUs, CrewID: crewID, Exam: exam}, fallbackExamCap)
 	s.fallback.mu.Unlock()
@@ -574,6 +629,18 @@ func (s *Store) SaveSelfExam(ctx context.Context, crewID string, exam contracts.
 func (s *Store) SaveChatExchange(ctx context.Context, crewID string, req contracts.ChatMsgPayload, resp contracts.ChatCorrelateRespPayload, tsUs int64) error {
 	cols, err := s.tableCols(ctx, "chat_messages")
 	if err == nil && hasCols(cols, "ts_us", "crew_id", "role", "content") {
+		if cols["metadata_json"] {
+			metadata, err := json.Marshal(resp)
+			if err != nil {
+				return err
+			}
+			writes, err := s.memoryWrites(crewID, resp.MemoryUpdates, tsUs)
+			if err != nil {
+				return err
+			}
+			writes = append([]Exec{{Query: `INSERT INTO chat_messages(ts_us,crew_id,role,content,metadata_json) VALUES (?,?,'user',?,'{}'),(?,?,'assistant',?,?)`, Args: []any{tsUs, crewID, req.Text, tsUs + 1, crewID, resp.Text, string(metadata)}}}, writes...)
+			return s.writeNowOrEnqueue(ctx, Statements{Items: writes}, true)
+		}
 		if err := s.writeNowOrEnqueue(ctx, Exec{
 			Query: `INSERT INTO chat_messages(ts_us, crew_id, role, content) VALUES (?,?,?,?)`,
 			Args:  []any{tsUs, crewID, "user", req.Text},
@@ -584,6 +651,10 @@ func (s *Store) SaveChatExchange(ctx context.Context, crewID string, req contrac
 			Query: `INSERT INTO chat_messages(ts_us, crew_id, role, content) VALUES (?,?,?,?)`,
 			Args:  []any{tsUs + 1, crewID, "assistant", resp.Text},
 		}, false)
+	}
+
+	if s.operational {
+		return s.schemaError("chat_messages", err)
 	}
 
 	s.fallback.mu.Lock()
@@ -599,8 +670,18 @@ func (s *Store) SaveChatExchange(ctx context.Context, crewID string, req contrac
 	return nil
 }
 
-// SaveAudit records a session/system audit event in fallback memory (never mutates clinical schema).
+// SaveAudit persists audit events; memory is retained only for legacy schema-less tests.
 func (s *Store) SaveAudit(ctx context.Context, crewID *string, eventType, details string, tsUs int64) error {
+	cols, err := s.tableCols(ctx, "audit_log")
+	if err == nil && hasCols(cols, "ts_us", "crew_id", "event_type", "details") {
+		return s.writeNowOrEnqueue(ctx, Exec{
+			Query: `INSERT INTO audit_log(ts_us,crew_id,event_type,details) VALUES (?,?,?,?)`,
+			Args:  []any{tsUs, nullableCrew(crewID), eventType, details},
+		}, false)
+	}
+	if s.operational {
+		return s.schemaError("audit_log", err)
+	}
 	s.fallback.mu.Lock()
 	s.fallback.audits = appendBounded(s.fallback.audits, auditLogEntry{
 		TsUs: tsUs, CrewID: crewID, EventType: eventType, Details: details,
@@ -609,8 +690,21 @@ func (s *Store) SaveAudit(ctx context.Context, crewID *string, eventType, detail
 	return nil
 }
 
-// SaveCSIBlob stores calibration or RED alert raw CSI dump in fallback memory (bounded 64).
+// SaveCSIBlob persists complete calibration/RED CSI dumps in the operational database.
 func (s *Store) SaveCSIBlob(ctx context.Context, rec CSIBlobWriteRecord) error {
+	cols, err := s.tableCols(ctx, "csi_blobs")
+	if err == nil && hasCols(cols, "ts_us", "crew_id", "reason", "byte_len", "blob") {
+		if len(rec.Blob) == 0 {
+			return errors.New("store: empty CSI dump")
+		}
+		return s.writeNowOrEnqueue(ctx, Exec{
+			Query: `INSERT INTO csi_blobs(ts_us,crew_id,reason,byte_len,blob) VALUES (?,?,?,?,?)`,
+			Args:  []any{rec.TsUs, nullableCrew(rec.CrewID), rec.Reason, len(rec.Blob), rec.Blob},
+		}, false)
+	}
+	if s.operational {
+		return s.schemaError("csi_blobs", err)
+	}
 	s.fallback.mu.Lock()
 	s.fallback.blobs = appendBounded(s.fallback.blobs, rec, 64)
 	s.fallback.mu.Unlock()
@@ -635,6 +729,10 @@ func (s *Store) Summary24h(ctx context.Context, crewID string) (string, error) {
 		}
 		return fmt.Sprintf("24h samples=%d avg_hr=%.1f bpm avg_spo2=%.1f%% max_co2=%.0f ppm",
 			n, avgHR.Float64, avgSpO2.Float64, maxCO2.Float64), nil
+	}
+
+	if s.operational {
+		return "", s.schemaError("telemetry_timeseries", err)
 	}
 
 	s.fallback.mu.RLock()
@@ -691,6 +789,10 @@ func (s *Store) RecentChat(ctx context.Context, crewID string, limit int) ([]con
 			rev[i], rev[j] = rev[j], rev[i]
 		}
 		return rev, nil
+	}
+
+	if s.operational {
+		return nil, s.schemaError("chat_messages", err)
 	}
 
 	s.fallback.mu.RLock()
@@ -757,6 +859,10 @@ func (s *Store) QueryTimeseries(ctx context.Context, crewID string, metric strin
 			resp.Buckets = append(resp.Buckets, b)
 		}
 		return resp, rows.Err()
+	}
+
+	if s.operational {
+		return resp, s.schemaError("telemetry_timeseries", err)
 	}
 
 	s.fallback.mu.RLock()
@@ -844,7 +950,29 @@ func (s *Store) GetProtocol(ctx context.Context, id string) (contracts.ProtocolD
 		}
 		_ = json.Unmarshal([]byte(subsJSON), &p.Subsystems)
 		_ = json.Unmarshal([]byte(stepsJSON), &p.Steps)
+		if hasCols(cols, "duration_s", "materials_json", "rich_steps_json", "result_schema_json", "linked_risks_json") {
+			var duration sql.NullInt64
+			var materials, rich, schema, risks string
+			if err := s.readerDB.QueryRowContext(ctx, `SELECT duration_s,materials_json,rich_steps_json,result_schema_json,linked_risks_json FROM protocols WHERE protocol_id=?`, id).Scan(&duration, &materials, &rich, &schema, &risks); err != nil {
+				return p, err
+			}
+			if duration.Valid {
+				p.DurationS = &duration.Int64
+			}
+			if err := json.Unmarshal([]byte(materials), &p.Materials); err != nil {
+				return p, err
+			}
+			if err := json.Unmarshal([]byte(risks), &p.LinkedRisks); err != nil {
+				return p, err
+			}
+			p.RichSteps = json.RawMessage(rich)
+			p.ResultSchema = json.RawMessage(schema)
+		}
 		return p, nil
+	}
+
+	if s.operational {
+		return contracts.ProtocolDTO{}, s.schemaError("protocols", err)
 	}
 
 	s.fallback.mu.RLock()
@@ -888,6 +1016,10 @@ func (s *Store) ListAlerts(ctx context.Context, limit int) ([]contracts.AlertRec
 		return out, rows.Err()
 	}
 
+	if s.operational {
+		return nil, s.schemaError("alerts_audit", err)
+	}
+
 	s.fallback.mu.RLock()
 	defer s.fallback.mu.RUnlock()
 	n := len(s.fallback.alerts)
@@ -926,6 +1058,10 @@ func (s *Store) ListOutbox(ctx context.Context) ([]contracts.OutboxRecord, error
 			out = append(out, r)
 		}
 		return out, rows.Err()
+	}
+
+	if s.operational {
+		return nil, s.schemaError("store_and_forward_outbox", err)
 	}
 
 	s.fallback.mu.RLock()

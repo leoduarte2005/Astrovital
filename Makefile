@@ -10,11 +10,14 @@ GOARCH_TARGET  ?= arm64
 CENTRAL_BIN    ?= ./build/edgespace-central
 IDF_TARGET     ?= esp32s3
 PYTHON         ?= python3
+GO             ?= go
+OPERATIONAL_REPORT_PATH ?= ./var/operational/validation_report.json
 RESEARCH_DB_PATH ?= ./database/space_health_sqlite/space_health.db
 RESEARCH_REPORT_PATH ?= ./var/research/validation_report.json
 RESEARCH_DEMO_PATH ?= ./var/space_health_demo.db
 
 .PHONY: help contracts-validate firmware-build firmware-flash \
+        db-migrate db-operational-validate db-operational-test db-intelligence-generate db-intelligence-check \
         frontend-build central-build central-run-mock edge-ai-setup edge-ai-run \
         test-e2e-ai run run-win db-research-inventory db-research-queries db-research-validate \
         db-research-demo db-research-import-physiology db-research-missingness db-research-test all clean
@@ -24,6 +27,11 @@ help:
 	@echo "  run                 Compila tudo e sobe edge-ai (:5006) + Central Go (:8000) [Linux/ARM64]"
 	@echo "  run-win             Compila tudo e sobe edge-ai (:5006) + Central Go (:8000) [Windows]"
 	@echo "  contracts-validate  Valida fixtures contra JSON Schemas (tools/)          [Leonardo/M4]"
+	@echo "  db-migrate          Aplica 0001 a 0004 ao banco operacional em $(DB_PATH)"
+	@echo "  db-operational-validate  Confere schema, FTS5, baselines e golden cases"
+	@echo "  db-operational-test  Testa migrations, persistência e qualidade dos fixtures"
+	@echo "  db-intelligence-generate  Regera seeds SQL e datasets sintéticos"
+	@echo "  db-intelligence-check  Confere a reprodução dos artefatos sem alterá-los"
 	@echo "  db-research-inventory  Lista os datasets do pacote Space Health (offline) [Selliny/M1]"
 	@echo "  db-research-queries    Executa as consultas de exemplo em leitura         [Selliny/M1]"
 	@echo "  db-research-validate   Valida a base e gera relatórios em var/research/    [Selliny/M1]"
@@ -44,6 +52,21 @@ help:
 contracts-validate:
 	@if [ -f tools/validate_contracts.py ]; then $(PYTHON) tools/validate_contracts.py; \
 	else echo "[pendente] tools/validate_contracts.py ausente (restaurar Sprint 0)"; fi
+
+db-migrate:
+	$(PYTHON) database/tools/operational.py migrate --db "$(DB_PATH)"
+
+db-operational-validate:
+	$(PYTHON) database/tools/operational.py validate --db "$(DB_PATH)" --out "$(OPERATIONAL_REPORT_PATH)"
+
+db-intelligence-generate:
+	$(PYTHON) database/tools/generate_intelligence_seeds.py
+
+db-intelligence-check:
+	$(PYTHON) database/tools/generate_intelligence_seeds.py --check
+
+db-operational-test: db-intelligence-check
+	PYTHONDONTWRITEBYTECODE=1 $(PYTHON) -m unittest discover -s database/tests -p 'test_operational.py' -v
 
 db-research-inventory:
 	$(PYTHON) database/tools/research.py --db "$(RESEARCH_DB_PATH)"
@@ -86,11 +109,11 @@ frontend-build:
 central-build:
 	@if [ -f central/go.mod ]; then mkdir -p build && cd central && \
 	CGO_ENABLED=0 GOOS=$(GOOS_TARGET) GOARCH=$(GOARCH_TARGET) \
-	go build -trimpath -ldflags="-s -w" -o ../$(CENTRAL_BIN) ./cmd/edgespace-central; \
+	$(GO) build -trimpath -ldflags="-s -w" -o ../$(CENTRAL_BIN) ./cmd/edgespace-central; \
 	else echo "[pendente] central/go.mod ausente"; fi
 
-central-run-mock:
-	@if [ -f central/go.mod ]; then cd central && go run ./cmd/edgespace-central --mock-cluster=inproc --mock-ai --db ../$(DB_PATH); \
+central-run-mock: db-migrate
+	@if [ -f central/go.mod ]; then cd central && $(GO) run ./cmd/edgespace-central --mock-cluster=inproc --mock-ai --db "$(abspath $(DB_PATH))" --migrations "$(abspath database/migrations)"; \
 	else echo "[pendente] central/go.mod ausente"; fi
 
 edge-ai-setup:

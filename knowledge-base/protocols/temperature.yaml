@@ -1,45 +1,59 @@
-id: temperature
-title: Medição de Temperatura Corporal
-duration_s: 90
-materials:
-  - Termômetro timpânico ou oral
-  - Capa descartável de sonda
-  - Lenço de álcool
-steps:
-  - text: Confirme que a capa da sonda está limpa e intacta.
-    image: protocols/temp_probe.svg
-    timer_s: 10
-    safety_note: Não reutilize capa descartável.
-  - text: Meça a temperatura timpânica ou oral e aguarde o sinal sonoro.
-    image: protocols/temp_measure.svg
-    timer_s: 30
-    safety_note: Aguarde 15 min após exercício para leitura confiável.
-  - text: Registre em SELF_EXAM se >= 37.8 °C ou <= 35.5 °C.
-    image: protocols/temp_record.svg
-    timer_s: 15
-    safety_note: 'Febre com lesão cutânea: isole contato e avise a tripulação.'
-  - text: Repita em 15 minutos se a leitura for limítrofe.
-    image: protocols/temp_repeat.svg
-    timer_s: 900
-    safety_note: Hidrate-se e evite agasalho excessivo.
-result_schema:
-  type: object
-  required:
-    - temp_c
-    - site
-  properties:
-    temp_c:
-      type: number
-      minimum: 30.0
-      maximum: 43.0
-    site:
-      type: string
-      enum:
-        - tympanic
-        - oral
-        - axillary
-        - forehead
-linked_risks:
-  - HRP-RISK-IMMUNE
-  - HRP-RISK-MICROBIOME
-  - HRP-RISK-SLEEP
+{
+  "schema_version": 1,
+  "protocol_id": "temperature",
+  "name": "Registro de temperatura corporal",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-IMMUNE",
+  "subsystems": [
+    "IMMUNE_HEMATO_NUTRITION"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "termômetro validado"
+  ],
+  "steps": [
+    "Identificar dispositivo e local de medição.",
+    "Obter a leitura seguindo o fabricante e o protocolo da missão.",
+    "Registrar temperatura corporal e sintomas, distinguindo temperatura ambiental."
+  ],
+  "rich_steps": [
+    {
+      "text": "Identificar dispositivo e local de medição.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Obter a leitura seguindo o fabricante e o protocolo da missão.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Registrar temperatura corporal e sintomas, distinguindo temperatura ambiental.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "body_temperature_c": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "site": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "IMMUNE_VIRAL_REACTIVATION"
+  ],
+  "requires_trained_operator": false
+}

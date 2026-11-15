@@ -1,63 +1,81 @@
-id: HRP-RISK-IRON-HEMATO
-seed_id: iron_overload
-title: Volume Plasmático, Anemia Espacial e Sobrecarga de Ferro
-hazard: Gravity Fields
-category: BEHAVIORAL_BIOCHEMICAL
-subsystems:
-  - IMMUNE_HEMATO_NUTRITION
-problem: Contração do volume plasmático concentra ferro sérico e eleva risco de anemia espacial e acúmulo de ferro, com fadiga, artralgia e desconforto abdominal.
-symptoms:
-  pt:
-    - fadiga
-    - dor articular
-    - dor abdominal
-    - mal-estar
-    - tontura
-  en:
-    - fatigue
-    - joint pain
-    - abdominal pain
-    - malaise
-    - dizziness
-    - iron
-    - anemia
-    - plasma volume
-sensor_signatures:
-  - sensor: Central
-    metric: mission_day
-    op: gte
-    threshold: 21.0
-    causal_weight: 2.0
-    weight_basis: causal_graph:likelihood_ratio
-  - sensor: CSI
-    metric: anomaly_score
-    op: gte
-    threshold: 0.4
-    causal_weight: 1.4
-    weight_basis: causal_graph:likelihood_ratio
-detection:
-  - 'Autoexame: sangue capilar (hemoglobina)'
-  - Desvio do baseline
-countermeasures:
-  - order: 1
-    action: Revisar cardápio e reduzir alimentos fortificados com ferro (Nutrition SMO)
-    protocol: null
-  - order: 2
-    action: Verificar hematologia e ferritina
-    protocol: capillary_blood
-  - order: 3
-    action: Manter hidratação e registrar artralgia
-    protocol: null
-  - order: 4
-    action: Resumo periódico ao cirurgião de voo
-    protocol: null
-escalation:
-  default: LOCAL
-  LOCAL: Ajuste de dieta e hidratação.
-  CREW: 'Sintomas persistentes: avisar tripulante.'
-  STORE_AND_FORWARD: Resumo periódico Store-and-Forward.
-source:
-  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Iron Overload / Space Anemia
-  section: Evidence Report
-  source_id: NASA-HRP-IRON-HEMATO
-disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.
+{
+  "schema_version": 1,
+  "report_id": "iron_overload",
+  "source_id": "NASA-IRON",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Sinal laboratorial para revisão de ferro",
+  "problem": "A dinâmica do ferro em voo pode alterar estoques; ferritina isolada não confirma sobrecarga e deve ser contextualizada.",
+  "primary_symptoms": [
+    "ferritina elevada"
+  ],
+  "secondary_symptoms": [
+    "fadiga"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "LAB quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "IRON_OVERLOAD",
+      "name": "Sinal laboratorial para revisão de ferro",
+      "source_id": "NASA-IRON",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "ferritina elevada",
+        "fadiga"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "capillary_blood"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "ferritin_ug_l",
+          "op": "GT",
+          "threshold_value": 500,
+          "source_sensor": "LAB",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há inflamação, suplementos em uso ou outro marcador do metabolismo do ferro?",
+          "positive_concepts": [
+            "ferritina elevada"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "capillary_blood"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "SUPPLEMENT_IRON",
+          "guard_metric": "ferritin_ug_l",
+          "guard_op": "GT",
+          "guard_value": 500,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ]
+}

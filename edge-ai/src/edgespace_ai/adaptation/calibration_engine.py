@@ -56,8 +56,9 @@ class CalibrationEngine:
         """Update crew baseline statistics with one 64-feature observation using EMA."""
         vec = np.asarray(features, dtype=np.float32)
         if vec.shape != (FEATURE_DIM,):
-            vec = np.resize(vec, FEATURE_DIM).astype(np.float32)
-        vec = np.nan_to_num(vec, nan=0.0, posinf=0.0, neginf=0.0).astype(np.float32)
+            raise ValueError("Calibration requires 64 features")
+        if not np.all(np.isfinite(vec)):
+            raise ValueError("Missing or invalid calibration features are not zero")
 
         current = self.registry.get(crew_id) or make_default_baseline(crew_id)
         n_prev = current.sample_count
@@ -152,7 +153,9 @@ class CalibrationEngine:
             baseline=baseline,
         )
 
-    def _persist_baseline(self, baseline: CrewBaseline) -> Path:
+    def _persist_baseline(self, baseline: CrewBaseline) -> Optional[Path]:
+        if self.registry.db_path is not None:
+            return None  # persisted by the Central through CALIBRATION_FEEDBACK
         path = self.registry.profile_path(baseline.crew_id)
         path.parent.mkdir(parents=True, exist_ok=True)
         tmp_path = path.with_suffix(".json.tmp")

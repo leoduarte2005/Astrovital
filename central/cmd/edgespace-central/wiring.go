@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -44,6 +45,9 @@ func (a storeSessionAdapter) LoadRecentChat(ctx context.Context, crewID string, 
 }
 func (a storeSessionAdapter) SaveAudit(ctx context.Context, crewID *string, eventType, details string, tsUs int64) error {
 	return a.st.SaveAudit(ctx, crewID, eventType, details, tsUs)
+}
+func (a storeSessionAdapter) SaveBaseline(ctx context.Context, crew string, data []byte, ts int64) error {
+	return a.st.SaveBaselineUpdate(ctx, crew, data, ts)
 }
 func (a storeSessionAdapter) SaveChat(ctx context.Context, crewID string, req contracts.ChatMsgPayload, resp contracts.ChatCorrelateRespPayload, tsUs int64) error {
 	return a.st.SaveChatExchange(ctx, crewID, req, resp, tsUs)
@@ -218,6 +222,7 @@ func (a pipelineStoreAdapter) EmitPeripherals1Hz(rec pipeline.StorePeripheralRec
 	out := make([]store.PeripheralReadingRecord, 0, len(rec.Readings))
 	for _, r := range rec.Readings {
 		out = append(out, store.PeripheralReadingRecord{
+			CrewID: rec.CrewID,
 			NodeID: r.NodeID,
 			Type:   r.Type,
 			Value:  r.Value,
@@ -238,10 +243,20 @@ func (a pipelineStoreAdapter) EmitAlert(rec pipeline.StoreAlertRecord) bool {
 }
 
 func (a pipelineStoreAdapter) EmitCSIBlob(rec pipeline.StoreCSIBlobRecord) bool {
+	blob, err := json.Marshal(struct {
+		Window            *contracts.CSIWindowPayload `json:"window,omitempty"`
+		Samples           []pipeline.LinkSample       `json:"samples,omitempty"`
+		CycleSeqFirst     uint32                      `json:"cycle_seq_first"`
+		CalibrationStepID string                      `json:"calibration_step_id,omitempty"`
+	}{rec.Window, rec.Samples, rec.CycleSeqFirst, rec.CalibrationStepID})
+	if err != nil || (rec.Window == nil && len(rec.Samples) == 0) {
+		return false
+	}
 	return a.st.SaveCSIBlob(context.Background(), store.CSIBlobWriteRecord{
 		TsUs:   rec.TsUs,
 		CrewID: rec.CrewID,
 		Reason: rec.Reason,
+		Blob:   blob,
 	}) == nil
 }
 

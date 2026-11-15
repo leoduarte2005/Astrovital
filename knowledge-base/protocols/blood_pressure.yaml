@@ -1,57 +1,65 @@
-id: blood_pressure
-title: Pressão Arterial em Repouso e Ortostática
-duration_s: 420
-materials:
-  - Manguito de pressão arterial automático
-  - Cronômetro de bordo
-  - Tira de fixação para posição supina
-steps:
-  - text: Repouse por 5 minutos com o manguito na altura do coração.
-    image: protocols/bp_rest.svg
-    timer_s: 300
-    safety_note: Pare se houver tontura intensa.
-  - text: Meça pressão sistólica, diastólica e frequência cardíaca.
-    image: protocols/bp_measure.svg
-    timer_s: 60
-    safety_note: Mantenha o braço relaxado e imóvel.
-  - text: Se indicado, repita após Thigh Cuffs ou LBNP.
-    image: protocols/bp_repeat.svg
-    timer_s: 60
-    safety_note: Interrompa o manguito se houver dormência ou dor.
-  - text: Registre em SELF_EXAM e sinalize queda da pressão de pulso com FC +30 bpm.
-    image: protocols/bp_record.svg
-    timer_s: 15
-    safety_note: 'Pré-síncope: deite e avise um tripulante.'
-result_schema:
-  type: object
-  required:
-    - systolic_mmhg
-    - diastolic_mmhg
-    - position
-  properties:
-    systolic_mmhg:
-      type: integer
-      minimum: 50
-      maximum: 250
-    diastolic_mmhg:
-      type: integer
-      minimum: 30
-      maximum: 150
-    heart_rate_bpm:
-      type:
-        - integer
-        - 'null'
-      minimum: 30
-      maximum: 220
-    position:
-      type: string
-      enum:
-        - seated
-        - supine
-        - standing
-        - lbnp
-        - thigh_cuffs
-linked_risks:
-  - HRP-RISK-CV-FLUID
-  - HRP-RISK-SANS
-  - HRP-HAZ-GRAVITY
+{
+  "schema_version": 1,
+  "protocol_id": "blood_pressure",
+  "name": "Pressão arterial e contexto postural",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-CARDIO",
+  "subsystems": [
+    "CARDIOVASCULAR_FLUIDS"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "manguito validado"
+  ],
+  "steps": [
+    "Registrar repouso, postura e atividade recente.",
+    "Medir com dispositivo validado conforme instrução aprovada.",
+    "Registrar sistólica, diastólica, frequência cardíaca e sintomas."
+  ],
+  "rich_steps": [
+    {
+      "text": "Registrar repouso, postura e atividade recente.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Medir com dispositivo validado conforme instrução aprovada.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Registrar sistólica, diastólica, frequência cardíaca e sintomas.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "sbp_mmhg": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "dbp_mmhg": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "posture": {
+        "type": "string"
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "ORTHOSTATIC_INTOLERANCE"
+  ],
+  "requires_trained_operator": false
+}

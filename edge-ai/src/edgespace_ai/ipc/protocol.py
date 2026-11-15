@@ -180,6 +180,11 @@ class ChatCorrelateReqPayload(IPCModel):
 
 
 class ChatCorrelateRespPayload(IPCModel):
+    memory_updates: Optional[list[dict[str, Any]]] = None
+    model_status: str = "ENGINEERING_TEST_ONLY"
+    matched_condition_ids: Optional[list[str]] = None
+    max_severity: Optional[str] = None
+    blocked_actions: Optional[list[str]] = None
     text: str
     differentials: Optional[list[str]] = None
     evidence: Optional[list[str]] = None
@@ -198,6 +203,7 @@ class CalibrationStepPayload(IPCModel):
 
 
 class CalibrationFeedbackPayload(IPCModel):
+    baseline_update: Optional[dict[str, Any]] = None
     step_id: str
     progress: int = Field(ge=0, le=100)
     quality: float

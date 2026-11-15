@@ -1,0 +1,91 @@
+{
+  "id": "HRP-HAZ-ENVIRONMENT",
+  "seed_id": "hazard_hostile_closed_environments",
+  "title": "Perigo: Ambientes Fechados Hostis / Hostile and Closed Environments",
+  "hazard": "Hostile/Closed Environments",
+  "category": "HAZARD",
+  "subsystems": [
+    "RESPIRATORY_ATMOSPHERE"
+  ],
+  "problem": "Atmosfera, microbioma, ruído e nutrição de habitat fechado afetam a saúde: CO2, O2, pressão, sono, imunidade e alimentação.",
+  "symptoms": {
+    "pt": [
+      "dor de cabeça",
+      "falta de ar",
+      "tontura",
+      "fadiga",
+      "febre",
+      "lesão cutânea"
+    ],
+    "en": [
+      "headache",
+      "dyspnea",
+      "dizziness",
+      "fatigue",
+      "fever",
+      "skin lesion"
+    ]
+  },
+  "sensor_signatures": [
+    {
+      "sensor": "SCD40",
+      "metric": "co2_ppm",
+      "op": "gte",
+      "threshold": 1500.0,
+      "causal_weight": 5.5,
+      "weight_basis": "causal_graph:likelihood_ratio",
+      "note": "Suspeita de hipercapnia"
+    },
+    {
+      "sensor": "MAX30102",
+      "metric": "spo2_pct",
+      "op": "lte",
+      "threshold": 94.0,
+      "causal_weight": 6.5,
+      "weight_basis": "causal_graph:likelihood_ratio",
+      "note": "Dessaturação"
+    },
+    {
+      "sensor": "BME280",
+      "metric": "pressure_hpa",
+      "op": "lte",
+      "threshold": 750.0,
+      "causal_weight": 4.5,
+      "weight_basis": "causal_graph:likelihood_ratio",
+      "note": "Queda de pressão de cabine"
+    }
+  ],
+  "detection": [
+    "I2C: SCD40, BME280, MAX30102",
+    "Respiração via CSI (0.1-0.5 Hz)"
+  ],
+  "countermeasures": [
+    {
+      "order": 1,
+      "action": "Verificar sensores e suporte de vida (CDRA, LiOH, O2, vedação)",
+      "protocol": null
+    },
+    {
+      "order": 2,
+      "action": "Aumentar ventilação e reduzir esforço",
+      "protocol": null
+    },
+    {
+      "order": 3,
+      "action": "Tratar o risco específico (hipercapnia, hipóxia, imunidade, nutrição)",
+      "protocol": null
+    }
+  ],
+  "escalation": {
+    "default": "CREW",
+    "LOCAL": "Ajuste de ventilação e sensores.",
+    "CREW": "CO2 >= 3000 ppm ou SpO2 <= 92%: alertar tripulação.",
+    "STORE_AND_FORWARD": "Enfileirar tendência atmosférica ao cirurgião de voo."
+  },
+  "source": {
+    "document": "NASA Human Research Program (HRP), Human Research Roadmap - Hostile/Closed Environments hazard; NASA-STD-3001 Vol. 1/2",
+    "section": "Hazard overview",
+    "source_id": "NASA-HRP-HAZ-ENVIRONMENT"
+  },
+  "disclaimer": "Apoio a decisao. Nao substitui o cirurgiao de voo."
+}

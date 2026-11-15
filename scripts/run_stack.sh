@@ -183,6 +183,9 @@ else
     (cd "$CENTRAL_DIR" && CGO_ENABLED=0 go build -o "$CENTRAL_BIN" ./cmd/edgespace-central)
 fi
 
+# Schema must be ready before the read-only worker opens SQLite.
+"$PYTHON_BIN" "$ROOT/database/tools/operational.py" migrate --db "$DB_PATH"
+
 # 4. worker IA em background
 mkdir -p "$VAR_DIR"
 step "subindo edge-ai em $IPC_ADDR (log: var/edge-ai.log)"

@@ -1,0 +1,98 @@
+{
+  "id": "HRP-HAZ-ISOLATION",
+  "seed_id": "hazard_isolation_confinement",
+  "title": "Perigo: Isolamento e Confinamento / Isolation and Confinement",
+  "hazard": "Isolation and Confinement",
+  "category": "HAZARD",
+  "subsystems": [
+    "NEUROBEHAVIORAL_RADIATION"
+  ],
+  "problem": "Habitat pequeno, rotina monótona e distância social degradam sono, humor, coesão e desempenho cognitivo em missões longas.",
+  "symptoms": {
+    "pt": [
+      "insônia",
+      "irritabilidade",
+      "humor deprimido",
+      "ansiedade",
+      "fadiga",
+      "lapso de atenção",
+      "isolamento social"
+    ],
+    "en": [
+      "insomnia",
+      "irritability",
+      "low mood",
+      "anxiety",
+      "fatigue",
+      "attention lapse",
+      "social withdrawal"
+    ]
+  },
+  "sensor_signatures": [
+    {
+      "sensor": "MAX30102/CSI",
+      "metric": "hrv_ms",
+      "op": "lte",
+      "threshold": 30.0,
+      "causal_weight": 2.6,
+      "weight_basis": "causal_graph:likelihood_ratio",
+      "note": "Estresse autonômico"
+    },
+    {
+      "sensor": "CSI",
+      "metric": "sleep_duration_h",
+      "op": "lt",
+      "threshold": 6.0,
+      "causal_weight": 2.0,
+      "weight_basis": "heuristic_pending_clinical_review",
+      "note": "Sono curto em MODE_REST_VITALS"
+    },
+    {
+      "sensor": "CSI",
+      "metric": "anomaly_score",
+      "op": "gte",
+      "threshold": 0.4,
+      "causal_weight": 1.5,
+      "weight_basis": "causal_graph:likelihood_ratio",
+      "note": "Desvio do baseline individual"
+    }
+  ],
+  "detection": [
+    "Arquitetura do sono e HRV via CSI (MODE_REST_VITALS)",
+    "Check-in de humor e testes cognitivos curtos (SELF_EXAM)"
+  ],
+  "countermeasures": [
+    {
+      "order": 1,
+      "action": "Ajustar ritmo circadiano (iluminação e horários fixos de repouso)",
+      "protocol": null
+    },
+    {
+      "order": 2,
+      "action": "Agendar interação social estruturada e contato com a família",
+      "protocol": null
+    },
+    {
+      "order": 3,
+      "action": "Reduzir carga operacional e tarefas críticas durante fadiga",
+      "protocol": null
+    },
+    {
+      "order": 4,
+      "action": "Acompanhar tendência longitudinal de humor, sono e HRV",
+      "protocol": null
+    }
+  ],
+  "escalation": {
+    "default": "CREW",
+    "LOCAL": "Ajustes de rotina e iluminação autônomos.",
+    "CREW": "Piora de humor ou desempenho por 3 dias: apoio entre pares.",
+    "STORE_AND_FORWARD": "Enfileirar relatório comportamental periódico ao cirurgião de voo."
+  },
+  "source": {
+    "document": "NASA Human Research Program (HRP), Human Research Roadmap - Isolation and Confinement hazard",
+    "section": "Hazard overview",
+    "source_id": "NASA-HRP-HAZ-ISOLATION"
+  },
+  "disclaimer": "Apoio a decisao. Nao substitui o cirurgiao de voo."
+}

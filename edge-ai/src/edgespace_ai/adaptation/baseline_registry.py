@@ -13,6 +13,7 @@ from typing import Optional
 import numpy as np
 
 from ..dsp.feature_extractor import FEATURE_DIM
+from ..clinical import ClinicalRepository
 from ..utils.logging import get_logger
 
 logger = get_logger("edgespace_ai.adaptation.baseline_registry")
@@ -53,10 +54,11 @@ class CrewBaseline:
         mean_raw = np.asarray(data.get("mean", np.zeros(FEATURE_DIM)), dtype=np.float32)
         std_raw = np.asarray(data.get("std", np.ones(FEATURE_DIM)), dtype=np.float32)
         if mean_raw.shape != (FEATURE_DIM,):
-            mean_raw = np.resize(mean_raw, FEATURE_DIM).astype(np.float32)
+            raise ValueError("Expected 64 baseline mean features")
         if std_raw.shape != (FEATURE_DIM,):
-            std_raw = np.resize(std_raw, FEATURE_DIM).astype(np.float32)
-        std_raw = np.maximum(std_raw, 1e-4).astype(np.float32)
+            raise ValueError("Expected 64 baseline std features")
+        if not np.all(np.isfinite(mean_raw)) or not np.all(np.isfinite(std_raw)) or np.any(std_raw<=0):
+            raise ValueError("Baseline must be finite with positive std")
 
         return cls(
             crew_id=str(data.get("crew_id") or fallback_crew_id),
@@ -89,7 +91,10 @@ class BaselineRegistry:
         models_dir: Path | str = Path("./models"),
         *,
         max_entries: int = 16,
+        db_path: Optional[Path | str] = None,
     ) -> None:
+        self.db_path=Path(db_path) if db_path is not None else None
+        self._readiness: dict[str,bool]={}
         self.models_dir = Path(models_dir)
         self.profiles_dir = self.models_dir / "profiles"
         self.max_entries = max(1, max_entries)
@@ -97,7 +102,7 @@ class BaselineRegistry:
         self._lock = threading.RLock()
         self._cache: OrderedDict[str, CrewBaseline] = OrderedDict()
         self._active_crew_id: Optional[str] = None
-        self._active_baseline: CrewBaseline = self._load_initial_default()
+        self._active_baseline: CrewBaseline = make_default_baseline("uncalibrated") if self.db_path else self._load_initial_default()
         self.last_switch_ms: float = 0.0
 
     def profile_path(self, crew_id: str) -> Path:
@@ -119,7 +124,7 @@ class BaselineRegistry:
                 self._cache.move_to_end(crew_id)
                 return self._cache[crew_id]
 
-        loaded = self._load_from_disk(crew_id)
+        loaded = self._load_from_database(crew_id) if self.db_path else self._load_from_disk(crew_id)
         if loaded is not None:
             with self._lock:
                 self._put_lru(crew_id, loaded)
@@ -135,6 +140,14 @@ class BaselineRegistry:
         Returns ``(baseline, baseline_found)``.
         """
         t0 = time.perf_counter()
+        if self.db_path is not None:
+            loaded=self._load_from_database(crew_id)
+            with self._lock:
+                self._put_lru(crew_id,loaded)
+                self._active_crew_id=crew_id
+                self._active_baseline=loaded
+                self.last_switch_ms=(time.perf_counter()-t0)*1000
+            return loaded,self._readiness.get(crew_id,False)
         baseline: Optional[CrewBaseline] = None
         baseline_found = False
 
@@ -197,6 +210,14 @@ class BaselineRegistry:
         self._cache.move_to_end(crew_id)
         while len(self._cache) > self.max_entries:
             self._cache.popitem(last=False)
+
+    def _load_from_database(self, crew_id: str) -> CrewBaseline:
+        with ClinicalRepository(self.db_path) as repo:
+            row=repo.baseline(crew_id)
+        if row.get('feature_schema_id')!='EDGESPACE_DSP64_V1':
+            raise ValueError('Unsupported baseline feature schema; calibration required')
+        self._readiness[crew_id]=row['calibration_status']=='READY' and row['sample_count']>0
+        return CrewBaseline.from_dict(dict(crew_id=crew_id,mean=row['mean'],std=row['std'],threshold=row['anomaly_threshold'],sample_count=row['sample_count'] if row['calibration_status'] in ('READY','CALIBRATING') else 0,updated_at_us=row['updated_at_us'],model_path=row['onnx_model_path']))
 
     def _load_initial_default(self) -> CrewBaseline:
         default_json = self.profiles_dir / "baseline_default.json"

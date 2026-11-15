@@ -1,0 +1,268 @@
+{
+  "schema_version": 1,
+  "report_id": "cv_fluid_shift_orthostatic",
+  "source_id": "NASA-CARDIO",
+  "hazard_id": "GRAVITY_FIELDS",
+  "category": "PHYSIOLOGICAL",
+  "title": "Intolerância ortostática cardiovascular",
+  "problem": "Adaptações cardiovasculares ao voo podem comprometer a tolerância ortostática. Avaliar contexto postural e pressão.",
+  "primary_symptoms": [
+    "tontura ao levantar",
+    "presíncope",
+    "síncope",
+    "palpitação",
+    "face inchada",
+    "fadiga",
+    "orthostatic dizziness",
+    "syncope",
+    "palpitations",
+    "facial puffiness",
+    "fatigue",
+    "orthostatic intolerance"
+  ],
+  "secondary_symptoms": [
+    "palpitações",
+    "fadiga"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_EXAM quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "ORTHOSTATIC_INTOLERANCE",
+      "name": "Intolerância ortostática cardiovascular",
+      "source_id": "NASA-CARDIO",
+      "subsystem": "CARDIOVASCULAR_FLUIDS",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "tontura ao levantar",
+        "presíncope",
+        "palpitações",
+        "fadiga",
+        "síncope",
+        "palpitação",
+        "face inchada",
+        "orthostatic dizziness",
+        "syncope",
+        "palpitations",
+        "facial puffiness",
+        "fatigue",
+        "orthostatic intolerance"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "blood_pressure"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "postural_sbp_drop_mmhg",
+          "op": "GE",
+          "threshold_value": 20,
+          "source_sensor": "SELF_EXAM",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        },
+        {
+          "metric": "dizziness",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "A tontura aparece ao mudar de posição e melhora com repouso?",
+          "positive_concepts": [
+            "tontura ao levantar",
+            "presíncope"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "blood_pressure"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNSUPERVISED_STANDING_TEST",
+          "guard_metric": "syncope",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    },
+    {
+      "prior": 0.05,
+      "default_escalation": "LOCAL",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "alteração contextual"
+      ],
+      "countermeasures": [
+        "Registrar e revisar contexto antes de atribuir patologia."
+      ],
+      "actions": [
+        "RECORD_CONTEXT"
+      ],
+      "linked_protocols": [
+        "blood_pressure"
+      ],
+      "subsystem": "CARDIOVASCULAR_FLUIDS",
+      "questions": [
+        {
+          "prompt": "Houve exercício ARED recente?",
+          "positive_concepts": [
+            "ARED",
+            "exercício"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "blood_pressure"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Não iniciar tratamento a partir de um cenário sintético."
+        }
+      ],
+      "condition_id": "CARDIOVASCULAR_DECONDITIONING",
+      "name": "Desvio cardiovascular em repouso para revisão",
+      "sensor_rules": [
+        {
+          "metric": "heart_rate_bpm",
+          "op": "DELTA_GT",
+          "threshold_value": 35,
+          "values_json": {
+            "baseline_field": "preflight_hr_bpm"
+          },
+          "source_sensor": "CONTEXT_AND_BASELINE",
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+        },
+        {
+          "metric": "exercise_recent",
+          "op": "EQ",
+          "threshold_value": 0,
+          "values_json": {},
+          "source_sensor": "CONTEXT_AND_BASELINE",
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+        }
+      ],
+      "source_id": "NASA-CARDIO",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "match_policy": "ALL"
+    },
+    {
+      "prior": 0.05,
+      "default_escalation": "LOCAL",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "alteração contextual"
+      ],
+      "countermeasures": [
+        "Registrar e revisar contexto antes de atribuir patologia."
+      ],
+      "actions": [
+        "RECORD_CONTEXT"
+      ],
+      "linked_protocols": [
+        "blood_pressure"
+      ],
+      "subsystem": "CARDIOVASCULAR_FLUIDS",
+      "questions": [
+        {
+          "prompt": "Houve exercício ARED recente?",
+          "positive_concepts": [
+            "ARED",
+            "exercício"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "blood_pressure"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Não iniciar tratamento a partir de um cenário sintético."
+        }
+      ],
+      "condition_id": "EXERCISE_RECOVERY",
+      "name": "Resposta esperada após exercício ARED (fixture)",
+      "sensor_rules": [
+        {
+          "metric": "heart_rate_bpm",
+          "op": "DELTA_GT",
+          "threshold_value": 35,
+          "values_json": {
+            "baseline_field": "preflight_hr_bpm"
+          },
+          "source_sensor": "CONTEXT_AND_BASELINE",
+          "likelihood_ratio": 3.0,
+          "severity_tier": "INFO",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+        },
+        {
+          "metric": "exercise_recent",
+          "op": "EQ",
+          "threshold_value": 1,
+          "values_json": {},
+          "source_sensor": "CONTEXT_AND_BASELINE",
+          "likelihood_ratio": 3.0,
+          "severity_tier": "INFO",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+        }
+      ],
+      "source_id": "NASA-CARDIO",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "match_policy": "ALL"
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-CV-FLUID",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Cardiovascular Adaptations; JAMA Netw Open 2019 (n=11) via database/space_health_sqlite",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-CV-FLUID"
+    },
+    "detection": [
+      "Autoexame: pressão arterial em repouso e ortostática",
+      "FC via MAX30102/CSI"
+    ]
+  }
+}

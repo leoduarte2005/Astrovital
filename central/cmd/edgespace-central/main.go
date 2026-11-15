@@ -95,8 +95,9 @@ func run(ctx context.Context, args []string, stdout io.Writer) int {
 
 	// 1. Start order (§2.8): store -> session -> mockAI -> ipc -> pipeline -> cluster -> udp/sim -> httpws.
 	st, err := store.New(store.Config{
-		DBPath:        cfg.db,
-		MigrationsDir: cfg.migrations,
+		DBPath:             cfg.db,
+		MigrationsDir:      cfg.migrations,
+		RequireOperational: cfg.mockCluster == "false",
 	}, store.Deps{Logger: log})
 	if err != nil {
 		log.Error("store init failed", "err", err)

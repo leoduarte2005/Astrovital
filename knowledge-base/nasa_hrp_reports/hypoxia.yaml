@@ -1,78 +1,101 @@
-id: HRP-RISK-HYPOXIA
-seed_id: hypoxia
-title: Hipóxia de Cabine / Hypoxia and Low Oxygen
-hazard: Hostile/Closed Environments
-category: PHYSIOLOGICAL
-subsystems:
-  - RESPIRATORY_ATMOSPHERE
-problem: 'Queda de O2 ou da pressão de cabine reduz a saturação arterial. Sinais: dispneia, tontura, confusão, cianose. SpO2 fisiológica (MAX30102) e O2 ambiental são fluxos distintos.'
-symptoms:
-  pt:
-    - hipóxia
-    - falta de ar
-    - tontura
-    - confusão
-    - cianose
-    - dor de cabeça
-    - fadiga
-    - dessaturação
-  en:
-    - hypoxia
-    - dyspnea
-    - dizziness
-    - confusion
-    - cyanosis
-    - headache
-    - fatigue
-    - SpO2
-sensor_signatures:
-  - sensor: MAX30102
-    metric: spo2_pct
-    op: lte
-    threshold: 94.0
-    causal_weight: 6.5
-    weight_basis: causal_graph:likelihood_ratio
-  - sensor: BME280
-    metric: pressure_hpa
-    op: lte
-    threshold: 750.0
-    causal_weight: 4.5
-    weight_basis: causal_graph:likelihood_ratio
-  - sensor: CSI
-    metric: respiration_hz
-    op: gte
-    threshold: 0.35
-    causal_weight: 2.0
-    weight_basis: causal_graph:likelihood_ratio
-  - sensor: MAX30102
-    metric: heart_rate_bpm
-    op: gte
-    threshold: 95.0
-    causal_weight: 1.8
-    weight_basis: causal_graph:likelihood_ratio
-detection:
-  - 'I2C: MAX30102 (SpO2), BME280 (pressão)'
-  - Respiração via CSI
-countermeasures:
-  - order: 1
-    action: Confirmar SpO2 (MAX30102) e pressão (BME280)
-    protocol: null
-  - order: 2
-    action: Inspecionar suprimento de O2 e vedação
-    protocol: null
-  - order: 3
-    action: O2 suplementar se SpO2 <= 92%
-    protocol: null
-  - order: 4
-    action: Escalonar Store-and-Forward
-    protocol: null
-escalation:
-  default: STORE_AND_FORWARD
-  LOCAL: Confirmar leitura de sensores.
-  CREW: 'SpO2 <= 92%: alertar tripulação e iniciar O2.'
-  STORE_AND_FORWARD: Enfileirar evento ao cirurgião de voo.
-source:
-  document: NASA Human Research Program (HRP), Human Research Roadmap - Hypoxia / hypobaric exposure; NASA-STD-3001 Vol. 1/2
-  section: Atmosphere / pressure
-  source_id: NASA-HRP-HYPOXIA
-disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.
+{
+  "schema_version": 1,
+  "report_id": "hypoxia",
+  "source_id": "NASA-HYPOXIA",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "PHYSIOLOGICAL",
+  "title": "Hipóxia suspeita",
+  "problem": "Disponibilidade reduzida de oxigênio exige conferir instrumento, atmosfera e sinais; o limiar aqui é um cenário de teste.",
+  "primary_symptoms": [
+    "dispneia",
+    "falta de ar"
+  ],
+  "secondary_symptoms": [
+    "confusão",
+    "cianose"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "MAX30102 quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "HYPOXIA",
+      "name": "Hipóxia suspeita",
+      "source_id": "NASA-HYPOXIA",
+      "subsystem": "RESPIRATORY_ATMOSPHERE",
+      "prior": 0.05,
+      "default_escalation": "STORE_AND_FORWARD",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "dispneia",
+        "falta de ar",
+        "confusão",
+        "cianose"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "oxygen_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "spo2_pct",
+          "op": "LT",
+          "threshold_value": 90,
+          "source_sensor": "MAX30102",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "RED",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        },
+        {
+          "metric": "dyspnea",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "RED",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "A medida foi repetida com sinal adequado e há falta de ar?",
+          "positive_concepts": [
+            "dispneia",
+            "falta de ar"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "oxygen_check"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "DISMISS_AS_ANXIETY",
+          "guard_metric": "spo2_pct",
+          "guard_op": "LT",
+          "guard_value": 90,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ],
+  "search_aliases": [
+    "hypoxia",
+    "hipóxia"
+  ]
+}

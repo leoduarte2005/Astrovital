@@ -1,0 +1,143 @@
+{
+  "schema_version": 1,
+  "report_id": "dcs_post_eva",
+  "source_id": "NASA-DCS",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "PHYSIOLOGICAL",
+  "title": "Doença descompressiva pós-EVA",
+  "problem": "Transições de pressão durante EVA podem causar doença descompressiva; acionar o procedimento de emergência autorizado.",
+  "primary_symptoms": [
+    "dor articular pós-EVA",
+    "parestesias",
+    "dor articular",
+    "tontura",
+    "falta de ar",
+    "formigamento",
+    "confusão",
+    "dor no peito",
+    "lesão cutânea",
+    "joint pain",
+    "dizziness",
+    "dyspnea",
+    "paresthesia",
+    "confusion",
+    "chest pain",
+    "rash",
+    "decompression sickness"
+  ],
+  "secondary_symptoms": [
+    "dispneia",
+    "rash"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "MISSION_CONTEXT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "conditions": [
+    {
+      "condition_id": "DECOMPRESSION_SICKNESS",
+      "name": "Doença descompressiva pós-EVA",
+      "source_id": "NASA-DCS",
+      "subsystem": "CARDIOVASCULAR_FLUIDS",
+      "prior": 0.05,
+      "default_escalation": "STORE_AND_FORWARD",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "dor articular pós-EVA",
+        "parestesias",
+        "dispneia",
+        "rash",
+        "dor articular",
+        "tontura",
+        "falta de ar",
+        "formigamento",
+        "confusão",
+        "dor no peito",
+        "lesão cutânea",
+        "joint pain",
+        "dizziness",
+        "dyspnea",
+        "paresthesia",
+        "confusion",
+        "chest pain",
+        "decompression sickness"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "post_eva_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "eva_recent",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "MISSION_CONTEXT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "RED",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        },
+        {
+          "metric": "joint_pain",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "RED",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Houve EVA ou despressurização antes da dor ou alteração neurológica?",
+          "positive_concepts": [
+            "dor articular pós-EVA",
+            "parestesias"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "post_eva_review"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "CONTINUE_EVA",
+          "guard_metric": "dcs_suspected",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+        }
+      ]
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-DCS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Decompression Sickness; NASA-STD-3001 Vol. 1/2",
+      "section": "EVA / decompression",
+      "source_id": "NASA-HRP-DCS"
+    },
+    "detection": [
+      "Histórico EVA/despressurização na Central",
+      "MAX30102: SpO2 e FC",
+      "Autoexame neurológico e articular"
+    ]
+  },
+  "search_aliases": [
+    "decompression",
+    "decompression sickness"
+  ]
+}
