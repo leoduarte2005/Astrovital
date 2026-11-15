@@ -69,9 +69,10 @@ type Manager struct {
 	loopCtx    context.Context
 	loopCancel context.CancelFunc
 
-	state            Snapshot
-	nextReqID        uint64
-	pendingSwapReply chan cmdReply
+	state               Snapshot
+	nextReqID           uint64
+	pendingSwapReply    chan cmdReply
+	activeChatSessionID string
 
 	swapsRequested atomic.Uint64
 	swapsCompleted atomic.Uint64
@@ -96,7 +97,7 @@ func New(cfg Config, deps Deps) *Manager {
 	if cfg.SetCrewTimeout <= 0 {
 		cfg.SetCrewTimeout = DefaultSetCrewTimeout
 	}
-	if cfg.ChatTimeout <= 0 {
+	if cfg.ChatTimeout < 0 {
 		cfg.ChatTimeout = DefaultChatTimeout
 	}
 	if cfg.CalibrationTimeout <= 0 {
@@ -350,6 +351,25 @@ func (m *Manager) execSetCrew(cmd sessionCmd) {
 	m.state.CalibStepID = ""
 	m.publishSnapshot()
 
+	if csPort, ok := m.deps.Store.(interface {
+		StartChatSession(context.Context, string, string, int64) error
+		EndChatSession(context.Context, string, int64) error
+	}); ok {
+		nowUs := m.cfg.Now().UnixMicro()
+		if m.activeChatSessionID != "" {
+			if err := csPort.EndChatSession(cmd.ctx, m.activeChatSessionID, nowUs); err != nil {
+				slog.Warn("session: failed to end chat session", "session_id", m.activeChatSessionID, "err", err)
+			}
+			m.activeChatSessionID = ""
+		}
+		sessID := fmt.Sprintf("sess-%s-%d-%d", cmd.crewID, seq, nowUs)
+		if err := csPort.StartChatSession(cmd.ctx, sessID, cmd.crewID, nowUs); err != nil {
+			slog.Warn("session: failed to start chat session", "session_id", sessID, "crew_id", cmd.crewID, "err", err)
+		} else {
+			m.activeChatSessionID = sessID
+		}
+	}
+
 	if m.deps.IPC == nil {
 		st := m.crewStatePayload()
 		m.emitCrewState(st)
@@ -359,8 +379,10 @@ func (m *Manager) execSetCrew(cmd sessionCmd) {
 	}
 
 	m.pendingSwapReply = cmd.replyCh
+	profCopy := data.Profile
 	payload := contracts.SetActiveCrewPayload{
 		CrewID:       cmd.crewID,
+		Profile:      &profCopy,
 		BaselinePath: data.BaselinePath,
 		Thresholds:   cloneThresholds(data.Thresholds),
 	}
@@ -435,8 +457,10 @@ func (m *Manager) execReconnect() {
 		return
 	}
 	seq := m.state.SwapSeq
+	profCopy := m.state.Profile
 	payload := contracts.SetActiveCrewPayload{
 		CrewID:       m.state.ActiveCrewID,
+		Profile:      &profCopy,
 		BaselinePath: m.state.BaselinePath,
 		Thresholds:   cloneThresholds(m.state.Thresholds),
 	}
@@ -548,7 +572,13 @@ func (m *Manager) execChat(cmd sessionCmd) {
 			RecentHistory:   history,
 		}
 
-		ipcCtx, cancel := context.WithTimeout(cmd.ctx, m.cfg.ChatTimeout)
+		var ipcCtx context.Context
+		var cancel context.CancelFunc
+		if m.cfg.ChatTimeout > 0 {
+			ipcCtx, cancel = context.WithTimeout(cmd.ctx, m.cfg.ChatTimeout)
+		} else {
+			ipcCtx, cancel = context.WithCancel(cmd.ctx)
+		}
 		defer cancel()
 		resp, err := m.deps.IPC.SendChatCorrelate(ipcCtx, reqID, req)
 		if err != nil {
@@ -659,6 +689,17 @@ func (m *Manager) execCalibrationStep(cmd sessionCmd) {
 		if err != nil {
 			cmd.replyCh <- cmdReply{err: err}
 			return
+		}
+		if len(fb.BaselineUpdate) > 0 {
+			if saver, ok := m.deps.Store.(interface {
+				SaveBaseline(context.Context, string, []byte, int64) error
+			}); ok {
+				if err := saver.SaveBaseline(cmd.ctx, targetCrew, []byte(fb.BaselineUpdate), m.cfg.Now().UnixMicro()); err != nil {
+					cmd.replyCh <- cmdReply{err: err}
+					return
+				}
+			}
+			fb.BaselineUpdate = nil
 		}
 		m.emitUI(UIEvent{
 			Type:                contracts.WSMsgCalibrationFeedback,

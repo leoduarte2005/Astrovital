@@ -1,48 +1,134 @@
-id: HRP-RISK-EARTH-INDEP
-seed_id: earth_independent_operations
-title: Operações Independentes da Terra / Earth-Independent Operations
-hazard: Distance from Earth
-category: BEHAVIORAL_BIOCHEMICAL
-subsystems:
-  - IMMUNE_HEMATO_NUTRITION
-problem: Atraso de até 22 min e ausência de evacuação exigem tomada de decisão médica autônoma com apoio de CDSS e autoexames guiados.
-symptoms:
-  pt:
-    - incerteza clínica
-    - ansiedade
-    - atraso de resposta
-  en:
-    - clinical uncertainty
-    - anxiety
-    - response delay
-    - medical autonomy
-sensor_signatures:
-  - sensor: Central
-    metric: comm_delay_min
-    op: gte
-    threshold: 5.0
-    causal_weight: 1.0
-    weight_basis: heuristic_pending_clinical_review
-detection:
-  - Estado do enlace na Central
-  - Autoexames guiados
-countermeasures:
-  - order: 1
-    action: Seguir protocolo guiado local
-    protocol: blood_pressure
-  - order: 2
-    action: Registrar em SELF_EXAM
-    protocol: null
-  - order: 3
-    action: Enfileirar pacote Store-and-Forward
-    protocol: null
-escalation:
-  default: STORE_AND_FORWARD
-  LOCAL: Resolver autonomamente se houver protocolo.
-  CREW: Pedir apoio de outro tripulante para exames em dupla.
-  STORE_AND_FORWARD: Pacote assíncrono ao cirurgião de voo.
-source:
-  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Inadequate Medical Capability / Earth-independent operations; CSA
-  section: Evidence Report
-  source_id: NASA-HRP-EARTH-INDEP
-disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.
+{
+  "schema_version": 1,
+  "report_id": "earth_independent_operations",
+  "source_id": "NASA-EARTH",
+  "hazard_id": "DISTANCE_FROM_EARTH",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Operações Independentes da Terra / Earth-Independent Operations",
+  "problem": "Atraso de até 22 min e ausência de evacuação exigem tomada de decisão médica autônoma com apoio de CDSS e autoexames guiados.",
+  "primary_symptoms": [
+    "incerteza clínica",
+    "ansiedade",
+    "atraso de resposta",
+    "clinical uncertainty",
+    "anxiety",
+    "response delay",
+    "medical autonomy"
+  ],
+  "secondary_symptoms": [],
+  "detection": [
+    "Estado do enlace na Central",
+    "Autoexames guiados"
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "legacy_reference": {
+    "id": "HRP-RISK-EARTH-INDEP",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Inadequate Medical Capability / Earth-independent operations; CSA",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-EARTH-INDEP"
+    }
+  },
+  "conditions": [
+    {
+      "condition_id": "EARTH_INDEPENDENT_OPERATIONS",
+      "name": "Operações Independentes da Terra / Earth-Independent Operations",
+      "source_id": "NASA-EARTH",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.03,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "incerteza clínica",
+        "ansiedade",
+        "atraso de resposta",
+        "clinical uncertainty",
+        "anxiety",
+        "response delay",
+        "medical autonomy"
+      ],
+      "countermeasures": [
+        "Registrar exposição e contexto.",
+        "Aplicar apenas o procedimento autorizado e solicitar avaliação da equipe responsável."
+      ],
+      "actions": [
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "medical_capability_gap",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "MISSION_CONTEXT",
+          "values_json": {},
+          "likelihood_ratio": 2.2,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Sinal de teste para revisão contextual, não diagnóstico.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 24,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há contexto documentado para este risco?",
+          "positive_concepts": [
+            "incerteza clínica",
+            "ansiedade",
+            "atraso de resposta",
+            "clinical uncertainty",
+            "anxiety",
+            "response delay",
+            "medical autonomy"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "BEHAVIORAL_HEALTH",
+            "TEAMWORK",
+            "COGNITIVE_FATIGUE"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de seguran?a de engenharia: n?o iniciar interven??o terap?utica aut?noma sem autoriza??o cl?nica (clinical_authorization == 0) durante atraso de comunica??o."
+        }
+      ],
+      "symptom_weights": {
+        "clinical_uncertainty": 0.85,
+        "anxiety": 0.65,
+        "response_delay": 0.8
+      },
+      "differential_ids": [
+        "BEHAVIORAL_HEALTH",
+        "TEAMWORK",
+        "COGNITIVE_FATIGUE"
+      ],
+      "expected_biomarkers": {
+        "MISSION_CONTEXT": {
+          "medical_capability_gap": "comm_delay_or_no_evacuation_window"
+        },
+        "SELF_EXAM": {
+          "guided_protocol_completion": "structured_triage_required"
+        }
+      },
+      "severity_thresholds": {
+        "medical_capability_gap": {
+          "yellow_high": 1
+        }
+      }
+    }
+  ]
+}

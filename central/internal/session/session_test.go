@@ -12,15 +12,17 @@ import (
 )
 
 type mockStore struct {
-	mu       sync.Mutex
-	calls    []string
-	profiles map[string]CrewProfileData
-	summary  string
-	history  []contracts.ChatMessage
-	audits   []string
-	chats    []string
-	exams    []contracts.SelfExamPayload
-	outbox   []contracts.OutboxRecord
+	mu              sync.Mutex
+	calls           []string
+	profiles        map[string]CrewProfileData
+	summary         string
+	history         []contracts.ChatMessage
+	audits          []string
+	chats           []string
+	exams           []contracts.SelfExamPayload
+	outbox          []contracts.OutboxRecord
+	startedSessions []string
+	endedSessions   []string
 }
 
 func newMockStore() *mockStore {
@@ -89,6 +91,20 @@ func (s *mockStore) SaveOutbox(ctx context.Context, rec contracts.OutboxRecord) 
 	return nil
 }
 
+func (s *mockStore) StartChatSession(ctx context.Context, sessionID, crewID string, startedUs int64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.startedSessions = append(s.startedSessions, crewID+":"+sessionID)
+	return nil
+}
+
+func (s *mockStore) EndChatSession(ctx context.Context, sessionID string, endedUs int64) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.endedSessions = append(s.endedSessions, sessionID)
+	return nil
+}
+
 func (s *mockStore) Calls() []string {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -96,17 +112,20 @@ func (s *mockStore) Calls() []string {
 }
 
 type mockIPC struct {
-	mu          sync.Mutex
-	calls       []string
-	setCrewFn   func(ctx context.Context, reqID uint64, payload contracts.SetActiveCrewPayload) (contracts.CrewAckPayload, error)
-	chatFn      func(ctx context.Context, reqID uint64, payload contracts.ChatCorrelateReqPayload) (contracts.ChatCorrelateRespPayload, error)
-	calibFn     func(ctx context.Context, reqID uint64, crewID string, payload contracts.CalibrationStepPayload) (contracts.CalibrationFeedbackPayload, error)
-	lastChatReq *contracts.ChatCorrelateReqPayload
+	mu             sync.Mutex
+	calls          []string
+	setCrewFn      func(ctx context.Context, reqID uint64, payload contracts.SetActiveCrewPayload) (contracts.CrewAckPayload, error)
+	chatFn         func(ctx context.Context, reqID uint64, payload contracts.ChatCorrelateReqPayload) (contracts.ChatCorrelateRespPayload, error)
+	calibFn        func(ctx context.Context, reqID uint64, crewID string, payload contracts.CalibrationStepPayload) (contracts.CalibrationFeedbackPayload, error)
+	lastSetCrewReq *contracts.SetActiveCrewPayload
+	lastChatReq    *contracts.ChatCorrelateReqPayload
 }
 
 func (i *mockIPC) SendSetActiveCrew(ctx context.Context, reqID uint64, payload contracts.SetActiveCrewPayload) (contracts.CrewAckPayload, error) {
 	i.mu.Lock()
 	i.calls = append(i.calls, "ipc_set_crew:"+payload.CrewID)
+	cp := payload
+	i.lastSetCrewReq = &cp
 	fn := i.setCrewFn
 	i.mu.Unlock()
 	if fn != nil {
@@ -534,5 +553,46 @@ func TestSessionChatCorrelateAndStoreAndForward(t *testing.T) {
 	}
 	if !sawChatReply || !sawCalibFb {
 		t.Fatalf("missing UI events: chatReply=%v calibFb=%v", sawChatReply, sawCalibFb)
+	}
+}
+
+func TestSessionChatSessionLifecycleAndFullProfileIPC(t *testing.T) {
+	store := newMockStore()
+	sexM, sexF := "M", "F"
+	kcal1, kcal2 := 2600.0, 2200.0
+	store.profiles["crew-1"] = CrewProfileData{
+		Profile: contracts.CrewProfile{CrewID: "crew-1", Name: "Silva", BiologicalSex: &sexM, TargetKcalDay: &kcal1},
+	}
+	store.profiles["crew-2"] = CrewProfileData{
+		Profile: contracts.CrewProfile{CrewID: "crew-2", Name: "Costa", BiologicalSex: &sexF, TargetKcalDay: &kcal2},
+	}
+	ipc := &mockIPC{}
+	m := New(Config{}, Deps{Store: store, IPC: ipc})
+	stop := startManager(t, m)
+	defer stop()
+
+	ctx := context.Background()
+	if _, err := m.SetCrew(ctx, "crew-1"); err != nil {
+		t.Fatalf("SetCrew crew-1: %v", err)
+	}
+	if ipc.lastSetCrewReq == nil || ipc.lastSetCrewReq.Profile == nil || ipc.lastSetCrewReq.Profile.BiologicalSex == nil || *ipc.lastSetCrewReq.Profile.BiologicalSex != "M" {
+		t.Fatalf("SET_ACTIVE_CREW missing full profile: %+v", ipc.lastSetCrewReq)
+	}
+	if _, err := m.HandleChatMsg(ctx, "crew-1", "status", nil, nil); err != nil {
+		t.Fatalf("HandleChatMsg: %v", err)
+	}
+	if ipc.lastChatReq == nil || ipc.lastChatReq.Profile == nil || ipc.lastChatReq.Profile.TargetKcalDay == nil || *ipc.lastChatReq.Profile.TargetKcalDay != 2600 {
+		t.Fatalf("CHAT_CORRELATE_REQ missing full profile: %+v", ipc.lastChatReq)
+	}
+
+	if _, err := m.SetCrew(ctx, "crew-2"); err != nil {
+		t.Fatalf("SetCrew crew-2: %v", err)
+	}
+	store.mu.Lock()
+	started := append([]string(nil), store.startedSessions...)
+	ended := append([]string(nil), store.endedSessions...)
+	store.mu.Unlock()
+	if len(started) != 2 || len(ended) != 1 {
+		t.Fatalf("expected 2 started and 1 ended chat session on swap, got started=%v ended=%v", started, ended)
 	}
 }

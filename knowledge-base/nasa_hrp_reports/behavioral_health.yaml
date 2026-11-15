@@ -1,0 +1,160 @@
+{
+  "schema_version": 1,
+  "report_id": "behavioral_health_psychiatric",
+  "source_id": "NASA-BEHAVIOR",
+  "hazard_id": "ISOLATION_CONFINEMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Saúde comportamental",
+  "problem": "Isolamento e exigências da missão podem afetar saúde comportamental; respostas subjetivas exigem avaliação contextual e suporte.",
+  "primary_symptoms": [
+    "humor deprimido",
+    "ansiedade",
+    "insônia",
+    "irritabilidade",
+    "apatia",
+    "low mood",
+    "anxiety",
+    "insomnia",
+    "irritability",
+    "apathy",
+    "depression"
+  ],
+  "secondary_symptoms": [
+    "isolamento",
+    "alterações de sono"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "BEHAVIORAL_HEALTH",
+      "name": "Saúde comportamental",
+      "source_id": "NASA-BEHAVIOR",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "humor deprimido",
+        "ansiedade",
+        "isolamento",
+        "alterações de sono",
+        "insônia",
+        "irritabilidade",
+        "apatia",
+        "low mood",
+        "anxiety",
+        "insomnia",
+        "irritability",
+        "apathy",
+        "depression"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "behavioral_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "distress_score",
+          "op": "GE",
+          "threshold_value": 8,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.4,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Você deseja apoio de outro tripulante ou contato com a equipe de suporte?",
+          "positive_concepts": [
+            "humor deprimido",
+            "ansiedade"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "behavioral_check",
+          "target_differential_ids": [
+            "SLEEP_CIRCADIAN",
+            "COGNITIVE_FATIGUE",
+            "TEAMWORK"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "ISOLATE_IN_DISTRESS",
+          "guard_metric": "requests_help",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de seguran?a de engenharia: evitar isolamento adicional quando o tripulante solicitar apoio (requests_help == 1); revis?o cl?nica e autoriza??o da miss?o s?o necess?rias."
+        }
+      ],
+      "symptom_weights": {
+        "low_mood": 0.85,
+        "anxiety": 0.85,
+        "insomnia": 0.75,
+        "irritability": 0.75,
+        "apathy": 0.8,
+        "social_withdrawal": 0.7
+      },
+      "differential_ids": [
+        "SLEEP_CIRCADIAN",
+        "COGNITIVE_FATIGUE",
+        "TEAMWORK",
+        "EARTH_INDEPENDENT_OPERATIONS"
+      ],
+      "expected_biomarkers": {
+        "ESP32_CSI": {
+          "sleep_fragmentation": "elevated_trend_fixture",
+          "activity_level": "reduced_fixture"
+        },
+        "MAX30102": {
+          "hrv_ms": "reduced_autonomic_trend_fixture"
+        },
+        "SELF_EXAM": {
+          "mood_checkin_score": "elevated_distress_fixture"
+        },
+        "LONGITUDINAL": {
+          "sleep_duration_h": "short_or_irregular_trend"
+        }
+      },
+      "severity_thresholds": {
+        "distress_score": {
+          "yellow_high": 6,
+          "red_high": 9
+        }
+      }
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-BHP",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Cognitive or Behavioral Conditions and Psychiatric Disorders",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-BHP"
+    },
+    "detection": [
+      "Check-in de humor (SELF_EXAM)",
+      "Sono e HRV via CSI",
+      "Testes cognitivos curtos"
+    ]
+  }
+}

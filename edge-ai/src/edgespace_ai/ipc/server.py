@@ -180,8 +180,9 @@ class IPCServer:
         )
         write_lock = asyncio.Lock()
 
+        bg_tasks: set[asyncio.Task[None]] = set()
         worker_task = asyncio.create_task(
-            self._worker_loop(queues, writer, write_lock),
+            self._worker_loop(queues, writer, write_lock, bg_tasks),
             name=f"ipc-worker-{peer}",
         )
 
@@ -191,6 +192,10 @@ class IPCServer:
             raise
         finally:
             queues.close()
+            for task in list(bg_tasks):
+                task.cancel()
+            if bg_tasks:
+                await asyncio.gather(*bg_tasks, return_exceptions=True)
             if not worker_task.done():
                 try:
                     await asyncio.wait_for(worker_task, timeout=2.0)
@@ -273,6 +278,7 @@ class IPCServer:
         queues: _SessionQueues,
         writer: asyncio.StreamWriter,
         write_lock: asyncio.Lock,
+        bg_tasks: set[asyncio.Task[None]],
     ) -> None:
         while True:
             is_hi_pri = False
@@ -303,32 +309,52 @@ class IPCServer:
             else:
                 self.stats.lo_pri_processed += 1
 
-            try:
-                resp = await self._handler(env)
-            except Exception as exc:
-                logger.exception(
-                    "ipc handler failed",
-                    extra={"msg_type": env.type.value, "req_id": env.req_id, "err": str(exc)},
-                )
+            # Run CHAT_CORRELATE_REQ asynchronously so SLM synthesis never stalls
+            # the 10 Hz CSI_WINDOW -> AI_INFERENCE stream or trips Central's 3s SilenceWatchdog.
+            if env.type == IPCMsgType.CHAT_CORRELATE_REQ:
+                task = asyncio.create_task(self._dispatch_and_reply(env, writer, write_lock))
+                bg_tasks.add(task)
+                task.add_done_callback(bg_tasks.discard)
                 continue
 
-            if resp is None:
-                continue
-
-            if env.req_id is not None and resp.req_id is None:
-                resp = resp.model_copy(update={"req_id": env.req_id})
-
-            try:
-                body = resp.to_json_bytes()
-                async with write_lock:
-                    await write_frame(writer, body)
-                self.stats.frames_tx += 1
-            except (ConnectionError, OSError) as exc:
-                logger.warning("ipc write failed", extra={"err": str(exc)})
+            ok = await self._dispatch_and_reply(env, writer, write_lock)
+            if not ok:
                 return
-            except FrameSizeError as exc:
-                self.stats.protocol_errors += 1
-                logger.error("ipc response exceeded max frame size", extra={"err": str(exc)})
+
+    async def _dispatch_and_reply(
+        self,
+        env: IPCEnvelope,
+        writer: asyncio.StreamWriter,
+        write_lock: asyncio.Lock,
+    ) -> bool:
+        try:
+            resp = await self._handler(env)
+        except Exception as exc:
+            logger.exception(
+                "ipc handler failed",
+                extra={"msg_type": env.type.value, "req_id": env.req_id, "err": str(exc)},
+            )
+            return True
+
+        if resp is None:
+            return True
+
+        if env.req_id is not None and resp.req_id is None:
+            resp = resp.model_copy(update={"req_id": env.req_id})
+
+        try:
+            body = resp.to_json_bytes()
+            async with write_lock:
+                await write_frame(writer, body)
+            self.stats.frames_tx += 1
+            return True
+        except (ConnectionError, OSError) as exc:
+            logger.warning("ipc write failed", extra={"err": str(exc)})
+            return False
+        except FrameSizeError as exc:
+            self.stats.protocol_errors += 1
+            logger.error("ipc response exceeded max frame size", extra={"err": str(exc)})
+            return True
 
     def _is_stale_window(self, env: IPCEnvelope) -> bool:
         if self._max_window_age_us <= 0:

@@ -1,65 +1,167 @@
-id: HRP-RISK-RADIATION-ROS
-seed_id: radiation_ros
-title: 'Radiação: Estresse Oxidativo (CANS/ROS) por SPE/GCR'
-hazard: Space Radiation
-category: PHYSIOLOGICAL
-subsystems:
-  - NEUROBEHAVIORAL_RADIATION
-problem: 'Eventos SPE e GCR geram espécies reativas de oxigênio (ROS) e efeitos agudos como náusea e fadiga. Contramedidas: abrigo e antioxidantes (Vitaminas C e E).'
-symptoms:
-  pt:
-    - náusea
-    - fadiga
-    - cefaleia
-    - mal-estar
-    - tontura
-    - visão turva
-  en:
-    - nausea
-    - fatigue
-    - headache
-    - malaise
-    - dizziness
-    - blurred vision
-    - oxidative stress
-    - ROS
-sensor_signatures:
-  - sensor: Central
-    metric: radiation_context
-    op: eq
-    threshold: 1.0
-    causal_weight: 6.0
-    weight_basis: causal_graph:likelihood_ratio
-  - sensor: MAX30102/CSI
-    metric: hrv_ms
-    op: lte
-    threshold: 30.0
-    causal_weight: 1.8
-    weight_basis: causal_graph:likelihood_ratio
-detection:
-  - Alerta SPE e dosímetros
-  - HRV em queda (MODE_RADIATION_ALERT)
-  - Autoexame de sintomas
-countermeasures:
-  - order: 1
-    action: Abrigo de maior blindagem (storm shelter / water wall)
-    protocol: null
-  - order: 2
-    action: Verificar dosímetros e confirmar alerta SPE
-    protocol: null
-  - order: 3
-    action: Hidratação e Vitaminas C e E; antiemético se náusea
-    protocol: null
-  - order: 4
-    action: Monitorar sinais vitais
-    protocol: null
-escalation:
-  default: STORE_AND_FORWARD
-  LOCAL: Conduta de abrigo autônoma.
-  CREW: Alertar tripulação e mover todos ao abrigo.
-  STORE_AND_FORWARD: Pacote com dosimetria e HRV ao cirurgião de voo.
-source:
-  document: NASA Human Research Program (HRP), Human Research Roadmap - Risk of Acute and Late CNS Effects / Radiation Carcinogenesis
-  section: Evidence Report
-  source_id: NASA-HRP-RADIATION
-disclaimer: Apoio a decisao. Nao substitui o cirurgiao de voo.
+{
+  "schema_version": 1,
+  "report_id": "radiation_ros",
+  "source_id": "CSA-RADIATION",
+  "hazard_id": "SPACE_RADIATION",
+  "category": "PHYSIOLOGICAL",
+  "title": "Radiação: Estresse Oxidativo (CANS/ROS) por SPE/GCR",
+  "problem": "Eventos SPE e GCR geram espécies reativas de oxigênio (ROS) e efeitos agudos como náusea e fadiga. Contramedidas: abrigo e antioxidantes (Vitaminas C e E).",
+  "primary_symptoms": [
+    "náusea",
+    "fadiga",
+    "cefaleia",
+    "mal-estar",
+    "tontura",
+    "visão turva",
+    "nausea",
+    "fatigue",
+    "headache",
+    "malaise",
+    "dizziness",
+    "blurred vision",
+    "oxidative stress",
+    "ROS"
+  ],
+  "secondary_symptoms": [],
+  "detection": [
+    "Alerta SPE e dosímetros",
+    "HRV em queda (MODE_RADIATION_ALERT)",
+    "Autoexame de sintomas"
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "legacy_reference": {
+    "id": "HRP-RISK-RADIATION-ROS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Acute and Late CNS Effects / Radiation Carcinogenesis",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-RADIATION"
+    }
+  },
+  "conditions": [
+    {
+      "condition_id": "RADIATION_ACUTE",
+      "name": "Radiação: Estresse Oxidativo (CANS/ROS) por SPE/GCR",
+      "source_id": "CSA-RADIATION",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.03,
+      "default_escalation": "STORE_AND_FORWARD",
+      "recommended_mission_mode": "MODE_RADIATION_ALERT",
+      "symptoms": [
+        "náusea",
+        "fadiga",
+        "cefaleia",
+        "mal-estar",
+        "tontura",
+        "visão turva",
+        "nausea",
+        "fatigue",
+        "headache",
+        "malaise",
+        "dizziness",
+        "blurred vision",
+        "oxidative stress",
+        "ROS"
+      ],
+      "countermeasures": [
+        "Registrar exposição e contexto.",
+        "Aplicar apenas o procedimento autorizado e solicitar avaliação da equipe responsável."
+      ],
+      "actions": [
+        "RADIATION_SPE_ALERT"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "spe_alert",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "MISSION_CONTEXT",
+          "values_json": {},
+          "likelihood_ratio": 6.0,
+          "severity_tier": "RED",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Sinal de teste para revisão contextual, não diagnóstico.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 72,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há contexto documentado para este risco?",
+          "positive_concepts": [
+            "náusea",
+            "fadiga",
+            "cefaleia",
+            "mal-estar",
+            "tontura",
+            "visão turva",
+            "nausea",
+            "fatigue",
+            "headache",
+            "malaise",
+            "dizziness",
+            "blurred vision",
+            "oxidative stress",
+            "ROS"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "RADIATION_CNS",
+            "SPACE_MOTION_SICKNESS",
+            "MICROBIOME_GI"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de seguran?a de engenharia: em alerta SPE, priorizar abrigo e aguardar autoriza??o cl?nica (clinical_authorization == 0) antes de terapia medicamentosa."
+        }
+      ],
+      "symptom_weights": {
+        "nausea": 0.85,
+        "fatigue": 0.75,
+        "headache": 0.6,
+        "malaise": 0.8,
+        "dizziness": 0.6,
+        "blurred_vision": 0.45
+      },
+      "differential_ids": [
+        "RADIATION_CNS",
+        "SPACE_MOTION_SICKNESS",
+        "HYPERCAPNIA",
+        "MICROBIOME_GI"
+      ],
+      "expected_biomarkers": {
+        "MISSION_CONTEXT": {
+          "spe_alert": "active_or_recent_72h_spe_alert"
+        },
+        "MAX30102": {
+          "hrv_ms": "autonomic_oxidative_stress_drop_fixture"
+        },
+        "LONGITUDINAL": {
+          "radiation_dose_msv": "acute_dose_spike_tracking"
+        }
+      },
+      "severity_thresholds": {
+        "spe_alert": {
+          "red_high": 1
+        },
+        "hrv_ms": {
+          "yellow_low": 30.0,
+          "red_low": 20.0
+        }
+      }
+    }
+  ]
+}

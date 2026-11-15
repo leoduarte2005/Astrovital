@@ -1,0 +1,166 @@
+{
+  "schema_version": 1,
+  "report_id": "host_microorganism_interactions",
+  "source_id": "NASA-MICROBIOME",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Microbioma e sintomas gastrointestinais",
+  "problem": "Mudanças do microbioma e interação hospedeiro-microrganismo são áreas de pesquisa; sintomas não identificam uma composição microbiana.",
+  "primary_symptoms": [
+    "diarreia",
+    "desconforto gastrointestinal",
+    "febre",
+    "lesão cutânea",
+    "tosse",
+    "mal-estar",
+    "fever",
+    "skin lesion",
+    "diarrhea",
+    "cough",
+    "malaise",
+    "infection",
+    "microbiome"
+  ],
+  "secondary_symptoms": [
+    "distensão abdominal"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "MICROBIOME_GI",
+      "name": "Microbioma e sintomas gastrointestinais",
+      "source_id": "NASA-MICROBIOME",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "diarreia",
+        "desconforto gastrointestinal",
+        "distensão abdominal",
+        "febre",
+        "lesão cutânea",
+        "tosse",
+        "mal-estar",
+        "fever",
+        "skin lesion",
+        "diarrhea",
+        "cough",
+        "malaise",
+        "infection",
+        "microbiome"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "diarrhea",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.2,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Houve mudança alimentar, medicamento recente ou sintomas em outro tripulante?",
+          "positive_concepts": [
+            "diarreia",
+            "desconforto gastrointestinal"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "IMMUNE_VIRAL_REACTIVATION",
+            "NUTRITION_DEFICIT",
+            "RENAL_STONES"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "START_ANTIBIOTIC",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de seguran?a de engenharia: n?o iniciar antibioticoterapia emp?rica sem autoriza??o cl?nica (clinical_authorization == 0) e revis?o de contexto GI/infeccioso."
+        }
+      ],
+      "symptom_weights": {
+        "abdominal_pain": 0.9,
+        "gi_slowdown": 0.95,
+        "nausea": 0.7,
+        "malaise": 0.45,
+        "diarrhea": 0.85,
+        "fever": 0.6
+      },
+      "differential_ids": [
+        "IMMUNE_VIRAL_REACTIVATION",
+        "NUTRITION_DEFICIT",
+        "DEHYDRATION",
+        "RENAL_STONES",
+        "RADIATION_ACUTE"
+      ],
+      "expected_biomarkers": {
+        "BME280": {
+          "humidity_pct": "low_cabin_humidity_check",
+          "temp_c": "elevated_cabin_temp_check"
+        },
+        "SELF_EXAM": {
+          "temp_c": "febrile_check_if_infectious"
+        },
+        "MAX30102": {
+          "heart_rate_bpm": "mild_elevation_with_hypovolemia_fixture"
+        },
+        "LONGITUDINAL": {
+          "water_ml_total": "hydration_loss_monitoring"
+        }
+      },
+      "severity_thresholds": {
+        "humidity_pct": {
+          "yellow_low": 35.0,
+          "red_low": 25.0
+        },
+        "temp_c": {
+          "yellow_high": 37.5,
+          "red_high": 38.5
+        }
+      }
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-MICROBIOME",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Health Event due to Host-Microorganism Interactions",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-MICROBIOME"
+    },
+    "detection": [
+      "Autoexame: temperatura",
+      "Sintomas infecciosos autorrelatados"
+    ]
+  }
+}

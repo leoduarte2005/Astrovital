@@ -22,6 +22,9 @@ train = [
     "skl2onnx>=1.16.0",
     "onnx>=1.15.0",
 ]
+slm = [
+    "llama-cpp-python>=0.3.0",
+]
 test = [
     "pytest>=8.0.0",
 ]
@@ -34,6 +37,7 @@ dev = [
 
 [project.scripts]
 edgespace-ai = "edgespace_ai.main:main"
+edgespace-slm-fetch = "edgespace_ai.utils.model_fetch:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

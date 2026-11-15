@@ -105,6 +105,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=None,
         help="Directory containing ONNX models (overrides EDGESPACE_MODELS_DIR)",
     )
+    parser.add_argument(
+        "--disable-slm",
+        action="store_true",
+        default=False,
+        help="Disable local GGUF SLM conversational synthesizer and use deterministic template",
+    )
     return parser.parse_args(argv)
 
 
@@ -124,6 +130,8 @@ def main(argv: Optional[Sequence[str]] = None) -> None:
         updates["db_path"] = args.db
     if args.models_dir is not None:
         updates["models_dir"] = args.models_dir
+    if args.disable_slm:
+        updates["disable_slm"] = True
 
     if updates:
         cfg = cfg.model_copy(update=updates)

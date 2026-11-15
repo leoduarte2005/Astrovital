@@ -1,0 +1,35 @@
+{
+  "schema_version": 1,
+  "reports": [
+    "nasa_hrp_reports/immune_viral_reactivation.yaml",
+    "nasa_hrp_reports/behavioral_health.yaml",
+    "nasa_hrp_reports/bone_loss.yaml",
+    "nasa_hrp_reports/radiation_cns.yaml",
+    "nasa_hrp_reports/cognitive_fatigue.yaml",
+    "nasa_hrp_reports/orthostatic_intolerance.yaml",
+    "nasa_hrp_reports/decompression_sickness.yaml",
+    "nasa_hrp_reports/earth_independent_operations.yaml",
+    "nasa_hrp_reports/microbiome_gi.yaml",
+    "nasa_hrp_reports/hypercapnia.yaml",
+    "nasa_hrp_reports/hypoxia.yaml",
+    "nasa_hrp_reports/nutrition_deficit.yaml",
+    "nasa_hrp_reports/inadequate_teamwork.yaml",
+    "nasa_hrp_reports/inflight_anemia.yaml",
+    "nasa_hrp_reports/iron_overload.yaml",
+    "nasa_hrp_reports/one_carbon_metabolism.yaml",
+    "nasa_hrp_reports/radiation_cancer_risk.yaml",
+    "nasa_hrp_reports/radiation_ros.yaml",
+    "nasa_hrp_reports/muscle_deconditioning.yaml",
+    "nasa_hrp_reports/renal_stones.yaml",
+    "nasa_hrp_reports/sans.yaml",
+    "nasa_hrp_reports/sleep_circadian.yaml",
+    "nasa_hrp_reports/space_motion_sickness.yaml"
+  ],
+  "hazard_documents": [
+    "nasa_hrp_reports/hazards/hazard_distance_from_earth.yaml",
+    "nasa_hrp_reports/hazards/hazard_gravity_fields.yaml",
+    "nasa_hrp_reports/hazards/hazard_hostile_closed_environments.yaml",
+    "nasa_hrp_reports/hazards/hazard_isolation_confinement.yaml",
+    "nasa_hrp_reports/hazards/hazard_space_radiation.yaml"
+  ]
+}

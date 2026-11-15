@@ -1,0 +1,130 @@
+{
+  "schema_version": 1,
+  "report_id": "renal_stones",
+  "source_id": "NASA-URINARY",
+  "hazard_id": "GRAVITY_FIELDS",
+  "category": "PHYSIOLOGICAL",
+  "title": "Risco de cálculo renal",
+  "problem": "Hidratação, alterações urinárias e metabolismo ósseo participam do risco de cálculos em voo.",
+  "primary_symptoms": [
+    "dor no flanco",
+    "cólica"
+  ],
+  "secondary_symptoms": [
+    "hematúria",
+    "náusea"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "RENAL_STONES",
+      "name": "Risco de cálculo renal",
+      "source_id": "NASA-URINARY",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "dor no flanco",
+        "cólica",
+        "hematúria",
+        "náusea"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "flank_pain",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 4.1,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Existe dor no flanco, sangue na urina ou dificuldade para urinar?",
+          "positive_concepts": [
+            "dor no flanco",
+            "cólica"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "BONE_LOSS",
+            "DEHYDRATION",
+            "MICROBIOME_GI"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "POTASSIUM_CITRATE",
+          "guard_metric": "renal_impairment",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de seguran?a de engenharia: evitar citrato de pot?ssio diante de suspeita de comprometimento renal (renal_impairment == 1) at? revis?o cl?nica autorizada."
+        }
+      ],
+      "symptom_weights": {
+        "flank_pain": 0.95,
+        "back_pain": 0.8,
+        "hematuria": 0.95,
+        "nausea": 0.6,
+        "dysuria": 0.85,
+        "abdominal_pain": 0.45
+      },
+      "differential_ids": [
+        "DECOMPRESSION_SICKNESS",
+        "BONE_LOSS",
+        "DEHYDRATION",
+        "MICROBIOME_GI"
+      ],
+      "expected_biomarkers": {
+        "SELF_EXAM": {
+          "urinalysis_dipstick": "hematuria_or_ph_check",
+          "renal_ultrasound": "hydronephrosis_or_calculus_check"
+        },
+        "MAX30102": {
+          "heart_rate_bpm": "pain_reactive_tachycardia_fixture"
+        },
+        "LONGITUDINAL": {
+          "water_ml_total": "low_hydration_trend",
+          "mission_day": "bone_resorption_hypercalciuria_window"
+        }
+      },
+      "severity_thresholds": {
+        "flank_pain": {
+          "yellow_high": 1
+        },
+        "heart_rate_bpm": {
+          "yellow_high": 90.0,
+          "red_high": 115.0
+        }
+      }
+    }
+  ]
+}

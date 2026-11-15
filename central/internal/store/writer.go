@@ -9,10 +9,18 @@ import (
 // Run starts writerLoop and blocks until ctx is cancelled and shutdown
 // finished (drain + final flush + wal_checkpoint(TRUNCATE) + close).
 func (s *Store) Run(ctx context.Context) error {
-	return s.writerLoop(ctx)
+	var rollupDone chan struct{}
+	if s.operational {
+		rollupDone = make(chan struct{})
+		go func() {
+			defer close(rollupDone)
+			s.rollupLoop(ctx)
+		}()
+	}
+	return s.writerLoop(ctx, rollupDone)
 }
 
-func (s *Store) writerLoop(ctx context.Context) error {
+func (s *Store) writerLoop(ctx context.Context, rollupDone <-chan struct{}) error {
 	s.running.Store(true)
 	defer s.running.Store(false)
 
@@ -51,6 +59,9 @@ func (s *Store) writerLoop(ctx context.Context) error {
 				commit()
 			}
 		case <-ctx.Done():
+			if rollupDone != nil {
+				<-rollupDone
+			}
 			s.closing.Store(true)
 			for drained := false; !drained; {
 				select {
@@ -111,6 +122,13 @@ func execCmd(ctx context.Context, conn *sql.Conn, c Cmd) error {
 	case Exec:
 		_, err := conn.ExecContext(ctx, v.Query, v.Args...)
 		return err
+	case Statements:
+		for _, item := range v.Items {
+			if _, err := conn.ExecContext(ctx, item.Query, item.Args...); err != nil {
+				return err
+			}
+		}
+		return nil
 	case RegistrySet:
 		_, err := conn.ExecContext(ctx,
 			`INSERT INTO central_registry(key,value,updated_us) VALUES (?,?,?)

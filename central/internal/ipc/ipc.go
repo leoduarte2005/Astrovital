@@ -19,7 +19,7 @@ const (
 	LoPriCap               = 8
 	DefaultAddr            = "127.0.0.1:5006"
 	DefaultCrewAckTimeout  = 2 * time.Second
-	DefaultChatTimeout     = 5 * time.Second
+	DefaultChatTimeout     = 0 * time.Second // unlimited: wait for local SLM to finish thinking
 	DefaultCalibTimeout    = 2 * time.Second
 	DefaultWriteTimeout    = 1 * time.Second
 	DefaultSilenceWatchdog = 3 * time.Second
@@ -124,7 +124,7 @@ func New(cfg Config, deps Deps) (*Client, error) {
 	if cfg.CrewAckTimeout <= 0 {
 		cfg.CrewAckTimeout = DefaultCrewAckTimeout
 	}
-	if cfg.ChatTimeout <= 0 {
+	if cfg.ChatTimeout < 0 {
 		cfg.ChatTimeout = DefaultChatTimeout
 	}
 	if cfg.CalibTimeout <= 0 {

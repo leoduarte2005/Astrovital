@@ -1,0 +1,196 @@
+{
+  "schema_version": 1,
+  "scope": "Referências públicas de risco. Os 19 relatórios são uma taxonomia do projeto, não a lista completa oficial HRP. Priors, likelihood ratios e limiares dos cenários são parâmetros sintéticos de engenharia, sem validação clínica.",
+  "sources": [
+    {
+      "source_id": "NASA-SANS",
+      "title": "Spaceflight Associated Neuro-ocular Syndrome",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-spaceflight-associated-neuro-ocular-syndrome-sans/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-CARDIO",
+      "title": "Cardiovascular Adaptations",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-cardiovascular-adaptations/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-BONE",
+      "title": "Spaceflight-induced Bone Changes",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-spaceflight-induced-bone-changes/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-FITNESS",
+      "title": "Reduced Cardiorespiratory and Musculoskeletal Fitness",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-reduced-cardiorespiratory-and-musculoskeletal-fitness/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-SENSORIMOTOR",
+      "title": "Altered Sensorimotor and Vestibular Function",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-altered-sensorimotor-and-vestibular-function/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-HYPOXIA",
+      "title": "Hypoxia",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-hypoxia/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-EVA",
+      "title": "Injury and Compromised Performance from EVA",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-injury-and-compromised-performance-from-extravehicular-activity-eva/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-DCS",
+      "title": "Decompression Sickness",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-decompression-sickness/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-URINARY",
+      "title": "Fundamentals of Human Health",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/fundamentals-of-human-health/",
+      "section": "Urinary Health",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-IMMUNE",
+      "title": "Altered Immune System Responses",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-altered-immune-system-responses/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-CNS",
+      "title": "Space Radiation Element",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/about-the-space-radiation-element/",
+      "section": "Central nervous system and degenerative tissue risks",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "CSA-RADIATION",
+      "title": "How does radiation affect the human body in space?",
+      "publisher": "Canadian Space Agency",
+      "url": "https://www.asc-csa.gc.ca/eng/astronauts/space-medicine/radiation.asp",
+      "section": "Effects of space radiation",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-SLEEP",
+      "title": "Inadequate Sleep and Irregular Schedules",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-from-inadequate-sleep-and-irregular-schedules/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-BEHAVIOR",
+      "title": "Behavioral Conditions and Psychiatric Disorders",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-behavioral-conditions-and-psychiatric-disorders/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-NUTRITION",
+      "title": "Inadequate Food and Nutrition",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-inadequate-food-and-nutrition/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-IRON",
+      "title": "Human Adaptation to Spaceflight",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/wp-content/uploads/2023/04/human-adaptation-2020-final.pdf",
+      "section": "Nutrition: iron metabolism and red blood cells",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-MICROBIOME",
+      "title": "Host-Microorganism Interactions",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-host-microorganism-interactions/",
+      "section": "What are the top risks? / What can be done about it?",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-ONE-CARBON",
+      "title": "One-Carbon Metabolism and SANS: 2022 Update",
+      "publisher": "NASA",
+      "url": "https://ntrs.nasa.gov/citations/20220000513",
+      "section": "Abstract; research association, not an approved treatment",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-RADIATION-CANCER",
+      "title": "Risk of Radiation-Induced Cancers",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-radiation-induced-cancers/",
+      "section": "Risk overview",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-TEAM",
+      "title": "Risk of Inadequate Teamwork",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-inadequate-teamwork/",
+      "section": "Risk overview",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-EARTH",
+      "title": "Risk of Inadequate Systems Operations Support",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-inadequate-systems-operations-support/",
+      "section": "Risk overview",
+      "reviewed_on": "2026-11-14"
+    }
+  ],
+  "hazards": [
+    {
+      "hazard_id": "GRAVITY_FIELDS",
+      "name": "Campos de gravidade"
+    },
+    {
+      "hazard_id": "SPACE_RADIATION",
+      "name": "Radiação espacial"
+    },
+    {
+      "hazard_id": "ISOLATION_CONFINEMENT",
+      "name": "Isolamento e confinamento"
+    },
+    {
+      "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+      "name": "Ambiente fechado e hostil"
+    },
+    {
+      "hazard_id": "DISTANCE_FROM_EARTH",
+      "name": "Distância da Terra"
+    }
+  ]
+}

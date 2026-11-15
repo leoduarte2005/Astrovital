@@ -7,6 +7,7 @@
 #   ./scripts/run_stack.sh --scenario hypercapnia
 #   ./scripts/run_stack.sh --real-cluster --http-addr :8000
 #   ./scripts/run_stack.sh --no-build --smoke-seconds 5
+#   ./scripts/run_stack.sh --no-slm   # pula download do modelo SLM (~1.1 GB)
 
 set -euo pipefail
 
@@ -24,6 +25,7 @@ CENTRAL_LOG="$VAR_DIR/central.log"
 
 SCENARIO=""
 NO_BUILD=0
+NO_SLM=0
 REAL_CLUSTER=0
 HTTP_ADDR="127.0.0.1:8000"
 IPC_ADDR="127.0.0.1:5006"
@@ -35,6 +37,7 @@ while [[ $# -gt 0 ]]; do
         --scenario|-s)       SCENARIO="${2:-}"; shift 2 ;;
         --scenario=*)        SCENARIO="${1#*=}"; shift ;;
         --no-build)          NO_BUILD=1; shift ;;
+        --no-slm)            NO_SLM=1; shift ;;
         --real-cluster)      REAL_CLUSTER=1; shift ;;
         --http-addr)         HTTP_ADDR="${2:-}"; shift 2 ;;
         --http-addr=*)       HTTP_ADDR="${1#*=}"; shift ;;
@@ -45,7 +48,7 @@ while [[ $# -gt 0 ]]; do
         --smoke-seconds)     SMOKE_SECONDS="${2:-0}"; shift 2 ;;
         --smoke-seconds=*)   SMOKE_SECONDS="${1#*=}"; shift ;;
         -h|--help)
-            sed -n '2,10p' "$0" | sed 's/^# \{0,1\}//'
+            sed -n '2,11p' "$0" | sed 's/^# \{0,1\}//'
             exit 0
             ;;
         *)
@@ -173,6 +176,26 @@ else
     step "modelos .onnx OK (${#MODELS[@]}/${#MODELS[@]})"
 fi
 
+# 2b. SLM conversacional: runtime llama-cpp-python + modelo GGUF (~1.1 GB, fora do Git)
+if [[ "$NO_SLM" -eq 1 ]]; then
+    warn "--no-slm: SLM desativado (respostas por template deterministico)"
+    export EDGESPACE_DISABLE_SLM=1
+else
+    if ! "$PYTHON_BIN" -c 'import llama_cpp' >/dev/null 2>&1; then
+        warn "llama-cpp-python ausente - instalando (wheel CPU pre-compilada quando disponivel)"
+        "$PYTHON_BIN" -m pip install --disable-pip-version-check --prefer-binary \
+            --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cpu 'llama-cpp-python>=0.3.0' \
+            || warn "falha ao instalar llama-cpp-python; edge-ai seguira com template deterministico"
+    fi
+    if ! PYTHONPATH="$EDGE_AI_DIR/src" "$PYTHON_BIN" -m edgespace_ai.utils.model_fetch --models-dir "$MODELS_DIR" --check >/dev/null 2>&1; then
+        warn "modelo SLM ausente - baixando automaticamente do Hugging Face (~1.1 GB, so na 1a execucao)"
+        PYTHONPATH="$EDGE_AI_DIR/src" "$PYTHON_BIN" -m edgespace_ai.utils.model_fetch --models-dir "$MODELS_DIR" \
+            || warn "download do modelo SLM falhou; edge-ai seguira com template deterministico (rode de novo para retomar)"
+    else
+        step "modelo SLM OK ($MODELS_DIR/slm)"
+    fi
+fi
+
 # 3. build Go
 if [[ "$NO_BUILD" -eq 1 ]]; then
     [[ -x "$CENTRAL_BIN" ]] || { fail "--no-build mas $CENTRAL_BIN nao existe"; exit 1; }
@@ -182,6 +205,9 @@ else
     mkdir -p "$BUILD_DIR"
     (cd "$CENTRAL_DIR" && CGO_ENABLED=0 go build -o "$CENTRAL_BIN" ./cmd/edgespace-central)
 fi
+
+# Schema must be ready before the read-only worker opens SQLite.
+"$PYTHON_BIN" "$ROOT/database/tools/operational.py" migrate --db "$DB_PATH"
 
 # 4. worker IA em background
 mkdir -p "$VAR_DIR"

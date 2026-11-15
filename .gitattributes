@@ -1,0 +1,2 @@
+# Scripts POSIX devem manter LF (CRLF quebra bash na Orange Pi 4 Pro)
+*.sh text eol=lf

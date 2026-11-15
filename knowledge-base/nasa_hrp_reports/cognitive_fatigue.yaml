@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "report_id": "cognitive_fatigue",
+  "source_id": "NASA-SLEEP",
+  "hazard_id": "DISTANCE_FROM_EARTH",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Fadiga cognitiva e sobrecarga",
+  "problem": "Carga de trabalho e sono devem contextualizar lapsos em tarefas de atenção; o teste sintético não diagnostica doença.",
+  "primary_symptoms": [
+    "lapsos de atenção"
+  ],
+  "secondary_symptoms": [
+    "lentidão",
+    "sonolência"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_EXAM quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "COGNITIVE_FATIGUE",
+      "name": "Fadiga cognitiva e sobrecarga",
+      "source_id": "NASA-SLEEP",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "lapsos de atenção",
+        "lentidão",
+        "sonolência"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "cognitive_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "pvt_lapses",
+          "op": "GT",
+          "threshold_value": 5,
+          "source_sensor": "SELF_EXAM",
+          "values_json": {},
+          "likelihood_ratio": 3.6,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Houve privação de sono ou aumento de carga antes dos lapsos?",
+          "positive_concepts": [
+            "lapsos de atenção"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "cognitive_check",
+          "target_differential_ids": [
+            "SLEEP_CIRCADIAN",
+            "HYPERCAPNIA",
+            "RADIATION_CNS"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "OPERATE_CRITICAL_EQUIPMENT",
+          "guard_metric": "pvt_lapses",
+          "guard_op": "GT",
+          "guard_value": 5,
+          "rationale": "Guarda de seguran?a de engenharia: restringir opera??o de equipamentos cr?ticos quando pvt_lapses exceder o limiar de teste (> 5); requer revis?o operacional e cl?nica."
+        }
+      ],
+      "symptom_weights": {
+        "attention_lapse": 0.9,
+        "slowed_cognition": 0.85,
+        "somnolence": 0.75,
+        "fatigue": 0.8
+      },
+      "differential_ids": [
+        "SLEEP_CIRCADIAN",
+        "HYPERCAPNIA",
+        "HYPOXIA",
+        "RADIATION_CNS",
+        "BEHAVIORAL_HEALTH"
+      ],
+      "expected_biomarkers": {
+        "SELF_EXAM": {
+          "pvt_lapses": "elevated_above_baseline_fixture"
+        },
+        "SCD40": {
+          "co2_ppm": "check_to_rule_out_hypercapnia"
+        },
+        "MAX30102": {
+          "spo2_pct": "check_to_rule_out_hypoxia"
+        },
+        "LONGITUDINAL": {
+          "sleep_duration_h": "reduced_3d_to_7d_trend",
+          "deep_sleep_h": "reduced_trend"
+        }
+      },
+      "severity_thresholds": {
+        "pvt_lapses": {
+          "yellow_high": 5,
+          "red_high": 10
+        }
+      }
+    }
+  ]
+}

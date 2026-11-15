@@ -1,0 +1,69 @@
+{
+  "schema_version": 1,
+  "protocol_id": "nutrition_review",
+  "name": "Diário nutricional e hídrico",
+  "description": "Registro estruturado de apoio à avaliação; seguir o procedimento autorizado da missão.",
+  "source_id": "NASA-NUTRITION",
+  "subsystems": [
+    "IMMUNE_HEMATO_NUTRITION"
+  ],
+  "duration_s": 180,
+  "materials": [
+    "diário alimentar"
+  ],
+  "steps": [
+    "Registrar água, energia e os nutrientes previstos no formulário.",
+    "Registrar massa corporal e método quando disponíveis.",
+    "Revisar tendência de sete dias com profissional responsável; manter lacunas como ausentes."
+  ],
+  "rich_steps": [
+    {
+      "text": "Registrar água, energia e os nutrientes previstos no formulário.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Registrar massa corporal e método quando disponíveis.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    },
+    {
+      "text": "Revisar tendência de sete dias com profissional responsável; manter lacunas como ausentes.",
+      "image": null,
+      "timer_s": null,
+      "safety_note": null
+    }
+  ],
+  "result_schema": {
+    "$schema": "https://json-schema.org/draft/2020-12/schema",
+    "type": "object",
+    "properties": {
+      "water_ml": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "energy_kcal": {
+        "type": [
+          "number",
+          "null"
+        ]
+      },
+      "body_mass_kg": {
+        "type": [
+          "number",
+          "null"
+        ]
+      }
+    },
+    "additionalProperties": false
+  },
+  "linked_risks": [
+    "NUTRITION_DEFICIT",
+    "ONE_CARBON_METABOLISM"
+  ],
+  "requires_trained_operator": false
+}

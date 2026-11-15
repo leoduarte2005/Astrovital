@@ -174,6 +174,7 @@ type StoreTelemetryRecord struct {
 // StorePeripheralRecord is emitted at 1 Hz for store peripheral_readings.
 type StorePeripheralRecord struct {
 	TsUs     int64
+	CrewID   *string
 	Readings []PeripheralMeta
 }
 

@@ -1,8 +1,9 @@
-"""SQLite FTS5 (BM25, mode=ro, busy_timeout=5000) clinical store with YAML fallback."""
+"""SQLite FTS5 (BM25, mode=ro, busy_timeout=5000) clinical store."""
 
 from __future__ import annotations
 
 import re
+import json
 import sqlite3
 from dataclasses import dataclass
 from pathlib import Path
@@ -15,19 +16,24 @@ logger = get_logger("edgespace_ai.correlation.clinical_store")
 
 @dataclass(frozen=True)
 class ClinicalDocument:
-    """Clinical guideline/protocol hit returned by SQLite FTS5 or YAML fallback."""
+    """Clinical guideline/protocol hit returned by SQLite FTS5."""
 
     doc_id: str
     title: str
     subsystem: str
     snippet: str
     score: float
-    source: str  # "sqlite_fts5" | "yaml_fallback"
+    source: str  # "sqlite_fts5"
+    source_id: str = ""
 
 
 def load_yaml_file(path: Path) -> dict[str, Any]:
     """Load a YAML file using PyYAML when installed, or a built-in pure-Python YAML parser."""
     text = path.read_text(encoding="utf-8")
+    try:
+        return json.loads(text)
+    except json.JSONDecodeError:
+        pass
     try:
         import yaml  # type: ignore[import-untyped]
 
@@ -170,7 +176,7 @@ def resolve_db_path(db_path: Optional[Path | str] = None) -> Path:
 
 
 class ClinicalStore:
-    """Queries SQLite FTS5 (BM25) in read-only mode with YAML fallback."""
+    """Queries SQLite FTS5 (BM25) in read-only mode across reports and protocols."""
 
     def __init__(
         self,
@@ -179,25 +185,21 @@ class ClinicalStore:
     ) -> None:
         self._explicit_db_path = db_path is not None and Path(db_path) != DEFAULT_DB_PATH
         self.db_path = resolve_db_path(db_path)
-        default_kb = Path(__file__).resolve().parents[3] / "knowledge-base" / "nasa_causal_graph.yaml"
-        self.knowledge_base_path = Path(knowledge_base_path) if knowledge_base_path else default_kb
-        self._yaml_cache: Optional[dict[str, Any]] = None
+        self.knowledge_base_path = Path(knowledge_base_path) if knowledge_base_path else None
 
     def search(self, query: str, *, concepts: Sequence[str] = (), limit: int = 5) -> list[ClinicalDocument]:
-        """Search clinical protocols via SQLite FTS5 BM25 (mode=ro), falling back to YAML."""
+        """Search clinical reports and protocols via SQLite FTS5 BM25 (mode=ro)."""
         terms = self._build_search_terms(query, concepts)
         if not terms:
             return []
-
-        fts_hits = self._search_sqlite_fts5(terms, limit=limit)
-        if fts_hits:
-            return fts_hits
-        return self._search_yaml_fallback(terms, limit=limit)
+        return self._search_sqlite_fts5(terms, limit=limit)
 
     def _search_sqlite_fts5(self, terms: Sequence[str], *, limit: int) -> list[ClinicalDocument]:
         if not self.db_path.is_file() and not self._explicit_db_path:
             self.db_path = resolve_db_path(None)
         if not self.db_path.is_file():
+            if self._explicit_db_path:
+                raise FileNotFoundError(f"SQLite clinical database not found: {self.db_path}")
             return []
 
         uri = f"file:{self.db_path.resolve().as_posix()}?mode=ro"
@@ -206,16 +208,25 @@ class ClinicalStore:
             conn = sqlite3.connect(uri, uri=True, timeout=5.0)
             conn.execute("PRAGMA busy_timeout = 5000;")
 
-            fts_tables = conn.execute(
-                "SELECT name, sql FROM sqlite_master WHERE type='table' AND lower(sql) LIKE '%fts5%'"
-            ).fetchall()
-            if not fts_tables:
+            existing_fts = {
+                row[0]
+                for row in conn.execute(
+                    "SELECT name FROM sqlite_master WHERE type='table' AND lower(sql) LIKE '%fts5%'"
+                ).fetchall()
+            }
+            if not existing_fts:
                 return []
 
-            match_expr = " OR ".join(f'"{t}"' for t in terms[:12])
-            results: list[ClinicalDocument] = []
+            preferred_order = ["clinical_reports_fts", "protocols_fts"]
+            ordered_tables = [t for t in preferred_order if t in existing_fts] + [
+                t for t in sorted(existing_fts) if t not in preferred_order
+            ]
 
-            for table_name, _ in fts_tables:
+            match_expr = " OR ".join(f'"{t}"' for t in terms[:12])
+            per_table_limit = max(limit * 3, 10)
+            fused_by_id: dict[str, ClinicalDocument] = {}
+
+            for table_name in ordered_tables:
                 cols_info = conn.execute(f'PRAGMA table_info("{table_name}")').fetchall()
                 col_names = [row[1] for row in cols_info]
                 if not col_names:
@@ -227,16 +238,18 @@ class ClinicalStore:
                     f"ORDER BY score LIMIT ?"
                 )
                 try:
-                    rows = conn.execute(sql, (match_expr, limit)).fetchall()
+                    rows = conn.execute(sql, (match_expr, per_table_limit)).fetchall()
                 except sqlite3.OperationalError:
                     continue
 
+                table_raw: list[tuple[ClinicalDocument, float]] = []
                 for row in rows:
                     rowid = row[0]
                     bm25_score = float(row[1])
                     col_values = dict(zip(col_names, row[2:]))
                     doc_id = str(
                         col_values.get("protocol_id")
+                        or col_values.get("report_id")
                         or col_values.get("id")
                         or col_values.get("source_id")
                         or f"{table_name}:{rowid}"
@@ -245,83 +258,91 @@ class ClinicalStore:
                     subsystem = str(col_values.get("subsystem") or col_values.get("subsystems") or "")
                     snippet = str(
                         col_values.get("description")
+                        or col_values.get("problem")
+                        or col_values.get("content_text")
                         or col_values.get("content")
                         or col_values.get("steps")
+                        or col_values.get("steps_json")
                         or title
                     )
-                    results.append(
+                    source_id = str(col_values.get("source_id") or "")
+                    if col_values.get("report_id"):
+                        ref = conn.execute(
+                            "SELECT source_id, payload_json, category FROM clinical_reports WHERE report_id=?",
+                            (doc_id,),
+                        ).fetchone()
+                        if ref:
+                            if ref[2] == "HAZARD":
+                                continue
+                            source_id = str(ref[0] or source_id)
+                    raw_pos = max(1e-9, -bm25_score)
+                    table_raw.append((
                         ClinicalDocument(
                             doc_id=doc_id,
                             title=title,
                             subsystem=subsystem,
                             snippet=snippet[:280],
-                            score=-bm25_score,  # lower bm25 is better match in SQLite FTS5
+                            score=raw_pos,
                             source="sqlite_fts5",
-                        )
-                    )
-                if results:
-                    break
+                            source_id=source_id,
+                        ),
+                        raw_pos,
+                    ))
 
+                if not table_raw:
+                    continue
+                max_pos = max(s for _, s in table_raw)
+                min_pos = min(s for _, s in table_raw)
+                span = max_pos - min_pos
+                for doc, raw_pos in table_raw:
+                    norm = 1.0 if span <= 1e-12 else 0.2 + 0.8 * ((raw_pos - min_pos) / span)
+                    normalized_doc = ClinicalDocument(
+                        doc_id=doc.doc_id,
+                        title=doc.title,
+                        subsystem=doc.subsystem,
+                        snippet=doc.snippet,
+                        score=norm,
+                        source="sqlite_fts5",
+                        source_id=doc.source_id,
+                    )
+                    prev = fused_by_id.get(doc.doc_id)
+                    if prev is None or normalized_doc.score > prev.score:
+                        fused_by_id[doc.doc_id] = normalized_doc
+
+            results = list(fused_by_id.values())
             results.sort(key=lambda d: d.score, reverse=True)
             return results[:limit]
         except Exception as exc:
-            logger.debug("sqlite fts5 query skipped/fallback", extra={"err": str(exc)})
-            return []
+            raise RuntimeError("SQLite clinical search failed") from exc
         finally:
             if conn is not None:
                 conn.close()
 
-    def _search_yaml_fallback(self, terms: Sequence[str], *, limit: int) -> list[ClinicalDocument]:
-        if self._yaml_cache is None:
-            if not self.knowledge_base_path.is_file():
-                return []
-            self._yaml_cache = load_yaml_file(self.knowledge_base_path)
+    _CONCEPT_SEARCH_EXPANSIONS: dict[str, tuple[str, ...]] = {
+        "muscle_pain": ("muscular", "muscle", "fitness", "ared", "ossea", "bone"),
+        "muscle_weakness": ("fraqueza", "weakness", "fitness", "muscular", "ared"),
+        "limb_swelling": ("cardiovascular", "fluid", "edema", "dcs", "stasis"),
+        "bone_pain": ("ossea", "bone", "renal", "ared"),
+        "orthostatic_intolerance": ("ortostatica", "orthostatic", "fluid", "cardiovascular"),
+        "joint_pain": ("articular", "joint", "dcs", "iron"),
+        "abdominal_pain": ("abdominal", "gi", "nutrition", "microbiome"),
+    }
 
-        conditions = self._yaml_cache.get("conditions", [])
-        if not isinstance(conditions, list):
-            return []
-
-        scored: list[ClinicalDocument] = []
-        term_set = {t.lower() for t in terms}
-
-        for cond in conditions:
-            if not isinstance(cond, dict):
-                continue
-            haystack = " ".join(
-                [
-                    str(cond.get("id", "")),
-                    str(cond.get("name", "")),
-                    str(cond.get("source_id", "")),
-                    str(cond.get("subsystem", "")),
-                    " ".join(str(k) for k in (cond.get("symptoms") or {}).keys()),
-                    " ".join(str(c) for c in (cond.get("countermeasures") or [])),
-                ]
-            ).lower()
-
-            hits = sum(1 for t in term_set if t in haystack)
-            if hits > 0:
-                scored.append(
-                    ClinicalDocument(
-                        doc_id=str(cond.get("source_id") or cond.get("id")),
-                        title=str(cond.get("name") or cond.get("id")),
-                        subsystem=str(cond.get("subsystem") or ""),
-                        snippet="; ".join(str(c) for c in (cond.get("countermeasures") or [])[:2]),
-                        score=float(hits),
-                        source="yaml_fallback",
-                    )
-                )
-
-        scored.sort(key=lambda d: d.score, reverse=True)
-        return scored[:limit]
-
-    @staticmethod
-    def _build_search_terms(query: str, concepts: Sequence[str]) -> list[str]:
+    @classmethod
+    def _build_search_terms(cls, query: str, concepts: Sequence[str]) -> list[str]:
         tokens = re.findall(r"\w{3,}", query.lower())
+        expanded: list[str] = []
+        for c in concepts:
+            clean_c = c.strip().lower()
+            if clean_c:
+                expanded.append(clean_c)
+                expanded.extend(clean_c.split("_"))
+                expanded.extend(cls._CONCEPT_SEARCH_EXPANSIONS.get(clean_c, ()))
         merged: list[str] = []
         seen: set[str] = set()
-        for item in [*concepts, *tokens]:
+        for item in [*expanded, *tokens]:
             clean = item.strip().lower()
-            if clean and clean not in seen:
+            if clean and len(clean) >= 3 and clean not in seen:
                 seen.add(clean)
                 merged.append(clean)
         return merged

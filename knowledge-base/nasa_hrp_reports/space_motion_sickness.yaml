@@ -1,0 +1,121 @@
+{
+  "schema_version": 1,
+  "report_id": "space_motion_sickness",
+  "source_id": "NASA-SENSORIMOTOR",
+  "hazard_id": "GRAVITY_FIELDS",
+  "category": "PHYSIOLOGICAL",
+  "title": "Adaptação sensório-motora e SAS",
+  "problem": "Mudanças gravitacionais podem causar sintomas vestibulares e prejudicar tarefas operacionais.",
+  "primary_symptoms": [
+    "náusea",
+    "desorientação"
+  ],
+  "secondary_symptoms": [
+    "tontura"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "SELF_REPORT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "SPACE_MOTION_SICKNESS",
+      "name": "Adaptação sensório-motora e SAS",
+      "source_id": "NASA-SENSORIMOTOR",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "náusea",
+        "desorientação",
+        "tontura"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "nausea_score",
+          "op": "GE",
+          "threshold_value": 7,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.9,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Os sintomas começaram após transição gravitacional ou movimentação da cabeça?",
+          "positive_concepts": [
+            "náusea",
+            "desorientação"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "RADIATION_ACUTE",
+            "ORTHOSTATIC_INTOLERANCE",
+            "HYPERCAPNIA"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "OPERATE_CRITICAL_EQUIPMENT",
+          "guard_metric": "disorientation",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de seguran?a de engenharia: restringir opera??o de equipamentos cr?ticos durante desorienta??o vestibular ativa (disorientation == 1) at? estabiliza??o cl?nica."
+        }
+      ],
+      "symptom_weights": {
+        "nausea": 0.95,
+        "disorientation": 0.9,
+        "dizziness": 0.85,
+        "malaise": 0.65
+      },
+      "differential_ids": [
+        "RADIATION_ACUTE",
+        "ORTHOSTATIC_INTOLERANCE",
+        "HYPERCAPNIA",
+        "DEHYDRATION"
+      ],
+      "expected_biomarkers": {
+        "ESP32_CSI": {
+          "posture_and_motion": "head_movement_or_g_transition_context"
+        },
+        "LONGITUDINAL": {
+          "mission_day": "early_flight_or_gravity_transition_window"
+        },
+        "MISSION_CONTEXT": {
+          "radiation_spe_alert": "absent_to_distinguish_from_radiation_prodrome"
+        }
+      },
+      "severity_thresholds": {
+        "nausea_score": {
+          "yellow_high": 7,
+          "red_high": 9
+        }
+      }
+    }
+  ]
+}

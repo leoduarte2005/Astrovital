@@ -23,8 +23,13 @@ class Settings(BaseSettings):
     ai_host: str = Field(default="127.0.0.1", description="TCP bind host for IPC server")
     ai_port: int = Field(default=5006, ge=0, le=65535, description="TCP bind port for IPC server")
     models_dir: Path = Field(default=Path("./models"), description="Directory containing ONNX models")
-    db_path: Path = Field(default=Path("../data/edgespace.db"), description="SQLite database path")
+    db_path: Path = Field(default=Path(__file__).resolve().parents[4] / "var/edgespace.db", description="SQLite database path")
     ort_threads: int = Field(default=2, ge=1, le=64, description="ONNX Runtime intra-op thread count")
+    disable_slm: bool = Field(default=False, description="Disable local GGUF SLM conversational synthesizer")
+    slm_auto_download: bool = Field(
+        default=True,
+        description="Download the default GGUF model into <models_dir>/slm on first run if missing",
+    )
 
     log_level: str = Field(default="INFO", description="Structured log level")
     ipc_hi_pri_cap: int = Field(default=64, ge=1, description="High-priority queue capacity")

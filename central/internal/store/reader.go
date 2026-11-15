@@ -28,6 +28,32 @@ func (s *Store) Health(ctx context.Context) error {
 // ListCrew implements Reader. Depends on M1 table crew_profiles(crew_id, name);
 // if the table or either column is absent it returns the fallback crew list.
 func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
+	if s.operational {
+		rows, err := s.readerDB.QueryContext(ctx, `
+			SELECT crew_id, name, COALESCE(role,''), COALESCE(mission_day,0),
+			       COALESCE(calibration_status,'REQUIRES_CALIBRATION'), COALESCE(sample_count,0)
+			FROM v_active_crew_baselines
+			ORDER BY crew_id`)
+		if err != nil {
+			return nil, fmt.Errorf("store: list crew from v_active_crew_baselines: %w", err)
+		}
+		defer rows.Close()
+
+		out := []contracts.CrewSummary{}
+		for rows.Next() {
+			var c contracts.CrewSummary
+			var calibrationStatus string
+			var sampleCount int64
+			if err := rows.Scan(&c.CrewID, &c.Name, &c.Role, &c.MissionDay, &calibrationStatus, &sampleCount); err != nil {
+				return nil, fmt.Errorf("store: scan crew: %w", err)
+			}
+			calibrated := (calibrationStatus == "READY" || calibrationStatus == "SYNTHETIC_SEED") && sampleCount > 0
+			c.CalibrationRequired = !calibrated
+			out = append(out, c)
+		}
+		return out, rows.Err()
+	}
+
 	cols, err := s.tableCols(ctx, "crew_profiles")
 	if err != nil {
 		return nil, fmt.Errorf("store: inspect crew_profiles: %w", err)

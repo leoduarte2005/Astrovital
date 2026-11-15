@@ -7,3 +7,18 @@ __pycache__/
 
 # Snapshot completo de pesquisa: mantido localmente e distribuído separadamente.
 /database/space_health_sqlite/space_health.db
+
+# Modelos SLM (GGUF > 100 MB, limite do GitHub) e cache: baixar localmente.
+/edge-ai/models/slm/
+*.gguf
+
+# Backups de editor/build
+*~
+
+/firmware/build/
+**/.venv/
+**/node_modules/
+**/.pytest_cache/
+**/*.egg-info/
+*.py[cod]
+/frontend/dist/

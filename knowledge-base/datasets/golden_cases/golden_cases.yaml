@@ -1,162 +1,707 @@
-version: 1
-description: Golden cases sintéticos para o motor de correlação causal. Nenhum dado real identificável.
-generation:
-  method: authored_manually
-  random_seed: null
-  reference_graph: edge-ai/knowledge-base/nasa_causal_graph.yaml
-cases:
-  - id: GC-01-HYPERCAPNIA
-    title: Cefaleia + CO2 alto + Amsler normal
-    input:
-      symptoms:
-        - headache
-        - dizziness
-      sensor_snapshot:
-        co2_ppm: 2100.0
-        respiration_hz: 0.34
-        heart_rate_bpm: 88.0
-        spo2_pct: 97.0
-        mission_day: 42
-        posture: upright
-        anomaly_score: 0.35
-      history:
-        crew_id: crew_001
-        mission_day: 42
-        recent_co2_trend: rising_2h
-      self_exam:
-        amsler_grid:
-          status: normal
-          scotomas: false
-    expected:
-      top1_hypothesis: hypercapnia_co2
-      mission_mode: MODE_REST_VITALS
-      countermeasures:
-        - Verificar SCD40 e depuradores CDRA/LiOH
-        - Aumentar ventilação local da cabine
-        - Reduzir esforço até CO2 < 1000 ppm
-      escalation: CREW
-      actions:
-        - OPEN_VENTILATION_CHECK
-        - INSPECT_CDRA_SCRUBBER
-        - MONITOR_SCD40
-      linked_protocols:
-        - amsler_grid
-      min_top1_posterior: 0.5
-  - id: GC-02-SANS-VIIP
-    title: Cefaleia + visão turva + Amsler alterado + CO2 normal
-    input:
-      symptoms:
-        - headache
-        - blurred_vision
-      sensor_snapshot:
-        co2_ppm: 620.0
-        respiration_hz: 0.22
-        heart_rate_bpm: 66.0
-        spo2_pct: 98.0
-        mission_day: 90
-        posture: supine
-        anomaly_score: 0.55
-      history:
-        crew_id: crew_002
-        mission_day: 90
-        recent_co2_trend: stable
-      self_exam:
-        amsler_grid:
-          status: altered
-          scotomas: false
-          distorted_quadrants:
-            - superotemporal
-    expected:
-      top1_hypothesis: sans_viip
-      mission_mode: MODE_CABIN_TOMOGRAPHY
-      countermeasures:
-        - Thigh Cuffs (Braslet) ou LBNP
-        - Ultrassom ONSD bilateral
-        - Complexo B (folato, B6, B12)
-      escalation: CREW
-      actions:
-        - OPEN_AMSLER_GRID
-        - LOG_SELF_EXAM
-        - CHECK_FLUID_SHIFT_PROTOCOL
-      linked_protocols:
-        - amsler_grid
-        - ultrasound_onsd
-        - capillary_blood
-      min_top1_posterior: 0.5
-  - id: GC-03-FATIGUE-DEHYDRATION
-    title: Cefaleia + sono curto + HRV baixo + hidratação baixa
-    input:
-      symptoms:
-        - headache
-        - fatigue
-        - insomnia
-      sensor_snapshot:
-        co2_ppm: 700.0
-        respiration_hz: 0.24
-        heart_rate_bpm: 80.0
-        hrv_ms: 24.0
-        sleep_duration_h: 4.5
-        hydration_index: 0.35
-        temp_c: 36.8
-        mission_day: 60
-        posture: upright
-        anomaly_score: 0.45
-      history:
-        crew_id: crew_003
-        mission_day: 60
-        sleep_trend: declining_5d
-      self_exam:
-        amsler_grid:
-          status: normal
-          scotomas: false
-    expected:
-      top1_hypothesis: sleep_immune_deprivation
-      mission_mode: MODE_REST_VITALS
-      countermeasures:
-        - 'Nutrition SMO: hidratação e plano alimentar'
-        - Ajuste circadiano (luz e horários de repouso)
-        - Suspender estimulantes 6h antes do sono
-      escalation: LOCAL
-      actions:
-        - ADJUST_LIGHTING_CIRCADIAN
-        - LOG_SLEEP_REST
-        - CHECK_HRV_TREND
-      linked_protocols:
-        - temperature
-      min_top1_posterior: 0.4
-  - id: GC-04-SPE-RADIATION-ALERT
-    title: Evento SPE + HRV em queda
-    input:
-      symptoms:
-        - nausea
-        - fatigue
-        - malaise
-      sensor_snapshot:
-        co2_ppm: 800.0
-        heart_rate_bpm: 92.0
-        hrv_ms: 22.0
-        spo2_pct: 97.0
-        radiation_context: 1.0
-        mission_day: 120
-        posture: upright
-        anomaly_score: 0.6
-      history:
-        crew_id: crew_001
-        mission_day: 120
-        spe_alert: true
-        hrv_trend: falling_30min
-      self_exam: {}
-    expected:
-      top1_hypothesis: radiation_ros
-      mission_mode: MODE_RADIATION_ALERT
-      countermeasures:
-        - Abrigo de maior blindagem (storm shelter / water wall)
-        - Vitaminas C e E (antioxidantes)
-        - Verificar dosímetros e monitorar sinais vitais
-      escalation: STORE_AND_FORWARD
-      actions:
-        - MOVE_TO_STORM_SHELTER
-        - CHECK_DOSIMETER
-        - MONITOR_VITALS
-      linked_protocols: []
-      min_top1_posterior: 0.5
+{
+  "schema_version": 2,
+  "data_class": "SYNTHETIC",
+  "basis": "Casos de aceita??o de software; n?o valida??o cl?nica nem exemplos de diagn?stico. Entradas, limiares e expectativas s?o fixtures de engenharia.",
+  "cases": [
+    {
+      "case_id": "GC01",
+      "title": "Hipercapnia com cefaleia e Amsler normal",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "co2_ppm": 4200,
+        "amsler_abnormal": 0
+      },
+      "expected_conditions": [
+        "HYPERCAPNIA"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC02",
+      "title": "Alteração visual com CO2 normal",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "co2_ppm": 600,
+        "amsler_abnormal": 1
+      },
+      "expected_conditions": [
+        "SANS"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC03",
+      "title": "Sono curto e fadiga",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "sleep_duration_h": 4
+      },
+      "expected_conditions": [
+        "SLEEP_CIRCADIAN"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC04",
+      "title": "Evento radiativo e alteração cognitiva",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "radiation_event": 1,
+        "cognitive_change": 1
+      },
+      "expected_conditions": [
+        "RADIATION_CNS"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC05",
+      "title": "Hipóxia sintética",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "spo2_pct": 86,
+        "dyspnea": 1
+      },
+      "expected_conditions": [
+        "HYPOXIA"
+      ],
+      "expected_max_severity": "RED",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC06",
+      "title": "Dor articular pós-EVA",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "eva_recent": 1,
+        "joint_pain": 1,
+        "dcs_suspected": 1
+      },
+      "expected_conditions": [
+        "DECOMPRESSION_SICKNESS"
+      ],
+      "expected_max_severity": "RED",
+      "expected_blocked_actions": [
+        "CONTINUE_EVA"
+      ]
+    },
+    {
+      "case_id": "GC07",
+      "title": "Cólica e risco urinário",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "flank_pain": 1,
+        "renal_impairment": 1
+      },
+      "expected_conditions": [
+        "RENAL_STONES"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [
+        "POTASSIUM_CITRATE"
+      ]
+    },
+    {
+      "case_id": "GC08",
+      "title": "Declínio de medida óssea",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "bone_loss_pct": 3,
+        "suspected_fracture": 1
+      },
+      "expected_conditions": [
+        "BONE_LOSS"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [
+        "HIGH_IMPACT_EXERCISE"
+      ]
+    },
+    {
+      "case_id": "GC09",
+      "title": "Ferritina acima do limiar de teste",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "ferritin_ug_l": 650
+      },
+      "expected_conditions": [
+        "IRON_OVERLOAD"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [
+        "SUPPLEMENT_IRON"
+      ]
+    },
+    {
+      "case_id": "GC10",
+      "title": "Rash e possível reativação viral",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "rash": 1
+      },
+      "expected_conditions": [
+        "IMMUNE_VIRAL_REACTIVATION"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [
+        "SHARE_UNCLEAN_EQUIPMENT"
+      ]
+    },
+    {
+      "case_id": "GC11",
+      "title": "Sete dias de ingestão e hidratação reduzidas",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "energy_7d_mean_kcal": 1500,
+        "water_7d_mean_ml": 900,
+        "nutrition_days_observed": 7
+      },
+      "expected_conditions": [
+        "NUTRITION_DEFICIT",
+        "DEHYDRATION"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC12",
+      "title": "Taquicardia logo após ARED",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "heart_rate_bpm": 138,
+        "exercise_recent": 1
+      },
+      "expected_conditions": [
+        "EXERCISE_RECOVERY"
+      ],
+      "expected_max_severity": "GREEN",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC13",
+      "title": "Mesmo HR com baseline menor",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "heart_rate_bpm": 105,
+        "exercise_recent": 0
+      },
+      "expected_conditions": [
+        "CARDIOVASCULAR_DECONDITIONING"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC14",
+      "title": "Mesmo HR com baseline maior",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_002",
+      "metrics": {
+        "heart_rate_bpm": 105,
+        "exercise_recent": 0
+      },
+      "expected_conditions": [],
+      "expected_max_severity": "GREEN",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC15",
+      "title": "Leituras ausentes permanecem desconhecidas",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "spo2_pct": null,
+        "co2_ppm": null,
+        "heart_rate_bpm": null
+      },
+      "expected_conditions": [],
+      "expected_max_severity": "GREEN",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC16",
+      "title": "Intolerância ortostática com contexto",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "postural_sbp_drop_mmhg": 24,
+        "dizziness": 1
+      },
+      "expected_conditions": [
+        "ORTHOSTATIC_INTOLERANCE"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC17",
+      "title": "Queda funcional de força",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "strength_decline_pct": 20
+      },
+      "expected_conditions": [
+        "MUSCLE_DECONDITIONING"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC18",
+      "title": "Adaptação vestibular",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "nausea_score": 8,
+        "disorientation": 1
+      },
+      "expected_conditions": [
+        "SPACE_MOTION_SICKNESS"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC19",
+      "title": "Bem-estar solicita apoio",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "distress_score": 9,
+        "requests_help": 1
+      },
+      "expected_conditions": [
+        "BEHAVIORAL_HEALTH"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC20",
+      "title": "Lapsos de atenção",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "pvt_lapses": 8
+      },
+      "expected_conditions": [
+        "COGNITIVE_FATIGUE"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC21",
+      "title": "Hemoglobina cai com ferritina alta",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "hemoglobin_drop_g_dl": 2.5,
+        "ferritin_ug_l": 650
+      },
+      "expected_conditions": [
+        "INFLIGHT_ANEMIA",
+        "IRON_OVERLOAD"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [
+        "SUPPLEMENT_IRON"
+      ]
+    },
+    {
+      "case_id": "GC22",
+      "title": "Sintoma gastrointestinal",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "diarrhea": 1,
+        "clinical_authorization": 0
+      },
+      "expected_conditions": [
+        "MICROBIOME_GI"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [
+        "START_ANTIBIOTIC"
+      ]
+    },
+    {
+      "case_id": "GC23",
+      "title": "Revisão da via de um carbono",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "one_carbon_review_required": 1,
+        "clinical_authorization": 0
+      },
+      "expected_conditions": [
+        "ONE_CARBON_METABOLISM"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [
+        "HIGH_DOSE_B_COMPLEX"
+      ]
+    },
+    {
+      "case_id": "GC24",
+      "title": "Ausência de contexto pós-EVA não implica DCS",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "eva_recent": 0,
+        "joint_pain": 1
+      },
+      "expected_conditions": [],
+      "expected_max_severity": "GREEN",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC25",
+      "title": "Histórico insuficiente de nutrição",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "energy_7d_mean_kcal": 1500,
+        "water_7d_mean_ml": 900,
+        "nutrition_days_observed": 2
+      },
+      "expected_conditions": [],
+      "expected_max_severity": "GREEN",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC27",
+      "title": "Multi-sintoma: dist?bio visual com CO2 normal e ONSD acima da linha de base",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "co2_ppm": 600,
+        "amsler_abnormal": 1,
+        "onsd_mm": 5.2
+      },
+      "expected_conditions": [
+        "SANS"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC28",
+      "title": "Multi-sintoma: CO2 alto com Amsler normal e ONSD estavel",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_002",
+      "metrics": {
+        "co2_ppm": 4200,
+        "amsler_abnormal": 0,
+        "onsd_mm": 4.7
+      },
+      "expected_conditions": [
+        "HYPERCAPNIA"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC29",
+      "title": "Multi-sintoma: CO2 alto e Amsler anormal expoem SANS e HYPERCAPNIA juntas",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "co2_ppm": 4200,
+        "amsler_abnormal": 1
+      },
+      "expected_conditions": [
+        "HYPERCAPNIA",
+        "SANS"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": []
+    },
+    {
+      "case_id": "GC30",
+      "title": "DCS vs pos-ARED: dor articular com EVA recente",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_002",
+      "metrics": {
+        "eva_recent": 1,
+        "joint_pain": 1,
+        "dcs_suspected": 1,
+        "exercise_recent": 0,
+        "heart_rate_bpm": 105
+      },
+      "expected_conditions": [
+        "DECOMPRESSION_SICKNESS"
+      ],
+      "expected_max_severity": "RED",
+      "expected_blocked_actions": [
+        "CONTINUE_EVA"
+      ]
+    },
+    {
+      "case_id": "GC31",
+      "title": "DCS vs pos-ARED: mesma dor articular sem EVA e com exercicio recente",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_001",
+      "metrics": {
+        "eva_recent": 0,
+        "joint_pain": 1,
+        "exercise_recent": 1,
+        "heart_rate_bpm": 138
+      },
+      "expected_conditions": [
+        "EXERCISE_RECOVERY"
+      ],
+      "expected_max_severity": "GREEN",
+      "expected_blocked_actions": [],
+      "forbidden_blocked_actions": [
+        "CONTINUE_EVA"
+      ]
+    },
+    {
+      "case_id": "GC32",
+      "title": "Anemia com ferritina 650 bloqueia SUPPLEMENT_IRON",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_003",
+      "metrics": {
+        "hemoglobin_drop_g_dl": 2.5,
+        "ferritin_ug_l": 650
+      },
+      "expected_conditions": [
+        "INFLIGHT_ANEMIA",
+        "IRON_OVERLOAD"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [
+        "SUPPLEMENT_IRON"
+      ]
+    },
+    {
+      "case_id": "GC33",
+      "title": "Anemia com ferritina 120 nao bloqueia SUPPLEMENT_IRON",
+      "data_class": "SYNTHETIC",
+      "crew_id": "crew_002",
+      "metrics": {
+        "hemoglobin_drop_g_dl": 2.5,
+        "ferritin_ug_l": 120
+      },
+      "expected_conditions": [
+        "INFLIGHT_ANEMIA"
+      ],
+      "expected_max_severity": "YELLOW",
+      "expected_blocked_actions": [],
+      "forbidden_blocked_actions": [
+        "SUPPLEMENT_IRON"
+      ]
+    }
+  ],
+  "crew_cases": [
+    {
+      "case_id": "GC26",
+      "title": "Mesmo input (HR 102, CO2 1400, ONSD 5.1) gera saidas distintas por astronauta",
+      "data_class": "SYNTHETIC",
+      "require_distinct_outputs": true,
+      "metrics": {
+        "heart_rate_bpm": 102,
+        "co2_ppm": 1400,
+        "onsd_mm": 5.1,
+        "exercise_recent": 0
+      },
+      "crews": {
+        "crew_001": {
+          "expected_conditions": [
+            "CARDIOVASCULAR_DECONDITIONING",
+            "SANS"
+          ],
+          "expected_max_severity": "YELLOW",
+          "expected_blocked_actions": []
+        },
+        "crew_002": {
+          "expected_conditions": [],
+          "expected_max_severity": "GREEN",
+          "expected_blocked_actions": []
+        },
+        "crew_003": {
+          "expected_conditions": [
+            "CARDIOVASCULAR_DECONDITIONING"
+          ],
+          "expected_max_severity": "YELLOW",
+          "expected_blocked_actions": []
+        }
+      }
+    },
+    {
+      "case_id": "GC34",
+      "title": "Longitudinal: sono medio de 7 dias abaixo do limiar de teste",
+      "data_class": "SYNTHETIC",
+      "longitudinal": {
+        "sleep_duration_h": {
+          "field": "sleep_duration_h",
+          "days": 7,
+          "agg": "mean"
+        }
+      },
+      "metrics": {},
+      "crews": {
+        "crew_001": {
+          "expected_conditions": [
+            "SLEEP_CIRCADIAN"
+          ],
+          "expected_max_severity": "YELLOW",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "sleep_duration_h": {
+              "lt": 5.0
+            }
+          }
+        },
+        "crew_002": {
+          "expected_conditions": [],
+          "expected_max_severity": "GREEN",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "sleep_duration_h": {
+              "gt": 5.0
+            }
+          }
+        },
+        "crew_003": {
+          "expected_conditions": [],
+          "expected_max_severity": "GREEN",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "sleep_duration_h": {
+              "gt": 5.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "GC35",
+      "title": "Longitudinal: deficit calorico em 7 dias com perda de massa em 30 dias",
+      "data_class": "SYNTHETIC",
+      "longitudinal": {
+        "energy_7d_mean_kcal": {
+          "field": "energy_kcal_total",
+          "days": 7,
+          "agg": "mean"
+        },
+        "water_7d_mean_ml": {
+          "field": "water_ml_total",
+          "days": 7,
+          "agg": "mean"
+        },
+        "nutrition_days_observed": {
+          "field": "energy_kcal_total",
+          "days": 7,
+          "agg": "count"
+        },
+        "body_mass_delta_30d_kg": {
+          "field": "body_mass_kg",
+          "days": 30,
+          "agg": "delta"
+        }
+      },
+      "metrics": {},
+      "crews": {
+        "crew_001": {
+          "expected_conditions": [],
+          "expected_max_severity": "GREEN",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "body_mass_delta_30d_kg": {
+              "gt": -1.0
+            }
+          }
+        },
+        "crew_002": {
+          "expected_conditions": [
+            "NUTRITION_DEFICIT"
+          ],
+          "expected_max_severity": "YELLOW",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "body_mass_delta_30d_kg": {
+              "lt": -2.0
+            }
+          }
+        },
+        "crew_003": {
+          "expected_conditions": [],
+          "expected_max_severity": "GREEN",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "body_mass_delta_30d_kg": {
+              "gt": -1.0
+            }
+          }
+        }
+      }
+    },
+    {
+      "case_id": "GC36",
+      "title": "Longitudinal: radiacao acumulada em 30 dias",
+      "data_class": "SYNTHETIC",
+      "longitudinal": {
+        "radiation_dose_30d_msv": {
+          "field": "radiation_dose_msv",
+          "days": 30,
+          "agg": "sum"
+        }
+      },
+      "metrics": {},
+      "crews": {
+        "crew_001": {
+          "expected_conditions": [
+            "RADIATION_CANCER_RISK"
+          ],
+          "expected_max_severity": "YELLOW",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "radiation_dose_30d_msv": {
+              "gt": 5.0
+            }
+          }
+        },
+        "crew_002": {
+          "expected_conditions": [],
+          "expected_max_severity": "GREEN",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "radiation_dose_30d_msv": {
+              "lt": 5.0
+            }
+          }
+        },
+        "crew_003": {
+          "expected_conditions": [],
+          "expected_max_severity": "GREEN",
+          "expected_blocked_actions": [],
+          "expected_longitudinal": {
+            "radiation_dose_30d_msv": {
+              "lt": 5.0
+            }
+          }
+        }
+      }
+    }
+  ]
+}

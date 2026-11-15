@@ -1,0 +1,187 @@
+{
+  "schema_version": 1,
+  "report_id": "sleep_immune_deprivation",
+  "source_id": "NASA-SLEEP",
+  "hazard_id": "ISOLATION_CONFINEMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Sono e desalinhamento circadiano",
+  "problem": "Sono insuficiente, turnos irregulares e sobrecarga podem reduzir desempenho e devem ser avaliados longitudinalmente.",
+  "primary_symptoms": [
+    "sonolência",
+    "insônia",
+    "fadiga",
+    "cefaleia",
+    "confusão",
+    "mal-estar",
+    "lesão cutânea",
+    "sono curto",
+    "hidratação baixa",
+    "fatigue",
+    "insomnia",
+    "headache",
+    "confusion",
+    "malaise",
+    "skin lesion",
+    "short sleep",
+    "low hydration",
+    "dehydration",
+    "cortisol",
+    "CRP"
+  ],
+  "secondary_symptoms": [
+    "irritabilidade",
+    "cefaleia"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "LONGITUDINAL quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "SLEEP_CIRCADIAN",
+      "name": "Sono e desalinhamento circadiano",
+      "source_id": "NASA-SLEEP",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "sonolência",
+        "insônia",
+        "irritabilidade",
+        "cefaleia",
+        "fadiga",
+        "confusão",
+        "mal-estar",
+        "lesão cutânea",
+        "sono curto",
+        "hidratação baixa",
+        "fatigue",
+        "insomnia",
+        "headache",
+        "confusion",
+        "malaise",
+        "skin lesion",
+        "short sleep",
+        "low hydration",
+        "dehydration",
+        "cortisol",
+        "CRP"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "sleep_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "sleep_duration_h",
+          "op": "LT",
+          "threshold_value": 5,
+          "source_sensor": "LONGITUDINAL",
+          "values_json": {},
+          "likelihood_ratio": 3.5,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "ROLLUP_3D",
+          "window_hours": 72,
+          "baseline_field": "preflight_sleep_h"
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "O horário de sono ou iluminação mudou nos últimos dias?",
+          "positive_concepts": [
+            "sonolência",
+            "insônia"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "sleep_review",
+          "target_differential_ids": [
+            "SANS",
+            "COGNITIVE_FATIGUE",
+            "BEHAVIORAL_HEALTH",
+            "IMMUNE_VIRAL_REACTIVATION"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_SEDATIVE",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de seguran?a de engenharia: n?o administrar sedativos sem autoriza??o cl?nica (clinical_authorization == 0) pelo risco de preju?zo cognitivo em emerg?ncia."
+        }
+      ],
+      "symptom_weights": {
+        "fatigue": 0.9,
+        "insomnia": 0.9,
+        "headache": 0.5,
+        "confusion": 0.55,
+        "malaise": 0.75,
+        "rash_infection": 0.7
+      },
+      "differential_ids": [
+        "SANS",
+        "HYPERCAPNIA",
+        "COGNITIVE_FATIGUE",
+        "BEHAVIORAL_HEALTH",
+        "IMMUNE_VIRAL_REACTIVATION"
+      ],
+      "expected_biomarkers": {
+        "LONGITUDINAL": {
+          "sleep_duration_h": "short_3d_to_7d_sleep_fixture",
+          "deep_sleep_h": "reduced_deep_sleep_trend"
+        },
+        "ESP32_CSI": {
+          "sleep_architecture": "fragmented_rest_vitals_fixture"
+        },
+        "MAX30102": {
+          "hrv_ms": "reduced_nocturnal_recovery_fixture"
+        },
+        "MISSION_CONTEXT": {
+          "light_therapy": "circadian_schedule_shift_check"
+        }
+      },
+      "severity_thresholds": {
+        "sleep_duration_h": {
+          "yellow_low": 5.5,
+          "red_low": 4.0
+        },
+        "hrv_ms": {
+          "yellow_low": 30.0,
+          "red_low": 20.0
+        }
+      }
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-SLEEP",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Performance and Behavioral Health Decrements due to Inadequate Sleep/Circadian Misalignment; BMed",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-BMed-IMMUNE"
+    },
+    "detection": [
+      "Arquitetura do sono e HRV via CSI (MODE_REST_VITALS)",
+      "Autoexame: temperatura e hidratação",
+      "Testes cognitivos curtos"
+    ]
+  },
+  "search_aliases": [
+    "insomnia",
+    "insônia"
+  ]
+}

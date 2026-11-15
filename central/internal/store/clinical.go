@@ -45,6 +45,7 @@ type Telemetry1HzRecord struct {
 
 // PeripheralReadingRecord is a 1 Hz I2C reading for peripheral_readings.
 type PeripheralReadingRecord struct {
+	CrewID *string
 	NodeID uint8
 	Type   contracts.Peripheral
 	Value  float64
@@ -236,6 +237,14 @@ func (s *Store) tableCols(ctx context.Context, table string) (map[string]bool, e
 	return cols, rows.Err()
 }
 
+// schemaError prevents an operational database from silently falling back to RAM.
+func (s *Store) schemaError(table string, err error) error {
+	if err != nil {
+		return fmt.Errorf("store: operational %s: %w", table, err)
+	}
+	return fmt.Errorf("store: operational %s is missing required columns", table)
+}
+
 func hasCols(cols map[string]bool, req ...string) bool {
 	for _, r := range req {
 		if !cols[strings.ToLower(r)] {
@@ -341,55 +350,121 @@ func (s *Store) GetCrewProfile(ctx context.Context, id string) (CrewProfileRecor
 	}
 	if hasCols(cols, "crew_id", "name") {
 		selectCols := []string{"crew_id", "name"}
-		hasRole := cols["role"]
-		hasDay := cols["mission_day"]
-		hasAge := cols["age"]
-		hasBase := cols["baseline_path"]
-		hasThresh := cols["thresholds_json"]
-		if hasRole {
-			selectCols = append(selectCols, "COALESCE(role,'')")
-		}
-		if hasDay {
-			selectCols = append(selectCols, "COALESCE(mission_day,0)")
-		}
-		if hasAge {
-			selectCols = append(selectCols, "COALESCE(age,0)")
-		}
-		if hasBase {
-			selectCols = append(selectCols, "COALESCE(baseline_path,'')")
-		}
-		if hasThresh {
-			selectCols = append(selectCols, "COALESCE(thresholds_json,'')")
-		}
-		q := fmt.Sprintf("SELECT %s FROM crew_profiles WHERE crew_id=?", strings.Join(selectCols, ","))
 		var rec CrewProfileRecord
 		var threshJSON string
 		dest := []any{&rec.Profile.CrewID, &rec.Profile.Name}
-		if hasRole {
+
+		if cols["role"] {
+			selectCols = append(selectCols, "COALESCE(role,'')")
 			dest = append(dest, &rec.Profile.Role)
 		}
-		if hasDay {
+		if cols["mission_day"] {
+			selectCols = append(selectCols, "COALESCE(mission_day,0)")
 			dest = append(dest, &rec.Profile.MissionDay)
 		}
-		if hasAge {
+		if cols["age"] {
+			selectCols = append(selectCols, "COALESCE(age,0)")
 			dest = append(dest, &rec.Profile.Age)
 		}
-		if hasBase {
+		if cols["baseline_path"] {
+			selectCols = append(selectCols, "COALESCE(baseline_path,'')")
 			dest = append(dest, &rec.BaselinePath)
 		}
-		if hasThresh {
+		if cols["thresholds_json"] {
+			selectCols = append(selectCols, "COALESCE(thresholds_json,'')")
 			dest = append(dest, &threshJSON)
 		}
+
+		type strOpt struct {
+			col string
+			dst **string
+			val sql.NullString
+		}
+		type fltOpt struct {
+			col string
+			dst **float64
+			val sql.NullFloat64
+		}
+		strOpts := []*strOpt{
+			{col: "biological_sex", dst: &rec.Profile.BiologicalSex},
+			{col: "sans_susceptibility", dst: &rec.Profile.SANSSusceptibility},
+			{col: "co2_sensitivity", dst: &rec.Profile.CO2Sensitivity},
+			{col: "motion_sickness_history", dst: &rec.Profile.MotionSicknessHistory},
+		}
+		fltOpts := []*fltOpt{
+			{col: "height_cm", dst: &rec.Profile.HeightCm},
+			{col: "preflight_weight_kg", dst: &rec.Profile.PreflightWeightKg},
+			{col: "vo2max_baseline", dst: &rec.Profile.VO2MaxBaseline},
+			{col: "preflight_hr_bpm", dst: &rec.Profile.PreflightHRBpm},
+			{col: "preflight_hrv_ms", dst: &rec.Profile.PreflightHRVMs},
+			{col: "preflight_spo2_pct", dst: &rec.Profile.PreflightSpO2Pct},
+			{col: "preflight_sbp_mmhg", dst: &rec.Profile.PreflightSBPMmHg},
+			{col: "preflight_dbp_mmhg", dst: &rec.Profile.PreflightDBPMmHg},
+			{col: "preflight_ferritin_ug_l", dst: &rec.Profile.PreflightFerritinUgL},
+			{col: "preflight_hemoglobin_g_dl", dst: &rec.Profile.PreflightHemoglobinGDl},
+			{col: "preflight_onsd_mm", dst: &rec.Profile.PreflightONSDMm},
+			{col: "target_kcal_day", dst: &rec.Profile.TargetKcalDay},
+			{col: "target_water_ml_day", dst: &rec.Profile.TargetWaterMlDay},
+			{col: "radiation_career_limit_msv", dst: &rec.Profile.RadiationCareerLimitMsv},
+		}
+		for _, o := range strOpts {
+			if cols[o.col] {
+				selectCols = append(selectCols, o.col)
+				dest = append(dest, &o.val)
+			}
+		}
+		for _, o := range fltOpts {
+			if cols[o.col] {
+				selectCols = append(selectCols, o.col)
+				dest = append(dest, &o.val)
+			}
+		}
+		var missionStart sql.NullInt64
+		if cols["mission_start_us"] {
+			selectCols = append(selectCols, "mission_start_us")
+			dest = append(dest, &missionStart)
+		}
+
+		q := fmt.Sprintf("SELECT %s FROM crew_profiles WHERE crew_id=?", strings.Join(selectCols, ","))
 		if err := s.readerDB.QueryRowContext(ctx, q, id).Scan(dest...); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return CrewProfileRecord{}, ErrNotFound
 			}
 			return CrewProfileRecord{}, err
 		}
+		for _, o := range strOpts {
+			if o.val.Valid {
+				v := o.val.String
+				*o.dst = &v
+			}
+		}
+		for _, o := range fltOpts {
+			if o.val.Valid {
+				v := o.val.Float64
+				*o.dst = &v
+			}
+		}
+		if missionStart.Valid {
+			v := missionStart.Int64
+			rec.Profile.MissionStartUs = &v
+		}
 		if threshJSON != "" {
 			_ = json.Unmarshal([]byte(threshJSON), &rec.Thresholds)
 		}
+		if s.operational {
+			var modelPath string
+			if err := s.readerDB.QueryRowContext(ctx,
+				`SELECT COALESCE(model_path,'') FROM v_active_crew_baselines WHERE crew_id=?`, id,
+			).Scan(&modelPath); err != nil {
+				return CrewProfileRecord{}, err
+			}
+			rec.BaselinePath = modelPath
+		}
 		return rec, nil
+	}
+
+	if s.operational {
+		return CrewProfileRecord{}, s.schemaError("crew_profiles", err)
 	}
 
 	s.fallback.mu.RLock()
@@ -435,6 +510,10 @@ func (s *Store) SaveTelemetry1Hz(ctx context.Context, rec Telemetry1HzRecord) er
 		}, false)
 	}
 
+	if s.operational {
+		return s.schemaError("telemetry_timeseries", err)
+	}
+
 	s.fallback.mu.Lock()
 	s.fallback.timeseries = appendBounded(s.fallback.timeseries, rec, fallbackTimeseriesCap)
 	s.fallback.mu.Unlock()
@@ -453,14 +532,21 @@ func (s *Store) SavePeripheral1Hz(ctx context.Context, tsUs int64, readings []Pe
 			if rts <= 0 {
 				rts = tsUs
 			}
-			if err := s.writeNowOrEnqueue(ctx, Exec{
-				Query: `INSERT INTO peripheral_readings(ts_us, node_id, sensor_type, value, unit) VALUES (?,?,?,?,?)`,
-				Args:  []any{rts, int(r.NodeID), string(r.Type), r.Value, r.Unit},
-			}, false); err != nil {
+			query := `INSERT INTO peripheral_readings(ts_us, node_id, sensor_type, value, unit) VALUES (?,?,?,?,?)`
+			args := []any{rts, int(r.NodeID), string(r.Type), r.Value, r.Unit}
+			if cols["crew_id"] {
+				query = `INSERT INTO peripheral_readings(ts_us, node_id, sensor_type, value, unit, crew_id) VALUES (?,?,?,?,?,?)`
+				args = append(args, nullableCrew(r.CrewID))
+			}
+			if err := s.writeNowOrEnqueue(ctx, Exec{Query: query, Args: args}, false); err != nil {
 				return err
 			}
 		}
 		return nil
+	}
+
+	if s.operational {
+		return s.schemaError("peripheral_readings", err)
 	}
 
 	s.fallback.mu.Lock()
@@ -502,6 +588,10 @@ func (s *Store) SaveAlertAndOutbox(ctx context.Context, rec AlertWriteRecord) er
 			})
 		}
 		return nil
+	}
+
+	if s.operational {
+		return s.schemaError("alerts_audit", err)
 	}
 
 	s.fallback.mu.Lock()
@@ -549,6 +639,10 @@ func (s *Store) SaveOutbox(ctx context.Context, rec contracts.OutboxRecord) erro
 			Args: []any{rec.OutboxID, rec.TsUs, string(rec.Subsystem), string(rec.Severity), rec.Message, rec.Destination, sentInt},
 		}, false)
 	}
+	if s.operational {
+		return s.schemaError("store_and_forward_outbox", err)
+	}
+
 	s.fallback.mu.Lock()
 	s.fallback.outbox = appendBounded(s.fallback.outbox, rec, fallbackOutboxCap)
 	s.fallback.mu.Unlock()
@@ -559,11 +653,34 @@ func (s *Store) SaveOutbox(ctx context.Context, rec contracts.OutboxRecord) erro
 func (s *Store) SaveSelfExam(ctx context.Context, crewID string, exam contracts.SelfExamPayload, tsUs int64) error {
 	cols, err := s.tableCols(ctx, "self_exams")
 	if err == nil && hasCols(cols, "ts_us", "crew_id", "exam_type", "result") {
+		if hasCols(cols, "protocol_id", "payload_json", "abnormal_flag") {
+			payload, err := json.Marshal(exam)
+			if err != nil {
+				return err
+			}
+			var protocolID sql.NullString
+			err = s.readerDB.QueryRowContext(ctx, `SELECT protocol_id FROM protocols WHERE protocol_id=?`, exam.ExamType).Scan(&protocolID)
+			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+				return err
+			}
+			var result struct {
+				Abnormal bool `json:"abnormal_flag"`
+			}
+			_ = json.Unmarshal([]byte(exam.Result), &result)
+			return s.writeNowOrEnqueue(ctx, Exec{
+				Query: `INSERT INTO self_exams(ts_us,crew_id,exam_type,result,observations,protocol_id,payload_json,abnormal_flag) VALUES (?,?,?,?,?,?,?,?)`,
+				Args:  []any{tsUs, crewID, exam.ExamType, exam.Result, exam.Observations, protocolID, string(payload), result.Abnormal},
+			}, false)
+		}
 		return s.writeNowOrEnqueue(ctx, Exec{
 			Query: `INSERT INTO self_exams(ts_us, crew_id, exam_type, result, observations) VALUES (?,?,?,?,?)`,
 			Args:  []any{tsUs, crewID, exam.ExamType, exam.Result, exam.Observations},
 		}, false)
 	}
+	if s.operational {
+		return s.schemaError("self_exams", err)
+	}
+
 	s.fallback.mu.Lock()
 	s.fallback.exams = appendBounded(s.fallback.exams, examLogEntry{TsUs: tsUs, CrewID: crewID, Exam: exam}, fallbackExamCap)
 	s.fallback.mu.Unlock()
@@ -574,6 +691,41 @@ func (s *Store) SaveSelfExam(ctx context.Context, crewID string, exam contracts.
 func (s *Store) SaveChatExchange(ctx context.Context, crewID string, req contracts.ChatMsgPayload, resp contracts.ChatCorrelateRespPayload, tsUs int64) error {
 	cols, err := s.tableCols(ctx, "chat_messages")
 	if err == nil && hasCols(cols, "ts_us", "crew_id", "role", "content") {
+		if cols["metadata_json"] {
+			metadata, err := json.Marshal(resp)
+			if err != nil {
+				return err
+			}
+			writes, err := s.memoryWrites(crewID, resp.MemoryUpdates, tsUs)
+			if err != nil {
+				return err
+			}
+			if cols["session_id"] {
+				var sessionID string
+				qErr := s.readerDB.QueryRowContext(ctx,
+					`SELECT session_id FROM chat_sessions WHERE crew_id=? AND ended_us IS NULL ORDER BY started_us DESC LIMIT 1`,
+					crewID,
+				).Scan(&sessionID)
+				var prefix []Exec
+				if errors.Is(qErr, sql.ErrNoRows) || sessionID == "" {
+					sessionID = fmt.Sprintf("chat-%s-%d", crewID, tsUs)
+					prefix = append(prefix, Exec{
+						Query: `INSERT OR IGNORE INTO chat_sessions(session_id, crew_id, started_us) VALUES (?,?,?)`,
+						Args:  []any{sessionID, crewID, tsUs},
+					})
+				} else if qErr != nil {
+					return qErr
+				}
+				prefix = append(prefix, Exec{
+					Query: `INSERT INTO chat_messages(ts_us,crew_id,role,content,metadata_json,session_id) VALUES (?,?,'user',?,'{}',?),(?,?,'assistant',?,?,?)`,
+					Args:  []any{tsUs, crewID, req.Text, sessionID, tsUs + 1, crewID, resp.Text, string(metadata), sessionID},
+				})
+				writes = append(prefix, writes...)
+				return s.writeNowOrEnqueue(ctx, Statements{Items: writes}, true)
+			}
+			writes = append([]Exec{{Query: `INSERT INTO chat_messages(ts_us,crew_id,role,content,metadata_json) VALUES (?,?,'user',?,'{}'),(?,?,'assistant',?,?)`, Args: []any{tsUs, crewID, req.Text, tsUs + 1, crewID, resp.Text, string(metadata)}}}, writes...)
+			return s.writeNowOrEnqueue(ctx, Statements{Items: writes}, true)
+		}
 		if err := s.writeNowOrEnqueue(ctx, Exec{
 			Query: `INSERT INTO chat_messages(ts_us, crew_id, role, content) VALUES (?,?,?,?)`,
 			Args:  []any{tsUs, crewID, "user", req.Text},
@@ -584,6 +736,10 @@ func (s *Store) SaveChatExchange(ctx context.Context, crewID string, req contrac
 			Query: `INSERT INTO chat_messages(ts_us, crew_id, role, content) VALUES (?,?,?,?)`,
 			Args:  []any{tsUs + 1, crewID, "assistant", resp.Text},
 		}, false)
+	}
+
+	if s.operational {
+		return s.schemaError("chat_messages", err)
 	}
 
 	s.fallback.mu.Lock()
@@ -599,8 +755,18 @@ func (s *Store) SaveChatExchange(ctx context.Context, crewID string, req contrac
 	return nil
 }
 
-// SaveAudit records a session/system audit event in fallback memory (never mutates clinical schema).
+// SaveAudit persists audit events; memory is retained only for legacy schema-less tests.
 func (s *Store) SaveAudit(ctx context.Context, crewID *string, eventType, details string, tsUs int64) error {
+	cols, err := s.tableCols(ctx, "audit_log")
+	if err == nil && hasCols(cols, "ts_us", "crew_id", "event_type", "details") {
+		return s.writeNowOrEnqueue(ctx, Exec{
+			Query: `INSERT INTO audit_log(ts_us,crew_id,event_type,details) VALUES (?,?,?,?)`,
+			Args:  []any{tsUs, nullableCrew(crewID), eventType, details},
+		}, false)
+	}
+	if s.operational {
+		return s.schemaError("audit_log", err)
+	}
 	s.fallback.mu.Lock()
 	s.fallback.audits = appendBounded(s.fallback.audits, auditLogEntry{
 		TsUs: tsUs, CrewID: crewID, EventType: eventType, Details: details,
@@ -609,8 +775,21 @@ func (s *Store) SaveAudit(ctx context.Context, crewID *string, eventType, detail
 	return nil
 }
 
-// SaveCSIBlob stores calibration or RED alert raw CSI dump in fallback memory (bounded 64).
+// SaveCSIBlob persists complete calibration/RED CSI dumps in the operational database.
 func (s *Store) SaveCSIBlob(ctx context.Context, rec CSIBlobWriteRecord) error {
+	cols, err := s.tableCols(ctx, "csi_blobs")
+	if err == nil && hasCols(cols, "ts_us", "crew_id", "reason", "byte_len", "blob") {
+		if len(rec.Blob) == 0 {
+			return errors.New("store: empty CSI dump")
+		}
+		return s.writeNowOrEnqueue(ctx, Exec{
+			Query: `INSERT INTO csi_blobs(ts_us,crew_id,reason,byte_len,blob) VALUES (?,?,?,?,?)`,
+			Args:  []any{rec.TsUs, nullableCrew(rec.CrewID), rec.Reason, len(rec.Blob), rec.Blob},
+		}, false)
+	}
+	if s.operational {
+		return s.schemaError("csi_blobs", err)
+	}
 	s.fallback.mu.Lock()
 	s.fallback.blobs = appendBounded(s.fallback.blobs, rec, 64)
 	s.fallback.mu.Unlock()
@@ -619,7 +798,85 @@ func (s *Store) SaveCSIBlob(ctx context.Context, rec CSIBlobWriteRecord) error {
 
 // Summary24h builds a compact 24h clinical summary for CHAT_CORRELATE_REQ.
 func (s *Store) Summary24h(ctx context.Context, crewID string) (string, error) {
-	cutoff := time.Now().Add(-24 * time.Hour).UnixMicro()
+	nowUs := time.Now().UnixMicro()
+	cutoff := nowUs - int64(24*time.Hour/time.Microsecond)
+
+	if s.operational {
+		var n int
+		var avgHR, avgSpO2, maxCO2 sql.NullFloat64
+		if err := s.readerDB.QueryRowContext(ctx,
+			`SELECT COUNT(1), AVG(heart_rate_bpm), AVG(spo2_pct), MAX(co2_ppm)
+			 FROM telemetry_timeseries WHERE crew_id=? AND ts_us>=?`,
+			crewID, cutoff,
+		).Scan(&n, &avgHR, &avgSpO2, &maxCO2); err != nil {
+			return "", s.schemaError("telemetry_timeseries", err)
+		}
+
+		var targetKcal, targetWater sql.NullFloat64
+		var avgKcal7d, avgWater7d, deepSleep3d, hrvDelta, rad30d sql.NullFloat64
+		err := s.readerDB.QueryRowContext(ctx, `
+			SELECT cp.target_kcal_day, cp.target_water_ml_day,
+			       w.energy_7d_avg_kcal, w.water_7d_avg_ml,
+			       w.deep_sleep_3d_avg_h, w.hrv_delta_7d_vs_30d_ms, w.radiation_30d_sum_msv
+			FROM crew_profiles cp
+			LEFT JOIN v_crew_longitudinal_windows w ON w.crew_id = cp.crew_id
+			WHERE cp.crew_id=?`, crewID,
+		).Scan(&targetKcal, &targetWater, &avgKcal7d, &avgWater7d, &deepSleep3d, &hrvDelta, &rad30d)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return "", s.schemaError("v_crew_longitudinal_windows", err)
+		}
+
+		var eva72h, spe72h, ex2h int
+		if err := s.readerDB.QueryRowContext(ctx, `
+			SELECT
+				COUNT(CASE WHEN event_type='EVA' AND COALESCE(end_us, ts_us) >= ? - CAST(lookback_hours * 3600000000 AS INTEGER) THEN 1 END),
+				COUNT(CASE WHEN event_type='RADIATION_SPE_ALERT' AND COALESCE(end_us, ts_us) >= ? - CAST(lookback_hours * 3600000000 AS INTEGER) THEN 1 END),
+				COUNT(CASE WHEN event_type IN ('EXERCISE_ARED','EXERCISE_AEROBIC') AND COALESCE(end_us, ts_us) >= ? - CAST(lookback_hours * 3600000000 AS INTEGER) THEN 1 END)
+			FROM mission_context_events
+			WHERE (crew_id=? OR crew_id IS NULL) AND ts_us <= ?`,
+			nowUs, nowUs, nowUs, crewID, nowUs,
+		).Scan(&eva72h, &spe72h, &ex2h); err != nil {
+			return "", s.schemaError("mission_context_events", err)
+		}
+
+		var alertsY, alertsR int
+		if err := s.readerDB.QueryRowContext(ctx, `
+			SELECT COALESCE(SUM(CASE WHEN severity='YELLOW' THEN 1 ELSE 0 END), 0),
+			       COALESCE(SUM(CASE WHEN severity='RED' THEN 1 ELSE 0 END), 0)
+			FROM alerts_audit
+			WHERE (crew_id=? OR crew_id IS NULL) AND ts_us>=?`,
+			crewID, cutoff,
+		).Scan(&alertsY, &alertsR); err != nil {
+			return "", s.schemaError("alerts_audit", err)
+		}
+
+		var abnExams int
+		if err := s.readerDB.QueryRowContext(ctx,
+			`SELECT COUNT(1) FROM self_exams WHERE crew_id=? AND ts_us>=? AND abnormal_flag=1`,
+			crewID, cutoff,
+		).Scan(&abnExams); err != nil {
+			return "", s.schemaError("self_exams", err)
+		}
+
+		deficitKcal := "na"
+		if targetKcal.Valid && avgKcal7d.Valid {
+			deficitKcal = fmt.Sprintf("%.0f", targetKcal.Float64-avgKcal7d.Float64)
+		}
+		deficitWater := "na"
+		if targetWater.Valid && avgWater7d.Valid {
+			deficitWater = fmt.Sprintf("%.0f", targetWater.Float64-avgWater7d.Float64)
+		}
+		out := fmt.Sprintf(
+			"24h samples=%d hr=%.1f spo2=%.1f co2=%.0f | eva_72h=%d spe_72h=%d ex_2h=%d | alerts_y=%d alerts_r=%d abn_exams=%d | deficit_kcal_7d=%s deficit_water_7d=%s rad_30d=%.2f",
+			n, avgHR.Float64, avgSpO2.Float64, maxCO2.Float64,
+			eva72h, spe72h, ex2h, alertsY, alertsR, abnExams,
+			deficitKcal, deficitWater, rad30d.Float64,
+		)
+		if len(out) > 600 {
+			out = out[:600]
+		}
+		return out, nil
+	}
 
 	cols, err := s.tableCols(ctx, "telemetry_timeseries")
 	if err == nil && hasCols(cols, "ts_us", "crew_id", "heart_rate_bpm", "co2_ppm") {
@@ -693,6 +950,10 @@ func (s *Store) RecentChat(ctx context.Context, crewID string, limit int) ([]con
 		return rev, nil
 	}
 
+	if s.operational {
+		return nil, s.schemaError("chat_messages", err)
+	}
+
 	s.fallback.mu.RLock()
 	defer s.fallback.mu.RUnlock()
 	var matched []contracts.ChatMessage
@@ -757,6 +1018,10 @@ func (s *Store) QueryTimeseries(ctx context.Context, crewID string, metric strin
 			resp.Buckets = append(resp.Buckets, b)
 		}
 		return resp, rows.Err()
+	}
+
+	if s.operational {
+		return resp, s.schemaError("telemetry_timeseries", err)
 	}
 
 	s.fallback.mu.RLock()
@@ -844,7 +1109,29 @@ func (s *Store) GetProtocol(ctx context.Context, id string) (contracts.ProtocolD
 		}
 		_ = json.Unmarshal([]byte(subsJSON), &p.Subsystems)
 		_ = json.Unmarshal([]byte(stepsJSON), &p.Steps)
+		if hasCols(cols, "duration_s", "materials_json", "rich_steps_json", "result_schema_json", "linked_risks_json") {
+			var duration sql.NullInt64
+			var materials, rich, schema, risks string
+			if err := s.readerDB.QueryRowContext(ctx, `SELECT duration_s,materials_json,rich_steps_json,result_schema_json,linked_risks_json FROM protocols WHERE protocol_id=?`, id).Scan(&duration, &materials, &rich, &schema, &risks); err != nil {
+				return p, err
+			}
+			if duration.Valid {
+				p.DurationS = &duration.Int64
+			}
+			if err := json.Unmarshal([]byte(materials), &p.Materials); err != nil {
+				return p, err
+			}
+			if err := json.Unmarshal([]byte(risks), &p.LinkedRisks); err != nil {
+				return p, err
+			}
+			p.RichSteps = json.RawMessage(rich)
+			p.ResultSchema = json.RawMessage(schema)
+		}
 		return p, nil
+	}
+
+	if s.operational {
+		return contracts.ProtocolDTO{}, s.schemaError("protocols", err)
 	}
 
 	s.fallback.mu.RLock()
@@ -888,6 +1175,10 @@ func (s *Store) ListAlerts(ctx context.Context, limit int) ([]contracts.AlertRec
 		return out, rows.Err()
 	}
 
+	if s.operational {
+		return nil, s.schemaError("alerts_audit", err)
+	}
+
 	s.fallback.mu.RLock()
 	defer s.fallback.mu.RUnlock()
 	n := len(s.fallback.alerts)
@@ -926,6 +1217,10 @@ func (s *Store) ListOutbox(ctx context.Context) ([]contracts.OutboxRecord, error
 			out = append(out, r)
 		}
 		return out, rows.Err()
+	}
+
+	if s.operational {
+		return nil, s.schemaError("store_and_forward_outbox", err)
 	}
 
 	s.fallback.mu.RLock()

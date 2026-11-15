@@ -1,0 +1,155 @@
+{
+  "schema_version": 1,
+  "report_id": "one_carbon_b_vitamins",
+  "source_id": "NASA-ONE-CARBON",
+  "hazard_id": "GRAVITY_FIELDS",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Via de um carbono e vitaminas B",
+  "problem": "Associações entre metabolismo de um carbono e SANS são investigativas; suplementação não é uma contramedida universal comprovada.",
+  "primary_symptoms": [
+    "marcador bioquímico alterado",
+    "visão turva",
+    "cefaleia",
+    "dor de cabeça",
+    "fadiga",
+    "formigamento",
+    "blurred vision",
+    "headache",
+    "fatigue",
+    "tingling",
+    "SANS",
+    "VIIP",
+    "B-complex",
+    "homocysteine"
+  ],
+  "secondary_symptoms": [
+    "alteração visual"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "LAB quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "ONE_CARBON_METABOLISM",
+      "name": "Via de um carbono e vitaminas B",
+      "source_id": "NASA-ONE-CARBON",
+      "subsystem": "NEURO_OCULAR_SANS",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "marcador bioquímico alterado",
+        "alteração visual",
+        "visão turva",
+        "cefaleia",
+        "dor de cabeça",
+        "fadiga",
+        "formigamento",
+        "blurred vision",
+        "headache",
+        "fatigue",
+        "tingling",
+        "SANS",
+        "VIIP",
+        "B-complex",
+        "homocysteine"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "nutrition_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "one_carbon_review_required",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "LAB",
+          "values_json": {},
+          "likelihood_ratio": 2.7,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "ROLLUP_30D",
+          "window_hours": 720,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há resultado bioquímico e avaliação nutricional para revisar a via de um carbono?",
+          "positive_concepts": [
+            "marcador bioquímico alterado"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "nutrition_review",
+          "target_differential_ids": [
+            "SANS",
+            "NUTRITION_DEFICIT",
+            "INFLIGHT_ANEMIA"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "HIGH_DOSE_B_COMPLEX",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de seguran?a de engenharia: n?o administrar altas doses de complexo B sem autoriza??o cl?nica (clinical_authorization == 0) e revis?o bioqu?mica/nutricional."
+        }
+      ],
+      "symptom_weights": {
+        "blurred_vision": 0.75,
+        "headache": 0.65,
+        "fatigue": 0.6,
+        "paresthesia": 0.55,
+        "fluid_shift": 0.7
+      },
+      "differential_ids": [
+        "SANS",
+        "NUTRITION_DEFICIT",
+        "INFLIGHT_ANEMIA"
+      ],
+      "expected_biomarkers": {
+        "LAB": {
+          "one_carbon_metabolites": "homocysteine_or_b_vitamin_review_fixture"
+        },
+        "SELF_EXAM": {
+          "amsler_abnormal": "co_evaluation_for_sans_risk"
+        },
+        "SCD40": {
+          "co2_ppm": "nominal_expected_when_sans_suspected"
+        }
+      },
+      "severity_thresholds": {
+        "one_carbon_review_required": {
+          "yellow_high": 1
+        }
+      }
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-ONE-CARBON",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of SANS; one-carbon metabolism",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-ONE-CARBON"
+    },
+    "detection": [
+      "Autoexame: Amsler e sangue capilar",
+      "CO2 normal"
+    ]
+  }
+}

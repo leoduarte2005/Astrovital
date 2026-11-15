@@ -1,0 +1,282 @@
+{
+  "schema_version": 1,
+  "report_id": "inadequate_nutrition",
+  "source_id": "NASA-NUTRITION",
+  "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Nutrição inadequada",
+  "problem": "Adequação e aceitabilidade da alimentação são relevantes para saúde e desempenho durante missões longas.",
+  "primary_symptoms": [
+    "redução de ingestão",
+    "fadiga",
+    "perda de peso",
+    "fraqueza",
+    "tontura",
+    "apetite reduzido",
+    "hidratação baixa",
+    "fatigue",
+    "weight loss",
+    "weakness",
+    "dizziness",
+    "low appetite",
+    "low hydration",
+    "Nutrition SMO"
+  ],
+  "secondary_symptoms": [
+    "perda de massa corporal",
+    "fadiga"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "LONGITUDINAL quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "NUTRITION_DEFICIT",
+      "name": "Nutrição inadequada",
+      "source_id": "NASA-NUTRITION",
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "prior": 0.05,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "redução de ingestão",
+        "perda de massa corporal",
+        "fadiga",
+        "perda de peso",
+        "fraqueza",
+        "tontura",
+        "apetite reduzido",
+        "hidratação baixa",
+        "fatigue",
+        "weight loss",
+        "weakness",
+        "dizziness",
+        "low appetite",
+        "low hydration",
+        "Nutrition SMO"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "nutrition_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "energy_7d_mean_kcal",
+          "op": "LT",
+          "threshold_value": 1800,
+          "source_sensor": "LONGITUDINAL",
+          "values_json": {},
+          "likelihood_ratio": 3.5,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "ROLLUP_7D",
+          "window_hours": 168,
+          "baseline_field": "target_kcal_day"
+        },
+        {
+          "metric": "nutrition_days_observed",
+          "op": "GE",
+          "threshold_value": 7,
+          "source_sensor": "LONGITUDINAL",
+          "values_json": {},
+          "likelihood_ratio": 1.8,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "ROLLUP_7D",
+          "window_hours": 168,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "A ingestão reduzida persistiu por sete dias e há perda de massa corporal?",
+          "positive_concepts": [
+            "redução de ingestão"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "nutrition_review",
+          "target_differential_ids": [
+            "DEHYDRATION",
+            "INFLIGHT_ANEMIA",
+            "MICROBIOME_GI"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "CHANGE_ELECTROLYTE_SUPPLEMENTS",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de seguran?a de engenharia: n?o alterar suplementa??o eletrol?tica sem autoriza??o cl?nica (clinical_authorization == 0) ap?s revis?o do balan?o nutricional."
+        }
+      ],
+      "symptom_weights": {
+        "reduced_intake": 0.9,
+        "weight_loss": 0.9,
+        "fatigue": 0.75,
+        "low_appetite": 0.8,
+        "muscle_weakness": 0.65,
+        "dizziness": 0.55
+      },
+      "differential_ids": [
+        "DEHYDRATION",
+        "INFLIGHT_ANEMIA",
+        "MUSCLE_DECONDITIONING",
+        "BONE_LOSS",
+        "MICROBIOME_GI"
+      ],
+      "expected_biomarkers": {
+        "LONGITUDINAL": {
+          "energy_kcal_total": "below_target_7d_mean_fixture",
+          "body_mass_kg": "negative_30d_delta_fixture"
+        },
+        "LAB": {
+          "capillary_glucose": "borderline_low_check"
+        }
+      },
+      "severity_thresholds": {
+        "energy_7d_mean_kcal": {
+          "yellow_low": 1800.0,
+          "red_low": 1400.0
+        }
+      }
+    },
+    {
+      "prior": 0.05,
+      "default_escalation": "LOCAL",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "alteração contextual"
+      ],
+      "countermeasures": [
+        "Registrar e revisar contexto antes de atribuir patologia."
+      ],
+      "actions": [
+        "RECORD_CONTEXT"
+      ],
+      "linked_protocols": [
+        "nutrition_review"
+      ],
+      "subsystem": "IMMUNE_HEMATO_NUTRITION",
+      "questions": [
+        {
+          "prompt": "Houve exercício ARED recente?",
+          "positive_concepts": [
+            "ARED",
+            "exercício"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "blood_pressure",
+          "target_differential_ids": [
+            "NUTRITION_DEFICIT",
+            "ORTHOSTATIC_INTOLERANCE",
+            "RENAL_STONES"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Guarda de seguran?a de engenharia: revisar contexto de exerc?cio e reposi??o h?drica antes de iniciar interven??o sem autoriza??o cl?nica (clinical_authorization == 0)."
+        }
+      ],
+      "condition_id": "DEHYDRATION",
+      "name": "Hidratação reduzida por sete dias",
+      "sensor_rules": [
+        {
+          "metric": "water_7d_mean_ml",
+          "op": "LT",
+          "threshold_value": 1200,
+          "values_json": {},
+          "source_sensor": "CONTEXT_AND_BASELINE",
+          "likelihood_ratio": 3.6,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Exercício e baseline individual contextualizam esta regra de teste.",
+          "rule_scope": "ROLLUP_7D",
+          "window_hours": 168,
+          "baseline_field": "target_water_ml_day"
+        },
+        {
+          "metric": "nutrition_days_observed",
+          "op": "GE",
+          "threshold_value": 7,
+          "values_json": {},
+          "source_sensor": "CONTEXT_AND_BASELINE",
+          "likelihood_ratio": 1.7,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Exercício e baseline individual contextualizam esta regra de teste.",
+          "rule_scope": "ROLLUP_7D",
+          "window_hours": 168,
+          "baseline_field": null
+        }
+      ],
+      "source_id": "NASA-NUTRITION",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "match_policy": "ALL",
+      "symptom_weights": {
+        "low_hydration": 0.9,
+        "dizziness": 0.75,
+        "fatigue": 0.7,
+        "headache": 0.55,
+        "orthostatic_intolerance": 0.65
+      },
+      "differential_ids": [
+        "NUTRITION_DEFICIT",
+        "ORTHOSTATIC_INTOLERANCE",
+        "RENAL_STONES",
+        "CARDIOVASCULAR_DECONDITIONING"
+      ],
+      "expected_biomarkers": {
+        "LONGITUDINAL": {
+          "water_ml_total": "below_target_7d_mean_fixture",
+          "body_mass_kg": "acute_fluid_drop_check"
+        },
+        "MAX30102": {
+          "heart_rate_bpm": "mild_resting_elevation_fixture"
+        },
+        "BME280": {
+          "humidity_pct": "low_humidity_insensible_loss_context"
+        }
+      },
+      "severity_thresholds": {
+        "water_7d_mean_ml": {
+          "yellow_low": 1200.0,
+          "red_low": 900.0
+        }
+      }
+    }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-NUTRITION",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Inadequate Food and Nutrition; Nutrition SMO",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-NUTRITION"
+    },
+    "detection": [
+      "Registro alimentar e hidratação",
+      "Autoexame: sangue capilar (glicemia)"
+    ]
+  }
+}

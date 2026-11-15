@@ -33,11 +33,12 @@ var (
 
 // Config configures Store.
 type Config struct {
-	DBPath        string
-	MigrationsDir string
-	BatchInterval time.Duration // default 250ms
-	BatchSize     int           // default 512
-	CmdBuffer     int           // default 4096
+	DBPath             string
+	MigrationsDir      string
+	RequireOperational bool          // production must have M1 migrations, never silently use RAM
+	BatchInterval      time.Duration // default 250ms
+	BatchSize          int           // default 512
+	CmdBuffer          int           // default 4096
 }
 
 // Deps are Store dependencies.
@@ -53,6 +54,11 @@ type Exec struct {
 	Query string
 	Args  []any
 }
+
+// Statements preserves related writes in the single writer's transaction.
+type Statements struct{ Items []Exec }
+
+func (Statements) isCmd() {}
 
 func (Exec) isCmd() {}
 
@@ -87,12 +93,13 @@ type Store struct {
 	readerDB *sql.DB
 	cmdCh    chan Cmd
 
-	closing  atomic.Bool
-	running  atomic.Bool
-	commits  atomic.Int64
-	dropped  atomic.Int64
-	failed   atomic.Int64
-	fallback *fallbackStore
+	closing     atomic.Bool
+	running     atomic.Bool
+	commits     atomic.Int64
+	dropped     atomic.Int64
+	failed      atomic.Int64
+	fallback    *fallbackStore
+	operational bool
 }
 
 // New opens the DB (WAL + PRAGMAs), creates internal tables and applies migrations.
@@ -129,18 +136,32 @@ func New(cfg Config, deps Deps) (*Store, error) {
 		w.Close()
 		return nil, fmt.Errorf("store: migrations: %w", err)
 	}
+	var operational int
+	if err := w.QueryRow("SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='causal_conditions'").Scan(&operational); err != nil {
+		w.Close()
+		return nil, fmt.Errorf("store: operational schema: %w", err)
+	}
+	if cfg.RequireOperational && operational == 0 {
+		w.Close()
+		return nil, errors.New("store: operational migrations required; configure --migrations")
+	}
+	var legacy *fallbackStore
+	if operational == 0 {
+		legacy = newFallbackStore()
+	}
 	r, err := openReader(cfg.DBPath)
 	if err != nil {
 		w.Close()
 		return nil, fmt.Errorf("store: open reader: %w", err)
 	}
 	return &Store{
-		cfg:      cfg,
-		log:      log,
-		writerDB: w,
-		readerDB: r,
-		cmdCh:    make(chan Cmd, cfg.CmdBuffer),
-		fallback: newFallbackStore(),
+		cfg:         cfg,
+		log:         log,
+		writerDB:    w,
+		readerDB:    r,
+		cmdCh:       make(chan Cmd, cfg.CmdBuffer),
+		fallback:    legacy,
+		operational: operational != 0,
 	}, nil
 }
 

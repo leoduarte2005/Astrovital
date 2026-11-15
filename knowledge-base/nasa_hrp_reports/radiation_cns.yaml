@@ -1,0 +1,177 @@
+{
+  "schema_version": 1,
+  "report_id": "cns_radiation_effects",
+  "source_id": "NASA-CNS",
+  "hazard_id": "SPACE_RADIATION",
+  "category": "PHYSIOLOGICAL",
+  "title": "Radiação e efeitos no SNC",
+  "problem": "Riscos neurocognitivos da radiação incluem incertezas de pesquisa. Sensores comuns não diagnosticam lesão do SNC.",
+  "primary_symptoms": [
+    "alteração cognitiva",
+    "lapso de atenção",
+    "lentidão cognitiva",
+    "cefaleia",
+    "dor de cabeça",
+    "fadiga",
+    "tontura",
+    "attention lapse",
+    "slowed cognition",
+    "headache",
+    "fatigue",
+    "dizziness",
+    "radiation",
+    "CNS"
+  ],
+  "secondary_symptoms": [
+    "redução de desempenho"
+  ],
+  "detection": [
+    "Entrevista contextual e registros de qualidade.",
+    "MISSION_CONTEXT quando disponível; ausência permanece NULL."
+  ],
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
+  "conditions": [
+    {
+      "condition_id": "RADIATION_CNS",
+      "name": "Radiação e efeitos no SNC",
+      "source_id": "NASA-CNS",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.05,
+      "default_escalation": "STORE_AND_FORWARD",
+      "recommended_mission_mode": "MODE_RADIATION_ALERT",
+      "symptoms": [
+        "alteração cognitiva",
+        "redução de desempenho",
+        "lapso de atenção",
+        "lentidão cognitiva",
+        "cefaleia",
+        "dor de cabeça",
+        "fadiga",
+        "tontura",
+        "attention lapse",
+        "slowed cognition",
+        "headache",
+        "fatigue",
+        "dizziness",
+        "radiation",
+        "CNS"
+      ],
+      "countermeasures": [
+        "Registrar contexto e conferir a qualidade das observações.",
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+      ],
+      "actions": [
+        "RECORD_CONTEXT",
+        "REQUEST_MEDICAL_REVIEW"
+      ],
+      "linked_protocols": [
+        "cognitive_check"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "radiation_event",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "MISSION_CONTEXT",
+          "values_json": {},
+          "likelihood_ratio": 4.8,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 72,
+          "baseline_field": null
+        },
+        {
+          "metric": "cognitive_change",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "SELF_REPORT",
+          "values_json": {},
+          "likelihood_ratio": 3.2,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há evento radiativo registrado e mudança cognitiva persistente?",
+          "positive_concepts": [
+            "alteração cognitiva"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "cognitive_check",
+          "target_differential_ids": [
+            "RADIATION_ACUTE",
+            "COGNITIVE_FATIGUE",
+            "SLEEP_CIRCADIAN"
+          ]
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "LEAVE_SHELTER",
+          "guard_metric": "radiation_event",
+          "guard_op": "EQ",
+          "guard_value": 1,
+          "rationale": "Guarda de seguran?a de engenharia: n?o abandonar ?rea abrigada durante evento radiativo ativo (radiation_event == 1) at? libera??o operacional e m?dica."
+        }
+      ],
+      "symptom_weights": {
+        "slowed_cognition": 0.85,
+        "attention_lapse": 0.85,
+        "headache": 0.65,
+        "fatigue": 0.7,
+        "dizziness": 0.6
+      },
+      "differential_ids": [
+        "RADIATION_ACUTE",
+        "RADIATION_CANCER_RISK",
+        "COGNITIVE_FATIGUE",
+        "SLEEP_CIRCADIAN"
+      ],
+      "expected_biomarkers": {
+        "MISSION_CONTEXT": {
+          "radiation_event": "spe_or_elevated_dose_within_72h"
+        },
+        "SELF_EXAM": {
+          "pvt_lapses": "cognitive_performance_shift_check"
+        },
+        "LONGITUDINAL": {
+          "radiation_dose_msv": "30d_cumulative_dose_trend"
+        }
+      },
+      "severity_thresholds": {
+        "radiation_event": {
+          "yellow_high": 1
+        },
+        "cognitive_change": {
+          "yellow_high": 1
+        }
+      }
+    }
+  ],
+  "supporting_source_ids": [
+    "CSA-RADIATION"
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-RAD-CNS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Acute and Late CNS Effects from Space Radiation",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-RAD-CNS"
+    },
+    "detection": [
+      "Testes cognitivos curtos",
+      "Séries de radiação (contexto)",
+      "Autorrelato"
+    ]
+  }
+}
