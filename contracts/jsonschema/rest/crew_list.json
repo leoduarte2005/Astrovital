@@ -1,0 +1,6 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GET /api/crew response",
+  "type": "array",
+  "items": { "$ref": "../_defs.json#/$defs/crew_summary" }
+}

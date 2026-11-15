@@ -1,0 +1,7 @@
+{
+  "v": 1,
+  "type": "ERROR",
+  "ts_us": 1699900030000000,
+  "crew_id": null,
+  "payload": { "message": "boom" }
+}

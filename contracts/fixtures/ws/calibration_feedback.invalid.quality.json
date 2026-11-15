@@ -1,0 +1,7 @@
+{
+  "v": 1,
+  "type": "CALIBRATION_FEEDBACK",
+  "ts_us": 1699900025000000,
+  "crew_id": "crew_003",
+  "payload": { "step_id": "sitting", "progress": 66, "quality": 2.5 }
+}

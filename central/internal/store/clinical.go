@@ -27,11 +27,19 @@ const (
 	fallbackExamCap       = 1024
 )
 
-// CrewProfileRecord extends contracts.CrewProfile with baseline path and individual thresholds.
+// CrewProfileRecord extends contracts.CrewProfile with baseline path, active
+// calibration metadata, and individual thresholds.
+//
+// CalibrationRequired is derived from IsCalibrated(CalibrationStatus,
+// SampleCount, BaselinePath) so REST /api/crew, /api/crew/{id}/profile and
+// WS CREW_STATE report the same flag.
 type CrewProfileRecord struct {
-	Profile      contracts.CrewProfile
-	BaselinePath string
-	Thresholds   map[string]contracts.Threshold
+	Profile             contracts.CrewProfile
+	BaselinePath        string
+	CalibrationStatus   string
+	SampleCount         int64
+	CalibrationRequired bool
+	Thresholds          map[string]contracts.Threshold
 }
 
 // Telemetry1HzRecord is a decimated 1 Hz telemetry snapshot for telemetry_timeseries.
@@ -452,13 +460,20 @@ func (s *Store) GetCrewProfile(ctx context.Context, id string) (CrewProfileRecor
 			_ = json.Unmarshal([]byte(threshJSON), &rec.Thresholds)
 		}
 		if s.operational {
-			var modelPath string
+			var modelPath, status string
+			var sampleCount int64
 			if err := s.readerDB.QueryRowContext(ctx,
-				`SELECT COALESCE(model_path,'') FROM v_active_crew_baselines WHERE crew_id=?`, id,
-			).Scan(&modelPath); err != nil {
+				`SELECT COALESCE(model_path,''), COALESCE(calibration_status,'REQUIRES_CALIBRATION'), COALESCE(sample_count,0)
+				 FROM v_active_crew_baselines WHERE crew_id=?`, id,
+			).Scan(&modelPath, &status, &sampleCount); err != nil {
 				return CrewProfileRecord{}, err
 			}
 			rec.BaselinePath = modelPath
+			rec.CalibrationStatus = status
+			rec.SampleCount = sampleCount
+			rec.CalibrationRequired = !IsCalibrated(status, sampleCount, modelPath)
+		} else {
+			rec.CalibrationRequired = rec.BaselinePath == ""
 		}
 		return rec, nil
 	}
@@ -473,6 +488,7 @@ func (s *Store) GetCrewProfile(ctx context.Context, id string) (CrewProfileRecor
 	if !ok {
 		return CrewProfileRecord{}, ErrNotFound
 	}
+	rec.CalibrationRequired = rec.BaselinePath == ""
 	return rec, nil
 }
 
@@ -496,17 +512,27 @@ func nullableCrew(crewID *string) any {
 func (s *Store) SaveTelemetry1Hz(ctx context.Context, rec Telemetry1HzRecord) error {
 	cols, err := s.tableCols(ctx, "telemetry_timeseries")
 	if err == nil && hasCols(cols, "ts_us", "heart_rate_bpm", "co2_ppm") {
+		args := []any{
+			rec.TsUs, nullableCrew(rec.CrewID), string(rec.MissionMode),
+			rec.Vitals.HeartRateBpm, rec.Vitals.HRVMs, rec.Vitals.RespRateBpm,
+			rec.Vitals.SpO2Pct, rec.Vitals.Posture, rec.Vitals.ConfidenceScore,
+			rec.Environment.CO2Ppm, rec.Environment.TempC, rec.Environment.HumidityPct, rec.Environment.PressureHpa,
+		}
+		if cols["data_class"] {
+			return s.writeNowOrEnqueue(ctx, Exec{
+				Query: `INSERT INTO telemetry_timeseries(
+				ts_us, crew_id, mission_mode, heart_rate_bpm, hrv_ms, resp_rate_bpm,
+				spo2_pct, posture, confidence, co2_ppm, temp_c, humidity_pct, pressure_hpa, data_class
+			) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?)`,
+				Args: append(args, s.cfg.DataClass),
+			}, false)
+		}
 		return s.writeNowOrEnqueue(ctx, Exec{
 			Query: `INSERT INTO telemetry_timeseries(
 				ts_us, crew_id, mission_mode, heart_rate_bpm, hrv_ms, resp_rate_bpm,
 				spo2_pct, posture, confidence, co2_ppm, temp_c, humidity_pct, pressure_hpa
 			) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-			Args: []any{
-				rec.TsUs, nullableCrew(rec.CrewID), string(rec.MissionMode),
-				rec.Vitals.HeartRateBpm, rec.Vitals.HRVMs, rec.Vitals.RespRateBpm,
-				rec.Vitals.SpO2Pct, rec.Vitals.Posture, rec.Vitals.ConfidenceScore,
-				rec.Environment.CO2Ppm, rec.Environment.TempC, rec.Environment.HumidityPct, rec.Environment.PressureHpa,
-			},
+			Args: args,
 		}, false)
 	}
 
@@ -537,6 +563,10 @@ func (s *Store) SavePeripheral1Hz(ctx context.Context, tsUs int64, readings []Pe
 			if cols["crew_id"] {
 				query = `INSERT INTO peripheral_readings(ts_us, node_id, sensor_type, value, unit, crew_id) VALUES (?,?,?,?,?,?)`
 				args = append(args, nullableCrew(r.CrewID))
+				if cols["data_class"] {
+					query = `INSERT INTO peripheral_readings(ts_us, node_id, sensor_type, value, unit, crew_id, data_class) VALUES (?,?,?,?,?,?,?)`
+					args = append(args, s.cfg.DataClass)
+				}
 			}
 			if err := s.writeNowOrEnqueue(ctx, Exec{Query: query, Args: args}, false); err != nil {
 				return err
@@ -658,18 +688,24 @@ func (s *Store) SaveSelfExam(ctx context.Context, crewID string, exam contracts.
 			if err != nil {
 				return err
 			}
+			_ = payload
+			// Normalize ExamType -> protocol_id (e.g. "AMSLER" -> "amsler_grid") and
+			// derive abnormal_flag from string ("metamorphopsia") or JSON results.
 			var protocolID sql.NullString
-			err = s.readerDB.QueryRowContext(ctx, `SELECT protocol_id FROM protocols WHERE protocol_id=?`, exam.ExamType).Scan(&protocolID)
-			if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			if pid := SelfExamProtocolID(exam.ExamType); pid != "" {
+				err = s.readerDB.QueryRowContext(ctx, `SELECT protocol_id FROM protocols WHERE protocol_id=?`, pid).Scan(&protocolID)
+				if err != nil && !errors.Is(err, sql.ErrNoRows) {
+					return err
+				}
+			}
+			abnormal := SelfExamAbnormal(exam.Result)
+			payloadJSON, err := selfExamPayloadJSON(exam.ExamType, exam.Result, exam.Observations, protocolID.String, abnormal)
+			if err != nil {
 				return err
 			}
-			var result struct {
-				Abnormal bool `json:"abnormal_flag"`
-			}
-			_ = json.Unmarshal([]byte(exam.Result), &result)
 			return s.writeNowOrEnqueue(ctx, Exec{
 				Query: `INSERT INTO self_exams(ts_us,crew_id,exam_type,result,observations,protocol_id,payload_json,abnormal_flag) VALUES (?,?,?,?,?,?,?,?)`,
-				Args:  []any{tsUs, crewID, exam.ExamType, exam.Result, exam.Observations, protocolID, string(payload), result.Abnormal},
+				Args:  []any{tsUs, crewID, exam.ExamType, exam.Result, exam.Observations, protocolID, payloadJSON, abnormal},
 			}, false)
 		}
 		return s.writeNowOrEnqueue(ctx, Exec{
@@ -982,9 +1018,13 @@ func (s *Store) QueryTimeseries(ctx context.Context, crewID string, metric strin
 		bucketSec = 1
 	}
 	bucketUs := int64(bucketSec) * 1_000_000
+	if !contracts.IsTimeseriesMetric(metric) {
+		return contracts.TimeseriesResponse{}, fmt.Errorf("%w: unknown metric %q", ErrInvalidMetric, metric)
+	}
 
 	resp := contracts.TimeseriesResponse{
 		CrewID:  crewID,
+		Metric:  metric,
 		StartUs: fromUs,
 		EndUs:   toUs,
 		Buckets: []contracts.TelemetryBucket{},
@@ -992,12 +1032,25 @@ func (s *Store) QueryTimeseries(ctx context.Context, crewID string, metric strin
 
 	cols, err := s.tableCols(ctx, "telemetry_timeseries")
 	if err == nil && hasCols(cols, "ts_us", "crew_id", "heart_rate_bpm", "co2_ppm") {
-		q := `SELECT (ts_us / ?) * ? AS b_ts,
-		             COALESCE(AVG(heart_rate_bpm),0), COALESCE(AVG(hrv_ms),0), COALESCE(AVG(resp_rate_bpm),0),
-		             COALESCE(AVG(spo2_pct),0), COALESCE(AVG(confidence),0),
-		             COALESCE(AVG(co2_ppm),0), COALESCE(AVG(temp_c),0), COALESCE(AVG(humidity_pct),0), COALESCE(AVG(pressure_hpa),0)
+		// AVG() ignores NULLs and yields NULL for an all-NULL bucket; NULL is
+		// preserved (never COALESCE'd to 0). ?metric= selects one column and the
+		// bucket only contains rows where that metric was measured.
+		avg := func(col string) string {
+			if metric == "" || metric == col {
+				return "AVG(" + col + ")"
+			}
+			return "NULL"
+		}
+		where := "crew_id=? AND ts_us>=? AND ts_us<=?"
+		if metric != "" {
+			where += " AND " + metric + " IS NOT NULL"
+		}
+		q := `SELECT (ts_us / ?) * ? AS b_ts, ` +
+			avg("heart_rate_bpm") + `, ` + avg("hrv_ms") + `, ` + avg("resp_rate_bpm") + `, ` +
+			avg("spo2_pct") + `, ` + avg("confidence") + `, ` +
+			avg("co2_ppm") + `, ` + avg("temp_c") + `, ` + avg("humidity_pct") + `, ` + avg("pressure_hpa") + `
 		      FROM telemetry_timeseries
-		      WHERE crew_id=? AND ts_us>=? AND ts_us<=?
+		      WHERE ` + where + `
 		      GROUP BY (ts_us / ?)
 		      ORDER BY b_ts ASC`
 		rows, err := s.readerDB.QueryContext(ctx, q, bucketUs, bucketUs, crewID, fromUs, toUs, bucketUs)
@@ -1007,13 +1060,16 @@ func (s *Store) QueryTimeseries(ctx context.Context, crewID string, metric strin
 		defer rows.Close()
 		for rows.Next() {
 			var b contracts.TelemetryBucket
-			if err := rows.Scan(
-				&b.TsUs,
-				&b.Vitals.HeartRateBpm, &b.Vitals.HRVMs, &b.Vitals.RespRateBpm,
-				&b.Vitals.SpO2Pct, &b.Vitals.ConfidenceScore,
-				&b.Environment.CO2Ppm, &b.Environment.TempC, &b.Environment.HumidityPct, &b.Environment.PressureHpa,
-			); err != nil {
+			var hr, hrv, rr, spo2, conf, co2, temp, rh, press sql.NullFloat64
+			if err := rows.Scan(&b.TsUs, &hr, &hrv, &rr, &spo2, &conf, &co2, &temp, &rh, &press); err != nil {
 				return resp, err
+			}
+			b.Vitals = contracts.BucketVitals{
+				HeartRateBpm: nullF(hr), HRVMs: nullF(hrv), RespRateBpm: nullF(rr),
+				SpO2Pct: nullF(spo2), ConfidenceScore: nullF(conf),
+			}
+			b.Environment = contracts.BucketEnvironment{
+				CO2Ppm: nullF(co2), TempC: nullF(temp), HumidityPct: nullF(rh), PressureHpa: nullF(press),
 			}
 			resp.Buckets = append(resp.Buckets, b)
 		}
@@ -1068,26 +1124,44 @@ func (s *Store) QueryTimeseries(ctx context.Context, crewID string, metric strin
 		keys = append(keys, k)
 	}
 	sort.Slice(keys, func(i, j int) bool { return keys[i] < keys[j] })
+	pick := func(col string, sum float64, n float64) *float64 {
+		if metric != "" && metric != col {
+			return nil
+		}
+		v := sum / n
+		return &v
+	}
 	for _, k := range keys {
 		a := groups[k]
 		resp.Buckets = append(resp.Buckets, contracts.TelemetryBucket{
 			TsUs: k,
-			Vitals: contracts.VitalsData{
-				HeartRateBpm:    a.hr / a.n,
-				HRVMs:           a.hrv / a.n,
-				RespRateBpm:     a.rr / a.n,
-				SpO2Pct:         a.spo2 / a.n,
-				ConfidenceScore: a.conf / a.n,
+			Vitals: contracts.BucketVitals{
+				HeartRateBpm:    pick("heart_rate_bpm", a.hr, a.n),
+				HRVMs:           pick("hrv_ms", a.hrv, a.n),
+				RespRateBpm:     pick("resp_rate_bpm", a.rr, a.n),
+				SpO2Pct:         pick("spo2_pct", a.spo2, a.n),
+				ConfidenceScore: pick("confidence", a.conf, a.n),
 			},
-			Environment: contracts.EnvironmentData{
-				CO2Ppm:      a.co2 / a.n,
-				TempC:       a.temp / a.n,
-				HumidityPct: a.rh / a.n,
-				PressureHpa: a.press / a.n,
+			Environment: contracts.BucketEnvironment{
+				CO2Ppm:      pick("co2_ppm", a.co2, a.n),
+				TempC:       pick("temp_c", a.temp, a.n),
+				HumidityPct: pick("humidity_pct", a.rh, a.n),
+				PressureHpa: pick("pressure_hpa", a.press, a.n),
 			},
 		})
 	}
 	return resp, nil
+}
+
+// ErrInvalidMetric is returned by QueryTimeseries for an unknown ?metric=.
+var ErrInvalidMetric = errors.New("store: invalid metric")
+
+func nullF(v sql.NullFloat64) *float64 {
+	if !v.Valid {
+		return nil
+	}
+	f := v.Float64
+	return &f
 }
 
 // GetProtocol fetches a clinical protocol by ID from M1 protocols table or offline defaults.

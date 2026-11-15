@@ -98,6 +98,7 @@ func run(ctx context.Context, args []string, stdout io.Writer) int {
 		DBPath:             cfg.db,
 		MigrationsDir:      cfg.migrations,
 		RequireOperational: cfg.mockCluster == "false",
+		DataClass:          dataClassFor(cfg),
 	}, store.Deps{Logger: log})
 	if err != nil {
 		log.Error("store init failed", "err", err)
@@ -334,6 +335,13 @@ func run(ctx context.Context, args []string, stdout io.Writer) int {
 
 	log.Info("central stopped")
 	return exitCode
+}
+
+func dataClassFor(cfg config) string {
+	if cfg.mockCluster != "false" {
+		return store.DataClassSynthetic
+	}
+	return store.DataClassReal
 }
 
 func parseFlags(args []string, errOut io.Writer) (config, error) {

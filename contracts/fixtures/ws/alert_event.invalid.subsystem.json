@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "type": "ALERT_EVENT",
+  "ts_us": 1699900021000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "subsystem": "DIGESTIVE",
+    "severity": "RED",
+    "message": "x",
+    "countermeasure": "y",
+    "escalation": "CREW",
+    "source_id": "z"
+  }
+}

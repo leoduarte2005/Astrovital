@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "type": "TELEMETRY_FRAME",
+  "ts_us": 1699900020000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "vitals": { "heart_rate_bpm": 68.0, "hrv_ms": 52.0, "resp_rate_bpm": 15.0, "spo2_pct": 98.0, "posture": "sitting", "confidence_score": 0.9 },
+    "environment": { "co2_ppm": 610.0, "temp_c": 22.1, "humidity_pct": 45.0, "pressure_hpa": 1013.0 },
+    "subsystems": [
+      { "subsystem": "CARDIOVASCULAR_FLUIDS", "severity": "GREEN" },
+      { "subsystem": "RESPIRATORY_ATMOSPHERE", "severity": "GREEN" },
+      { "subsystem": "NEURO_OCULAR_SANS", "severity": "GREEN" },
+      { "subsystem": "MUSCULOSKELETAL_POSTURE", "severity": "GREEN" },
+      { "subsystem": "IMMUNE_HEMATO_NUTRITION", "severity": "GREEN" },
+      { "subsystem": "NEUROBEHAVIORAL_RADIATION", "severity": "GREEN" }
+    ],
+    "ai_ready": true
+  }
+}

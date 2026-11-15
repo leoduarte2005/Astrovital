@@ -16,6 +16,34 @@ type Reader interface {
 	ListCrew(ctx context.Context) ([]contracts.CrewSummary, error)
 }
 
+// Calibration status values persisted in individual_baselines.calibration_status.
+const (
+	CalibrationStatusReady         = "READY"
+	CalibrationStatusSyntheticSeed = "SYNTHETIC_SEED"
+	CalibrationStatusCalibrating   = "CALIBRATING"
+	CalibrationStatusRequired      = "REQUIRES_CALIBRATION"
+)
+
+// IsCalibrated is the single calibration rule shared by GET /api/crew,
+// GET /api/crew/{id}/profile and WS CREW_STATE (mirrored in
+// edge-ai/src/edgespace_ai/adaptation/baseline_registry.py:is_calibrated):
+//   - READY with samples is calibrated;
+//   - SYNTHETIC_SEED with samples is calibrated only when the crew has a baseline_path;
+//   - anything else requires calibration.
+func IsCalibrated(status string, sampleCount int64, baselinePath string) bool {
+	if sampleCount <= 0 {
+		return false
+	}
+	switch status {
+	case CalibrationStatusReady:
+		return true
+	case CalibrationStatusSyntheticSeed:
+		return strings.TrimSpace(baselinePath) != ""
+	default:
+		return false
+	}
+}
+
 // Reader returns a Reader backed by the read-only pool.
 func (s *Store) Reader() Reader { return s }
 
@@ -31,7 +59,8 @@ func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
 	if s.operational {
 		rows, err := s.readerDB.QueryContext(ctx, `
 			SELECT crew_id, name, COALESCE(role,''), COALESCE(mission_day,0),
-			       COALESCE(calibration_status,'REQUIRES_CALIBRATION'), COALESCE(sample_count,0)
+			       COALESCE(calibration_status,'REQUIRES_CALIBRATION'), COALESCE(sample_count,0),
+			       COALESCE(model_path,'')
 			FROM v_active_crew_baselines
 			ORDER BY crew_id`)
 		if err != nil {
@@ -42,13 +71,12 @@ func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
 		out := []contracts.CrewSummary{}
 		for rows.Next() {
 			var c contracts.CrewSummary
-			var calibrationStatus string
+			var calibrationStatus, baselinePath string
 			var sampleCount int64
-			if err := rows.Scan(&c.CrewID, &c.Name, &c.Role, &c.MissionDay, &calibrationStatus, &sampleCount); err != nil {
+			if err := rows.Scan(&c.CrewID, &c.Name, &c.Role, &c.MissionDay, &calibrationStatus, &sampleCount, &baselinePath); err != nil {
 				return nil, fmt.Errorf("store: scan crew: %w", err)
 			}
-			calibrated := (calibrationStatus == "READY" || calibrationStatus == "SYNTHETIC_SEED") && sampleCount > 0
-			c.CalibrationRequired = !calibrated
+			c.CalibrationRequired = !IsCalibrated(calibrationStatus, sampleCount, baselinePath)
 			out = append(out, c)
 		}
 		return out, rows.Err()

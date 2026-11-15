@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "type": "CHAT_CORRELATE_RESP",
+  "ts_us": 1699900015000000,
+  "crew_id": "crew_001",
+  "req_id": 8,
+  "payload": {
+    "text": "Resposta",
+    "escalation": "GROUND"
+  }
+}

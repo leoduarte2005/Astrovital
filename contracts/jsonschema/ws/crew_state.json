@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WS CREW_STATE Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "CREW_STATE" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["mission_mode", "ai_ready", "calibration_required"],
+          "properties": {
+            "crew_id": { "type": ["string", "null"] },
+            "profile": {
+              "anyOf": [
+                { "type": "null" },
+                { "$ref": "../_defs.json#/$defs/crew_summary" }
+              ]
+            },
+            "mission_mode": { "$ref": "../../enums/mission_mode.json" },
+            "ai_ready": { "type": "boolean" },
+            "calibration_required": { "type": "boolean" }
+          }
+        }
+      }
+    }
+  ]
+}

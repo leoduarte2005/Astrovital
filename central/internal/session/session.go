@@ -21,6 +21,7 @@ const (
 	cmdSelfExam
 	cmdCalibrationStep
 	cmdCrewAck
+	cmdBaselineSaved
 )
 
 type sessionCmd struct {
@@ -70,6 +71,7 @@ type Manager struct {
 	loopCancel context.CancelFunc
 
 	state               Snapshot
+	storeCalibRequired  bool
 	nextReqID           uint64
 	pendingSwapReply    chan cmdReply
 	activeChatSessionID string
@@ -97,7 +99,7 @@ func New(cfg Config, deps Deps) *Manager {
 	if cfg.SetCrewTimeout <= 0 {
 		cfg.SetCrewTimeout = DefaultSetCrewTimeout
 	}
-	if cfg.ChatTimeout < 0 {
+	if cfg.ChatTimeout <= 0 {
 		cfg.ChatTimeout = DefaultChatTimeout
 	}
 	if cfg.CalibrationTimeout <= 0 {
@@ -292,6 +294,45 @@ func (m *Manager) handleCmd(cmd sessionCmd) {
 		m.execSelfExam(cmd)
 	case cmdCalibrationStep:
 		m.execCalibrationStep(cmd)
+	case cmdBaselineSaved:
+		m.execBaselineSaved(cmd)
+	}
+}
+
+// execBaselineSaved re-applies the single calibration rule after a baseline
+// update was persisted, so WS CREW_STATE matches REST without a crew re-swap.
+func (m *Manager) execBaselineSaved(cmd sessionCmd) {
+	if cmd.crewID == "" || cmd.crewID != m.state.ActiveCrewID || m.deps.Store == nil {
+		return
+	}
+	data, err := m.deps.Store.LoadProfile(m.loopContext(), cmd.crewID)
+	if err != nil {
+		slog.Warn("session: reload profile after baseline update failed", "crew_id", cmd.crewID, "err", err)
+		return
+	}
+	m.storeCalibRequired = data.CalibrationRequired
+	m.state.BaselinePath = data.BaselinePath
+	if m.state.CalibrationRequired == data.CalibrationRequired {
+		m.publishSnapshot()
+		return
+	}
+	m.state.CalibrationRequired = data.CalibrationRequired
+	m.publishSnapshot()
+	m.emitCrewState(m.crewStatePayload())
+}
+
+func (m *Manager) loopContext() context.Context {
+	if m.loopCtx != nil {
+		return m.loopCtx
+	}
+	return context.Background()
+}
+
+func (m *Manager) notifyBaselineSaved(crewID string) {
+	select {
+	case m.cmdCh <- sessionCmd{kind: cmdBaselineSaved, crewID: crewID}:
+	default:
+		slog.Warn("session: cmdCh full on baseline saved", "crew_id", crewID)
 	}
 }
 
@@ -346,7 +387,8 @@ func (m *Manager) execSetCrew(cmd sessionCmd) {
 	m.state.BaselinePath = data.BaselinePath
 	m.state.Thresholds = cloneThresholds(data.Thresholds)
 	m.state.AIReady = false
-	m.state.CalibrationRequired = false
+	m.storeCalibRequired = data.CalibrationRequired
+	m.state.CalibrationRequired = data.CalibrationRequired
 	m.state.CalibrationActive = false
 	m.state.CalibStepID = ""
 	m.publishSnapshot()
@@ -422,7 +464,8 @@ func (m *Manager) handleSwapResult(res swapResult) {
 
 	if res.err == nil && res.ack.OK {
 		m.state.AIReady = true
-		m.state.CalibrationRequired = !res.ack.BaselineFound
+		// Store rule is authoritative; Edge AI may only add a requirement (e.g. schema mismatch).
+		m.state.CalibrationRequired = m.storeCalibRequired || !res.ack.BaselineFound
 		m.swapsCompleted.Add(1)
 		if res.fromRetry {
 			m.reconnectSyncs.Add(1)
@@ -698,6 +741,7 @@ func (m *Manager) execCalibrationStep(cmd sessionCmd) {
 					cmd.replyCh <- cmdReply{err: err}
 					return
 				}
+				m.notifyBaselineSaved(targetCrew)
 			}
 			fb.BaselineUpdate = nil
 		}

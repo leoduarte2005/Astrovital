@@ -1,0 +1,9 @@
+{
+  "v": 1,
+  "type": "CSI_FRAME",
+  "node_id": 256,
+  "slot_id": 2,
+  "mode": "MODE_CABIN_TOMOGRAPHY",
+  "timestamp_us": 1699900004000000,
+  "cycle_seq": 200
+}

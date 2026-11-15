@@ -1,0 +1,9 @@
+{
+  "profile": { "crew_id": "crew_001", "name": "Cmdr. Silva", "role": "Commander", "mission_day": 42, "age": 41 },
+  "baseline_path": "models/profiles/baseline_crew_001.json",
+  "calibration_status": "SYNTHETIC_SEED",
+  "calibration_required": false,
+  "thresholds": {
+    "co2_ppm": { "metric_name": "co2_ppm", "yellow_high": 1000, "red_high": 3500 }
+  }
+}

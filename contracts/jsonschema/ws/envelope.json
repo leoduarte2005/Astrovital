@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebSocket v1 Envelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "ts_us", "crew_id", "payload"],
+  "properties": {
+    "v": { "const": 1 },
+    "type": { "$ref": "../../enums/ws_msg_type.json" },
+    "ts_us": { "type": "integer", "minimum": 0 },
+    "crew_id": { "type": ["string", "null"] },
+    "client_msg_id": { "type": ["string", "null"] },
+    "payload": { "type": "object" }
+  }
+}

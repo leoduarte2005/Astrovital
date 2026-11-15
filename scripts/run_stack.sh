@@ -203,14 +203,18 @@ if [[ "$NO_BUILD" -eq 1 ]]; then
 else
     step "compilando Central Go -> $CENTRAL_BIN"
     mkdir -p "$BUILD_DIR"
-    (cd "$CENTRAL_DIR" && CGO_ENABLED=0 go build -o "$CENTRAL_BIN" ./cmd/edgespace-central)
+    (cd "$CENTRAL_DIR" && CGO_ENABLED=0 go build -o "$CENTRAL_BIN" ./cmd/edgespace-central) \
+        || { fail "Central build falhou"; exit 1; }
 fi
 
-# Schema must be ready before the read-only worker opens SQLite.
-"$PYTHON_BIN" "$ROOT/database/tools/operational.py" migrate --db "$DB_PATH"
-
-# 4. worker IA em background
+# 4. Schema M1 deve existir antes do worker IA abrir o SQLite (mode=ro).
+#    Funciona a partir de var/ limpo: operational.py cria o arquivo e aplica 0001..000N.
 mkdir -p "$VAR_DIR"
+step "aplicando migrations M1 (database/tools/operational.py migrate --db var/edgespace.db)"
+"$PYTHON_BIN" "$ROOT/database/tools/operational.py" migrate --db "$DB_PATH" \
+    || { fail "migrate falhou"; exit 1; }
+
+# 5. worker IA em background
 step "subindo edge-ai em $IPC_ADDR (log: var/edge-ai.log)"
 (
     cd "$EDGE_AI_DIR"
@@ -231,7 +235,7 @@ done
 port_open "$IPC_PORT" || { fail "timeout aguardando porta $IPC_PORT"; tail -n 20 "$AI_LOG" >&2 || true; exit 1; }
 step "edge-ai pronto (PID $AI_PID, porta $IPC_PORT aberta)"
 
-# 5. Central Go (sem --mock-ai)
+# 6. Central Go (sem --mock-ai)
 CENTRAL_ARGS=(
     "-mock-cluster=$CLUSTER_FLAG"
     "-ipc-addr=$IPC_ADDR"

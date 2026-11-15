@@ -11,6 +11,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"edgespace/central/internal/contracts"
 )
 
 type syncBuffer struct {
@@ -198,5 +200,40 @@ func TestRunGracefulShutdownOrder(t *testing.T) {
 	}
 	if httpIdx == -1 || storeIdx == -1 || httpIdx >= storeIdx {
 		t.Fatalf("expected httpws stopped (%d) before store stopped (%d); logs:\n%s", httpIdx, storeIdx, logs)
+	}
+}
+
+func TestChatPeripheralsFromSnapshotAndDataClass(t *testing.T) {
+	if got := dataClassFor(config{mockCluster: "inproc"}); got != "SYNTHETIC" {
+		t.Fatalf("dataClassFor(inproc)=%q want SYNTHETIC", got)
+	}
+	if got := dataClassFor(config{mockCluster: "false"}); got != "REAL" {
+		t.Fatalf("dataClassFor(false)=%q want REAL", got)
+	}
+	snap := &contracts.TelemetrySnapshot{
+		TsUs: 1234,
+		Vitals: contracts.VitalsData{
+			HeartRateBpm: 72,
+			SpO2Pct:      98,
+		},
+		Environment: contracts.EnvironmentData{
+			CO2Ppm:      900,
+			TempC:       22.5,
+			HumidityPct: 45,
+			PressureHpa: 1013,
+		},
+	}
+	got := chatPeripheralsFromSnapshot(snap)
+	if len(got) != 6 {
+		t.Fatalf("chatPeripheralsFromSnapshot len=%d want 6: %+v", len(got), got)
+	}
+	units := map[string]float64{}
+	for _, r := range got {
+		units[string(r.Type)+":"+r.Unit] = r.Value
+	}
+	for _, k := range []string{"SCD40:ppm", "BME280:C", "BME280:%RH", "BME280:hPa", "MAX30102:bpm", "MAX30102:%"} {
+		if _, ok := units[k]; !ok {
+			t.Fatalf("missing %s in chatPeripheralsFromSnapshot: %+v", k, got)
+		}
 	}
 }

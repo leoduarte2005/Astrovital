@@ -170,6 +170,7 @@ func TestOperationalV2WritersSessionAndBaseline(t *testing.T) {
 		"model_path": modelPath, "feature_schema_id": "EDGESPACE_DSP64_V1",
 		"calibration_status": "READY", "clean_window_ratio": 0.95,
 		"covered_postures": []string{"supine", "seated"}, "step_id": "step-final",
+		"per_posture_stats": map[string]any{"supine": map[string]any{"sample_count": 3, "hr_mean": 58.0}},
 	})
 	if err := s.SaveBaselineUpdate(ctx, crew, rawBaseline, now+40); err != nil {
 		t.Fatalf("SaveBaselineUpdate: %v", err)
@@ -187,8 +188,55 @@ func TestOperationalV2WritersSessionAndBaseline(t *testing.T) {
 		t.Fatalf("ListCrew: %v", err)
 	}
 	for _, c := range list {
-		if c.CalibrationRequired {
-			t.Fatalf("seeded/ready crew %s should not require calibration: %+v", c.CrewID, c)
+		// crew_003 has SYNTHETIC_SEED but no baseline_path -> pending calibration.
+		wantRequired := c.CrewID == "crew_003" && c.CrewID != crew
+		if c.CalibrationRequired != wantRequired {
+			t.Fatalf("crew %s calibration_required=%v, want %v: %+v", c.CrewID, c.CalibrationRequired, wantRequired, c)
+		}
+		rec, err := s.GetCrewProfile(ctx, c.CrewID)
+		if err != nil {
+			t.Fatalf("GetCrewProfile(%s): %v", c.CrewID, err)
+		}
+		if rec.CalibrationRequired != c.CalibrationRequired {
+			t.Fatalf("crew %s: profile calibration_required=%v != list %v", c.CrewID, rec.CalibrationRequired, c.CalibrationRequired)
+		}
+	}
+
+	// per_posture_stats_json persisted from baseline_update.
+	var pps string
+	if err := s.readerDB.QueryRow(`SELECT per_posture_stats_json FROM individual_baselines WHERE crew_id=? AND is_active=1`, crew).Scan(&pps); err != nil {
+		t.Fatalf("read per_posture_stats_json: %v", err)
+	}
+	if !strings.Contains(pps, `"supine"`) {
+		t.Fatalf("per_posture_stats_json = %s, want supine stats", pps)
+	}
+	var badRaw map[string]any
+	_ = json.Unmarshal(rawBaseline, &badRaw)
+	badRaw["per_posture_stats"] = []int{1}
+	bad, _ := json.Marshal(badRaw)
+	if err := s.SaveBaselineUpdate(ctx, crew, bad, now+50); err == nil || !strings.Contains(err.Error(), "per_posture_stats") {
+		t.Fatalf("expected per_posture_stats object error, got %v", err)
+	}
+}
+
+func TestIsCalibratedSingleRule(t *testing.T) {
+	cases := []struct {
+		status string
+		n      int64
+		path   string
+		want   bool
+	}{
+		{CalibrationStatusReady, 10, "", true},
+		{CalibrationStatusReady, 0, "x", false},
+		{CalibrationStatusSyntheticSeed, 164, "models/profiles/baseline_crew_001.json", true},
+		{CalibrationStatusSyntheticSeed, 164, "", false},
+		{CalibrationStatusSyntheticSeed, 164, "   ", false},
+		{CalibrationStatusCalibrating, 50, "x", false},
+		{CalibrationStatusRequired, 50, "x", false},
+	}
+	for _, c := range cases {
+		if got := IsCalibrated(c.status, c.n, c.path); got != c.want {
+			t.Fatalf("IsCalibrated(%q,%d,%q)=%v want %v", c.status, c.n, c.path, got, c.want)
 		}
 	}
 }

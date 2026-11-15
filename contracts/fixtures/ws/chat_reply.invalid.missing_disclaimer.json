@@ -1,0 +1,13 @@
+{
+  "v": 1,
+  "type": "CHAT_REPLY",
+  "ts_us": 1699900024000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "text": "Resposta",
+    "evidence": [],
+    "countermeasures": [],
+    "source_ids": [],
+    "escalation": "LOCAL"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "v": 1,
+  "type": "CLUSTER_STATUS",
+  "ts_us": 1699900023000000,
+  "crew_id": null,
+  "payload": {
+    "nodes": [
+      { "node_id": 0, "mac": "02:ED:6E:00:00:00", "state": "ZOMBIE", "slot": 0, "peripherals": [], "last_seen_us": 1 }
+    ],
+    "active_links": 0,
+    "total_links": 20,
+    "ai_link": "offline",
+    "dropped_frames": 0,
+    "dropped_ctrl": 0,
+    "dropped_windows": 0
+  }
+}

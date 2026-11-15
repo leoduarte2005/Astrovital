@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC AI_INFERENCE Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "AI_INFERENCE" },
+        "payload": { "$ref": "../_defs.json#/$defs/ai_inference" }
+      }
+    }
+  ]
+}

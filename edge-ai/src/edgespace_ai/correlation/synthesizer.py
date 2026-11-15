@@ -16,22 +16,22 @@ from ..utils.model_fetch import ensure_model
 
 logger = get_logger("edgespace_ai.correlation.synthesizer")
 
-DEFAULT_N_CTX = 2048
+DEFAULT_N_CTX = 1024
 DEFAULT_N_THREADS = 2
 DEFAULT_N_THREADS_BATCH = 8
 DEFAULT_N_BATCH = 512
-DEFAULT_TIMEOUT_S: Optional[float] = None
+DEFAULT_TIMEOUT_S: float = 15.0
 DEFAULT_MAX_TOKENS = 280
 DEFAULT_MIN_FREE_RAM_MB = 512
 
 
-def _default_timeout_s() -> Optional[float]:
+def _default_timeout_s() -> float:
     raw = os.environ.get("EDGESPACE_SLM_TIMEOUT_S", "").strip()
     if not raw:
         return DEFAULT_TIMEOUT_S
     try:
         val = float(raw)
-        return val if val > 0 else None
+        return max(0.1, val)
     except ValueError:
         return DEFAULT_TIMEOUT_S
 

@@ -1,0 +1,10 @@
+{
+  "protocol_id": "amsler_grid",
+  "name": "Grade de Amsler (SANS)",
+  "subsystems": ["NEURO_OCULAR_SANS"],
+  "description": "Avaliacao visual rapida para deteccao de metamorfopsia ou escotomas.",
+  "steps": ["Fixar o ponto central a 30 cm", "Testar um olho de cada vez"],
+  "duration_s": 120,
+  "materials": ["Grade de Amsler impressa ou tela"],
+  "linked_risks": ["SANS"]
+}

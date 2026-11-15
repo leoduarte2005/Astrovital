@@ -1,0 +1,18 @@
+{
+  "v": 1,
+  "type": "CALIBRATION_FEEDBACK",
+  "ts_us": 1699900016500000,
+  "crew_id": "crew_003",
+  "req_id": 9,
+  "payload": {
+    "step_id": "sitting",
+    "progress": 33,
+    "quality": 0.92,
+    "baseline_update": {
+      "crew_id": "crew_003",
+      "feature_schema_id": "EDGESPACE_DSP64_V1",
+      "calibration_status": "CALIBRATING",
+      "sample_count": 1
+    }
+  }
+}

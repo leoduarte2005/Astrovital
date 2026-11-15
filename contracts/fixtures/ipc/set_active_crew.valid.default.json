@@ -1,0 +1,16 @@
+{
+  "v": 1,
+  "type": "SET_ACTIVE_CREW",
+  "ts_us": 1699900012000000,
+  "crew_id": "crew_001",
+  "req_id": 7,
+  "payload": {
+    "crew_id": "crew_001",
+    "profile": { "crew_id": "crew_001", "name": "Cmdr. Silva", "role": "Commander", "mission_day": 42, "age": 41 },
+    "baseline_path": "models/profiles/baseline_crew_001.json",
+    "thresholds": {
+      "co2_ppm": { "metric_name": "co2_ppm", "yellow_high": 1000, "red_high": 3500 },
+      "spo2_pct": { "metric_name": "spo2_pct", "yellow_high": 0, "red_high": 0, "yellow_low": 94, "red_low": 90 }
+    }
+  }
+}

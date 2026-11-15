@@ -1,0 +1,14 @@
+{
+  "v": 1,
+  "type": "ALERT_EVENT",
+  "ts_us": 1699900021000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "subsystem": "RESPIRATORY_ATMOSPHERE",
+    "severity": "RED",
+    "message": "CO2 critical: 3600 ppm",
+    "countermeasure": "Increase cabin ventilation and check CDRA",
+    "escalation": "STORE_AND_FORWARD",
+    "source_id": "NASA-STD-3001-CO2"
+  }
+}

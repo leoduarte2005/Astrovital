@@ -19,6 +19,27 @@ logger = get_logger("edgespace_ai.adaptation.baseline_registry")
 
 DEFAULT_ANOMALY_THRESHOLD = 0.75
 
+CALIBRATION_STATUS_READY = "READY"
+CALIBRATION_STATUS_SYNTHETIC_SEED = "SYNTHETIC_SEED"
+CALIBRATION_STATUS_CALIBRATING = "CALIBRATING"
+CALIBRATION_STATUS_REQUIRED = "REQUIRES_CALIBRATION"
+
+
+def is_calibrated(status: Optional[str], sample_count: Optional[int], baseline_path: Optional[str]) -> bool:
+    """Single calibration rule mirrored from central/internal/store/reader.go:IsCalibrated.
+
+    - READY with samples is calibrated;
+    - SYNTHETIC_SEED with samples is calibrated only when the crew has a baseline_path;
+    - anything else requires calibration.
+    """
+    if not sample_count or int(sample_count) <= 0:
+        return False
+    if status == CALIBRATION_STATUS_READY:
+        return True
+    if status == CALIBRATION_STATUS_SYNTHETIC_SEED:
+        return bool(baseline_path and str(baseline_path).strip())
+    return False
+
 
 @dataclass(frozen=True)
 class CrewBaseline:
@@ -175,9 +196,14 @@ class BaselineRegistry:
         crew_id: str,
         baseline_path: Optional[str] = None,
     ) -> tuple[CrewBaseline, bool]:
-        """Atomically switch active crew baseline (< 300 ms target)."""
+        """Atomically switch active crew baseline (< 300 ms target).
+
+        Returns ``(baseline, baseline_found)`` where ``baseline_found`` follows
+        :func:`is_calibrated`. ``baseline_path`` (from SET_ACTIVE_CREW) overrides
+        the DB ``model_path`` when provided so Central and Edge AI agree.
+        """
         t0 = time.perf_counter()
-        loaded = self._load_from_database(crew_id)
+        loaded = self._load_from_database(crew_id, baseline_path=baseline_path)
         if loaded is None:
             loaded = make_default_baseline(crew_id)
             self._readiness[crew_id] = False
@@ -186,56 +212,21 @@ class BaselineRegistry:
             self._active_crew_id = crew_id
             self._active_baseline = loaded
             self.last_switch_ms = (time.perf_counter() - t0) * 1000.0
-        return loaded, self._readiness.get(crew_id, False)
-        baseline: Optional[CrewBaseline] = None
-        baseline_found = False
-
-        with self._lock:
-            if crew_id in self._cache:
-                self._cache.move_to_end(crew_id)
-                baseline = self._cache[crew_id]
-                baseline_found = baseline.sample_count > 0 or self.profile_path(crew_id).is_file()
-
-        if baseline is None:
-            loaded = self._load_from_disk(crew_id, explicit_path=baseline_path)
-            if loaded is not None:
-                baseline = loaded
-                baseline_found = True
-            else:
-                # Check if an explicit ONNX baseline file exists even without JSON stats
-                explicit_onnx_found = bool(baseline_path and Path(baseline_path).is_file())
-                default_onnx_found = (self.models_dir / f"baseline_ae_{crew_id}.onnx").is_file() or (
-                    self.models_dir / f"{crew_id}.onnx"
-                ).is_file()
-                baseline_found = explicit_onnx_found or default_onnx_found
-                baseline = make_default_baseline(crew_id)
-                if explicit_onnx_found and baseline_path:
-                    baseline = CrewBaseline(
-                        crew_id=crew_id,
-                        mean=baseline.mean,
-                        std=baseline.std,
-                        threshold=baseline.threshold,
-                        sample_count=0,
-                        updated_at_us=baseline.updated_at_us,
-                        model_path=baseline_path,
-                    )
-
-        with self._lock:
-            self._put_lru(crew_id, baseline)
-            self._active_crew_id = crew_id
-            self._active_baseline = baseline
-            elapsed_ms = (time.perf_counter() - t0) * 1000.0
-            self.last_switch_ms = elapsed_ms
-
+        found = self._readiness.get(crew_id, False)
         logger.info(
             "active baseline switched",
             extra={
                 "crew_id": crew_id,
-                "baseline_found": baseline_found,
-                "switch_ms": round(elapsed_ms, 3),
+                "baseline_found": found,
+                "sample_count": loaded.sample_count,
+                "switch_ms": round(self.last_switch_ms, 3),
             },
         )
-        return baseline, baseline_found
+        return loaded, found
+
+    def is_ready(self, crew_id: str) -> bool:
+        """Return the last computed calibration readiness for ``crew_id``."""
+        return self._readiness.get(crew_id, False)
 
     def update_baseline(self, baseline: CrewBaseline) -> None:
         """Insert or update a crew baseline in the LRU cache and active slot."""
@@ -250,7 +241,12 @@ class BaselineRegistry:
         while len(self._cache) > self.max_entries:
             self._cache.popitem(last=False)
 
-    def _load_from_database(self, crew_id: str) -> Optional[CrewBaseline]:
+    def _load_from_database(
+        self,
+        crew_id: str,
+        *,
+        baseline_path: Optional[str] = None,
+    ) -> Optional[CrewBaseline]:
         if not self.db_path.is_file():
             raise FileNotFoundError(f"SQLite baseline database not found: {self.db_path}")
         with ClinicalRepository(self.db_path) as repo:
@@ -259,18 +255,29 @@ class BaselineRegistry:
             except KeyError:
                 self._readiness[crew_id] = False
                 return None
+            effective_path = baseline_path
+            if not effective_path:
+                effective_path = row.get("onnx_model_path")
+            if not effective_path:
+                try:
+                    effective_path = repo.crew(crew_id).get("baseline_path")
+                except KeyError:
+                    effective_path = None
         if row.get("feature_schema_id") != "EDGESPACE_DSP64_V1":
             raise ValueError("Unsupported baseline feature schema; calibration required")
-        self._readiness[crew_id] = row["calibration_status"] == "READY" and row["sample_count"] > 0
+        sample_count = int(row.get("sample_count") or 0)
+        self._readiness[crew_id] = is_calibrated(row.get("calibration_status"), sample_count, effective_path)
         return CrewBaseline.from_dict(
             dict(
                 crew_id=crew_id,
                 mean=row["mean"],
                 std=row["std"],
                 threshold=row["anomaly_threshold"],
-                sample_count=row["sample_count"] if row["calibration_status"] in ("READY", "CALIBRATING") else 0,
+                # sample_count is preserved as persisted (incl. SYNTHETIC_SEED) so EMA
+                # calibration continues from the stored statistics instead of resetting.
+                sample_count=sample_count,
                 updated_at_us=row["updated_at_us"],
-                model_path=row["onnx_model_path"],
+                model_path=row.get("onnx_model_path"),
                 per_posture_stats=row.get("per_posture_stats") or {},
             )
         )

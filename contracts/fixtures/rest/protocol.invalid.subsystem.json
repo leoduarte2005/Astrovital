@@ -1,0 +1,5 @@
+{
+  "protocol_id": "amsler_grid",
+  "name": "Grade de Amsler",
+  "subsystems": ["INVALID_SUBSYSTEM"]
+}

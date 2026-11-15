@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "POST /api/dev/scenario request",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["scenario"],
+  "properties": {
+    "scenario": { "type": "string", "enum": ["", "hypercapnia", "sans", "solar_storm", "dehydration_sleep", "node_loss"] },
+    "seed": { "type": "integer" }
+  }
+}

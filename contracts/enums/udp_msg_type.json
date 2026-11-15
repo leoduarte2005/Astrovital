@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "UDP Message Type Enum",
+  "type": "string",
+  "enum": [
+    "CLUSTER_SYNC",
+    "MODE_CMD",
+    "NODE_HELLO",
+    "HEARTBEAT",
+    "CSI_FRAME",
+    "PERIPHERAL_DATA"
+  ]
+}

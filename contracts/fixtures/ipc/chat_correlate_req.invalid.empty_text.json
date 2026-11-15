@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "type": "CHAT_CORRELATE_REQ",
+  "ts_us": 1699900014000000,
+  "crew_id": "crew_001",
+  "req_id": 8,
+  "payload": { "text": "" }
+}

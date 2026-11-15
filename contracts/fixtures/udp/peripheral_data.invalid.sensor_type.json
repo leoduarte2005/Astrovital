@@ -1,0 +1,10 @@
+{
+  "v": 1,
+  "type": "PERIPHERAL_DATA",
+  "node_id": 2,
+  "cycle_seq": 300,
+  "timestamp_us": 1699900005000000,
+  "peripherals": [
+    { "type": "DHT22", "value": 22.0, "unit": "C", "timestamp_us": 1699900005000000 }
+  ]
+}

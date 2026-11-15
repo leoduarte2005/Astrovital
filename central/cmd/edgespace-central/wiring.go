@@ -32,9 +32,10 @@ func (a storeSessionAdapter) LoadProfile(ctx context.Context, crewID string) (se
 		return session.CrewProfileData{}, err
 	}
 	return session.CrewProfileData{
-		Profile:      rec.Profile,
-		BaselinePath: rec.BaselinePath,
-		Thresholds:   rec.Thresholds,
+		Profile:             rec.Profile,
+		BaselinePath:        rec.BaselinePath,
+		CalibrationRequired: rec.CalibrationRequired,
+		Thresholds:          rec.Thresholds,
 	}, nil
 }
 func (a storeSessionAdapter) LoadSummary24h(ctx context.Context, crewID string) (string, error) {
@@ -81,7 +82,7 @@ func (a storeHTTPAdapter) GetCrewProfile(ctx context.Context, id string) (httpws
 	return httpws.CrewProfileDTO{
 		Profile:             rec.Profile,
 		BaselinePath:        rec.BaselinePath,
-		CalibrationRequired: rec.BaselinePath == "",
+		CalibrationRequired: rec.CalibrationRequired,
 		Thresholds:          rec.Thresholds,
 	}, nil
 }
@@ -277,16 +278,34 @@ func (a httpSessionAdapter) SetCrew(ctx context.Context, crewID string) (contrac
 }
 
 func (a httpSessionAdapter) HandleChatMsg(ctx context.Context, crewID, text string) (contracts.ChatReplyPayload, error) {
-	var periphs []contracts.PeripheralReading
-	if snap := a.latest.Load(); snap != nil {
-		ts := snap.TsUs
-		periphs = []contracts.PeripheralReading{
-			{Type: contracts.PeripheralSCD40, Value: snap.Environment.CO2Ppm, Unit: "ppm", TimestampUs: ts},
-			{Type: contracts.PeripheralBME280, Value: snap.Environment.TempC, Unit: "C", TimestampUs: ts},
-			{Type: contracts.PeripheralMAX30102, Value: snap.Vitals.SpO2Pct, Unit: "%", TimestampUs: ts},
+	return a.sess.HandleChatMsg(ctx, crewID, text, chatPeripheralsFromSnapshot(a.latest.Load()), a.lastInf.Load())
+}
+
+// chatPeripheralsFromSnapshot forwards every I2C channel tracked in the
+// telemetry snapshot (SCD40 CO2, BME280 temp/humidity/pressure, MAX30102
+// HR/SpO2) to CHAT_CORRELATE_REQ. Units match pipeline.applyPeripheral.
+// Zero values mean "never measured" in TelemetrySnapshot and are omitted
+// so the correlator does not treat absence as a 0 reading.
+func chatPeripheralsFromSnapshot(snap *contracts.TelemetrySnapshot) []contracts.PeripheralReading {
+	if snap == nil {
+		return nil
+	}
+	ts := snap.TsUs
+	cands := []contracts.PeripheralReading{
+		{Type: contracts.PeripheralSCD40, Value: snap.Environment.CO2Ppm, Unit: "ppm", TimestampUs: ts},
+		{Type: contracts.PeripheralBME280, Value: snap.Environment.TempC, Unit: "C", TimestampUs: ts},
+		{Type: contracts.PeripheralBME280, Value: snap.Environment.HumidityPct, Unit: "%RH", TimestampUs: ts},
+		{Type: contracts.PeripheralBME280, Value: snap.Environment.PressureHpa, Unit: "hPa", TimestampUs: ts},
+		{Type: contracts.PeripheralMAX30102, Value: snap.Vitals.HeartRateBpm, Unit: "bpm", TimestampUs: ts},
+		{Type: contracts.PeripheralMAX30102, Value: snap.Vitals.SpO2Pct, Unit: "%", TimestampUs: ts},
+	}
+	out := make([]contracts.PeripheralReading, 0, len(cands))
+	for _, r := range cands {
+		if r.Value != 0 {
+			out = append(out, r)
 		}
 	}
-	return a.sess.HandleChatMsg(ctx, crewID, text, periphs, a.lastInf.Load())
+	return out
 }
 
 func (a httpSessionAdapter) HandleSelfExam(ctx context.Context, crewID string, exam contracts.SelfExamPayload) error {

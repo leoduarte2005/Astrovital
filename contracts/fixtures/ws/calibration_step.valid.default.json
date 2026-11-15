@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "type": "CALIBRATION_STEP",
+  "ts_us": 1699900029000000,
+  "crew_id": "crew_003",
+  "client_msg_id": "c3",
+  "payload": { "step_id": "supine", "action": "start supine", "duration_ms": 30000 }
+}

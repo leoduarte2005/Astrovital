@@ -630,3 +630,41 @@ func TestPipelineLatestSnapshotAndDecimation1Hz(t *testing.T) {
 		t.Fatalf("expected 5 peripheral meta entries from node 2, got %+v", ps.Meta)
 	}
 }
+
+func TestCountermeasureExerciseRaisesSeededHeartRateCeiling(t *testing.T) {
+	c := newClinicalState(time.Minute)
+	c.applyInference(contracts.AIInferencePayload{
+		CycleSeqFirst: 1,
+		Posture:       "exercise",
+		RespirationHz: 0.4,
+		HeartRateBpm:  150,
+		HRVMs:         35,
+		Confidence:    0.9,
+	})
+	view := SessionView{
+		CrewID:      "crew_001",
+		MissionMode: contracts.ModeCountermeasureExercise,
+		AIReady:     true,
+		Thresholds: map[string]contracts.Threshold{
+			// Seeded resting crew_001 threshold (110/140) must be relaxed in exercise mode.
+			"heart_rate_bpm": {MetricName: "heart_rate_bpm", YellowHigh: 110, RedHigh: 140, YellowLow: 45, RedLow: 38},
+		},
+	}
+	subs, alerts := c.evaluate(time.Now(), view)
+	if subs[0].Severity != contracts.SeverityGreen || len(alerts) != 0 {
+		t.Fatalf("HR=150 during exercise should be GREEN, got sev=%s alerts=%+v", subs[0].Severity, alerts)
+	}
+	c.applyInference(contracts.AIInferencePayload{
+		CycleSeqFirst: 2,
+		Posture:       "exercise",
+		RespirationHz: 0.4,
+		HeartRateBpm:  190,
+		HRVMs:         35,
+		Confidence:    0.9,
+	})
+	subs, alerts = c.evaluate(time.Now(), view)
+	if subs[0].Severity != contracts.SeverityRed || len(alerts) == 0 {
+		t.Fatalf("HR=190 during exercise should be RED, got sev=%s alerts=%+v", subs[0].Severity, alerts)
+	}
+}
+

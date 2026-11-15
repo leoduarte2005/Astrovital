@@ -1,0 +1,7 @@
+{
+  "v": 1,
+  "type": "CALIBRATION_STEP",
+  "ts_us": 1699900029000000,
+  "crew_id": "crew_003",
+  "payload": { "step_id": "", "action": "start" }
+}

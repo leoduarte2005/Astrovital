@@ -17,8 +17,10 @@ const (
 	DefaultCmdChCap = 16
 	// DefaultSetCrewTimeout is the CREW_ACK deadline (§4.1).
 	DefaultSetCrewTimeout = 2 * time.Second
-	// DefaultChatTimeout is the CHAT_CORRELATE_RESP deadline (0 = unlimited for local SLM).
-	DefaultChatTimeout = 0 * time.Second
+	// DefaultChatTimeout is the CHAT_CORRELATE_RESP deadline. Edge AI bounds SLM
+	// synthesis at 15 s (DEFAULT_TIMEOUT_S, deterministic fallback); Central adds
+	// a 5 s margin for correlation + IPC so a stuck worker never blocks chat.
+	DefaultChatTimeout = 20 * time.Second
 	// DefaultCalibrationTimeout is the CALIBRATION_FEEDBACK deadline (§4.1).
 	DefaultCalibrationTimeout = 2 * time.Second
 	// DefaultChatHistoryLimit is the number of recent messages attached to CHAT_CORRELATE_REQ.
@@ -55,10 +57,15 @@ type Snapshot struct {
 }
 
 // CrewProfileData is returned by StorePort.LoadProfile.
+//
+// CalibrationRequired carries the store's single calibration rule
+// (store.IsCalibrated) so WS CREW_STATE matches GET /api/crew and
+// GET /api/crew/{id}/profile even before/without a CREW_ACK.
 type CrewProfileData struct {
-	Profile      contracts.CrewProfile
-	BaselinePath string
-	Thresholds   map[string]contracts.Threshold
+	Profile             contracts.CrewProfile
+	BaselinePath        string
+	CalibrationRequired bool
+	Thresholds          map[string]contracts.Threshold
 }
 
 // StorePort decouples session from internal/store.

@@ -1,0 +1,11 @@
+[
+  {
+    "alert_id": "alert-1",
+    "ts_us": 1,
+    "subsystem": "RESPIRATORY_ATMOSPHERE",
+    "severity": "CRITICAL",
+    "message": "CO2 critical",
+    "escalation": "CREW",
+    "handled": false
+  }
+]

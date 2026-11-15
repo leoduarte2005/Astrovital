@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CSI_FRAME UDP Payload (header + binary I/Q after newline)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "node_id", "slot_id", "mode", "timestamp_us", "cycle_seq"],
+  "properties": {
+    "v": { "const": 1 },
+    "type": { "const": "CSI_FRAME" },
+    "node_id": { "type": "integer", "minimum": 0, "maximum": 255 },
+    "slot_id": { "type": "integer", "minimum": 0, "maximum": 19 },
+    "mode": { "$ref": "../../enums/mission_mode.json" },
+    "timestamp_us": { "type": "integer", "minimum": 0 },
+    "cycle_seq": { "type": "integer", "minimum": 0 },
+    "mac": { "type": "string", "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$" },
+    "rssi_dbm": { "type": "integer", "minimum": -128, "maximum": 127 },
+    "fw_version": { "type": "string" },
+    "supported_peripherals": {
+      "type": "array",
+      "items": { "$ref": "../../enums/peripheral.json" }
+    },
+    "peripherals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "value", "unit", "timestamp_us"],
+        "properties": {
+          "type": { "$ref": "../../enums/peripheral.json" },
+          "value": { "type": "number" },
+          "unit": { "type": "string" },
+          "timestamp_us": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

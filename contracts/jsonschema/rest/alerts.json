@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GET /api/alerts response",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["alert_id", "ts_us", "subsystem", "severity", "message", "escalation", "handled"],
+    "properties": {
+      "alert_id": { "type": "string", "minLength": 1 },
+      "ts_us": { "type": "integer" },
+      "crew_id": { "type": ["string", "null"] },
+      "subsystem": { "$ref": "../../enums/subsystem.json" },
+      "severity": { "$ref": "../../enums/severity.json" },
+      "message": { "type": "string" },
+      "countermeasure": { "type": "string" },
+      "escalation": { "$ref": "../../enums/escalation.json" },
+      "handled": { "type": "boolean" }
+    }
+  }
+}

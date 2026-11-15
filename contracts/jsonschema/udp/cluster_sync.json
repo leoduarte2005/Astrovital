@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "CLUSTER_SYNC UDP Payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "cycle_seq", "timestamp_us", "mode", "slot_ms", "active_node_mask", "slots"],
+  "properties": {
+    "v": { "const": 1 },
+    "type": { "const": "CLUSTER_SYNC" },
+    "cycle_seq": { "type": "integer", "minimum": 0 },
+    "timestamp_us": { "type": "integer", "minimum": 0 },
+    "mode": { "$ref": "../../enums/mission_mode.json" },
+    "slot_ms": { "type": "integer", "minimum": 1 },
+    "active_node_mask": { "type": "integer", "minimum": 0, "maximum": 31 },
+    "slots": {
+      "type": "array",
+      "maxItems": 5,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["node_id", "slot_id", "ms"],
+        "properties": {
+          "node_id": { "type": "integer", "minimum": 0, "maximum": 4 },
+          "slot_id": { "type": "integer", "minimum": 0, "maximum": 19 },
+          "ms": { "type": "integer", "minimum": 1, "maximum": 1000 }
+        }
+      }
+    }
+  }
+}

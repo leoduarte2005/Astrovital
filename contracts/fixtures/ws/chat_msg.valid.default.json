@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "type": "CHAT_MSG",
+  "ts_us": 1699900027000000,
+  "crew_id": "crew_001",
+  "client_msg_id": "c2",
+  "payload": { "text": "Estou com dor de cabeca." }
+}

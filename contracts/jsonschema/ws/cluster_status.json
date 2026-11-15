@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WS CLUSTER_STATUS Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "CLUSTER_STATUS" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["nodes", "active_links", "total_links", "ai_link", "dropped_frames", "dropped_ctrl", "dropped_windows"],
+          "properties": {
+            "nodes": {
+              "type": "array",
+              "items": { "$ref": "../_defs.json#/$defs/node_status" }
+            },
+            "active_links": { "type": "integer", "minimum": 0 },
+            "total_links": { "type": "integer", "minimum": 0 },
+            "ai_link": { "type": "string" },
+            "dropped_frames": { "type": "integer", "minimum": 0 },
+            "dropped_ctrl": { "type": "integer", "minimum": 0 },
+            "dropped_windows": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  ]
+}

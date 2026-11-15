@@ -316,18 +316,58 @@ type ClinicalMemoryUpdate struct {
 // --- REST Response Payloads ---
 
 // TimeseriesResponse returned by GET /api/crew/{id}/timeseries.
+// Metric is echoed when the request filtered a single metric.
 type TimeseriesResponse struct {
 	CrewID  string            `json:"crew_id"`
+	Metric  string            `json:"metric,omitempty"`
 	StartUs int64             `json:"start_us"`
 	EndUs   int64             `json:"end_us"`
 	Buckets []TelemetryBucket `json:"buckets"`
 }
 
-// TelemetryBucket is one time-aggregated snapshot.
+// TelemetryBucket is one time-aggregated snapshot. Nil fields serialize as
+// JSON null: either the sensor had no samples in the bucket (SQL NULL is
+// preserved, never coerced to 0) or the metric was filtered out.
 type TelemetryBucket struct {
-	TsUs        int64           `json:"ts_us"`
-	Vitals      VitalsData      `json:"vitals"`
-	Environment EnvironmentData `json:"environment"`
+	TsUs        int64             `json:"ts_us"`
+	Vitals      BucketVitals      `json:"vitals"`
+	Environment BucketEnvironment `json:"environment"`
+}
+
+// BucketVitals is the nullable vitals average of one timeseries bucket.
+type BucketVitals struct {
+	HeartRateBpm    *float64 `json:"heart_rate_bpm"`
+	HRVMs           *float64 `json:"hrv_ms"`
+	RespRateBpm     *float64 `json:"resp_rate_bpm"`
+	SpO2Pct         *float64 `json:"spo2_pct"`
+	ConfidenceScore *float64 `json:"confidence_score"`
+}
+
+// BucketEnvironment is the nullable cabin average of one timeseries bucket.
+type BucketEnvironment struct {
+	CO2Ppm      *float64 `json:"co2_ppm"`
+	TempC       *float64 `json:"temp_c"`
+	HumidityPct *float64 `json:"humidity_pct"`
+	PressureHpa *float64 `json:"pressure_hpa"`
+}
+
+// TimeseriesMetrics lists the metric names accepted by ?metric= (column names).
+var TimeseriesMetrics = []string{
+	"heart_rate_bpm", "hrv_ms", "resp_rate_bpm", "spo2_pct", "confidence",
+	"co2_ppm", "temp_c", "humidity_pct", "pressure_hpa",
+}
+
+// IsTimeseriesMetric reports whether m is a valid ?metric= filter ("" = all).
+func IsTimeseriesMetric(m string) bool {
+	if m == "" {
+		return true
+	}
+	for _, v := range TimeseriesMetrics {
+		if v == m {
+			return true
+		}
+	}
+	return false
 }
 
 // ProtocolDTO represents one clinical protocol/guideline.

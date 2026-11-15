@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC CHAT_CORRELATE_REQ Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "required": ["req_id"],
+      "properties": {
+        "type": { "const": "CHAT_CORRELATE_REQ" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text"],
+          "properties": {
+            "text": { "type": "string", "minLength": 1, "maxLength": 2000 },
+            "crew_id": { "type": "string" },
+            "profile": { "type": ["object", "null"] },
+            "thresholds": {
+              "type": "object",
+              "additionalProperties": { "$ref": "../_defs.json#/$defs/threshold" }
+            },
+            "last_peripherals": {
+              "type": "array",
+              "items": { "$ref": "../_defs.json#/$defs/peripheral_reading" }
+            },
+            "last_inference": { "$ref": "../_defs.json#/$defs/ai_inference" },
+            "summary_24h": { "type": "string" },
+            "recent_history": {
+              "type": "array",
+              "items": { "$ref": "../_defs.json#/$defs/chat_message" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

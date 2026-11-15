@@ -1,0 +1,18 @@
+{
+  "v": 1,
+  "type": "CLUSTER_STATUS",
+  "ts_us": 1699900023000000,
+  "crew_id": null,
+  "payload": {
+    "nodes": [
+      { "node_id": 0, "mac": "02:ED:6E:00:00:00", "state": "ACTIVE", "slot": 0, "peripherals": ["MAX30102"], "last_seen_us": 1699900022900000, "rssi_dbm": -45 },
+      { "node_id": 1, "mac": "02:ED:6E:00:00:01", "state": "SUSPECT", "slot": 1, "peripherals": [], "last_seen_us": 1699900021000000 }
+    ],
+    "active_links": 12,
+    "total_links": 20,
+    "ai_link": "online",
+    "dropped_frames": 0,
+    "dropped_ctrl": 0,
+    "dropped_windows": 1
+  }
+}

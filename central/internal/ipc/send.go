@@ -72,7 +72,8 @@ func (c *Client) SendSetActiveCrew(ctx context.Context, reqID uint64, payload co
 	return ack, nil
 }
 
-// SendChatCorrelate sends CHAT_CORRELATE_REQ on HiPri and waits up to ChatTimeout (5s).
+// SendChatCorrelate sends CHAT_CORRELATE_REQ on HiPri and waits up to ChatTimeout (20s:
+// Edge AI degrades SLM synthesis deterministically at 15s).
 func (c *Client) SendChatCorrelate(ctx context.Context, crewID *string, payload contracts.ChatCorrelateReqPayload) (contracts.ChatCorrelateRespPayload, error) {
 	reqID := c.reqSeq.Add(1)
 	env, err := contracts.NewIPCEnvelope(contracts.IPCMsgChatCorrelateReq, time.Now().UnixMicro(), crewID, &reqID, payload)

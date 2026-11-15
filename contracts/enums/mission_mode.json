@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Mission Mode Enum",
+  "type": "string",
+  "enum": [
+    "MODE_CABIN_TOMOGRAPHY",
+    "MODE_REST_VITALS",
+    "MODE_COUNTERMEASURE_EXERCISE",
+    "MODE_RADIATION_ALERT"
+  ]
+}

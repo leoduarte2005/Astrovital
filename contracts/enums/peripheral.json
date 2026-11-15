@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Peripheral Enum",
+  "type": "string",
+  "enum": [
+    "MAX30102",
+    "BME280",
+    "SCD40"
+  ]
+}

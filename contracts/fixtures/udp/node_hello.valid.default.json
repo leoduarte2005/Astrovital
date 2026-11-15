@@ -1,0 +1,9 @@
+{
+  "v": 1,
+  "type": "NODE_HELLO",
+  "mac": "02:ED:6E:00:00:00",
+  "node_id": 0,
+  "fw_version": "sim-1.0.0",
+  "peripherals": ["MAX30102", "BME280", "SCD40"],
+  "timestamp_us": 1699900002000000
+}

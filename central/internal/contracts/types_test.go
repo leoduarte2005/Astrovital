@@ -9,6 +9,22 @@ import (
 	"testing"
 )
 
+func ptrF(v float64) *float64 { return &v }
+
+func TestTimeseriesBucketPreservesNull(t *testing.T) {
+	raw, err := json.Marshal(TelemetryBucket{TsUs: 1, Vitals: BucketVitals{HeartRateBpm: ptrF(70)}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := string(raw)
+	if !strings.Contains(s, `"spo2_pct":null`) || !strings.Contains(s, `"co2_ppm":null`) || !strings.Contains(s, `"heart_rate_bpm":70`) {
+		t.Fatalf("bucket JSON must keep NULL metrics as null: %s", s)
+	}
+	if !IsTimeseriesMetric("") || !IsTimeseriesMetric("co2_ppm") || IsTimeseriesMetric("co2_ppm;DROP") {
+		t.Fatal("IsTimeseriesMetric whitelist mismatch")
+	}
+}
+
 func TestEnumValidation(t *testing.T) {
 	roundTrip := func(v any, dst any) {
 		b, err := json.Marshal(v)
@@ -564,9 +580,9 @@ func TestIPCAndRESTPayloadsRoundTrip(t *testing.T) {
 	var tsOut TimeseriesResponse
 	roundTrip("TimeseriesResponse", TimeseriesResponse{
 		CrewID: "crew_001", StartUs: 100, EndUs: 200,
-		Buckets: []TelemetryBucket{{TsUs: 150, Vitals: VitalsData{HeartRateBpm: 65}, Environment: EnvironmentData{CO2Ppm: 600}}},
+		Buckets: []TelemetryBucket{{TsUs: 150, Vitals: BucketVitals{HeartRateBpm: ptrF(65)}, Environment: BucketEnvironment{CO2Ppm: ptrF(600)}}},
 	}, &tsOut)
-	if len(tsOut.Buckets) != 1 {
+	if len(tsOut.Buckets) != 1 || tsOut.Buckets[0].Vitals.HeartRateBpm == nil || *tsOut.Buckets[0].Vitals.HeartRateBpm != 65 || tsOut.Buckets[0].Vitals.SpO2Pct != nil {
 		t.Fatalf("TimeseriesResponse mismatch: %+v", tsOut)
 	}
 

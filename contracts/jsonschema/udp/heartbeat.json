@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HEARTBEAT UDP Payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "node_id", "cycle_seq", "timestamp_us"],
+  "properties": {
+    "v": { "const": 1 },
+    "type": { "const": "HEARTBEAT" },
+    "mac": { "type": "string", "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$" },
+    "node_id": { "type": "integer", "minimum": 0, "maximum": 4 },
+    "cycle_seq": { "type": "integer", "minimum": 0 },
+    "rssi_dbm": { "type": "integer", "minimum": -128, "maximum": 127 },
+    "peripherals": {
+      "type": "array",
+      "items": { "$ref": "../../enums/peripheral.json" }
+    },
+    "timestamp_us": { "type": "integer", "minimum": 0 }
+  }
+}

@@ -114,7 +114,7 @@ def test_synthesize_with_mocked_model_and_boot_cache(tmp_path: Path) -> None:
     try:
         assert synth.is_ready is True
         assert factory_calls and factory_calls[0]["n_threads"] == 2
-        assert factory_calls[0]["n_ctx"] == 2048
+        assert factory_calls[0]["n_ctx"] == 1024
         assert (slm_dir / ".cache").is_dir()
 
         out = synth.synthesize_response(
@@ -147,6 +147,42 @@ def test_fallback_on_timeout_error_empty_and_missing_model(tmp_path: Path) -> No
     empty = LocalSLMSynthesizer(llm=_MockLlama(reply="   "), auto_load=False)
     assert empty.synthesize_response(resp, [], {}) == resp.text
     empty.close()
+
+
+def test_offline_defaults_timeout_nctx_and_no_auto_download(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+    from edgespace_ai.correlation import synthesizer as synth_mod
+    from edgespace_ai.utils.config import Settings
+
+    monkeypatch.delenv("EDGESPACE_SLM_TIMEOUT_S", raising=False)
+    monkeypatch.delenv("EDGESPACE_SLM_AUTO_DOWNLOAD", raising=False)
+    assert Settings().slm_auto_download is False
+    assert synth_mod.DEFAULT_N_CTX == 1024
+    assert synth_mod.DEFAULT_TIMEOUT_S == 15.0
+
+    synth = LocalSLMSynthesizer(models_dir=tmp_path, auto_load=False)
+    try:
+        assert synth.n_ctx == 1024
+        assert synth.timeout_s == 15.0
+        assert synth.auto_download is False
+    finally:
+        synth.close()
+
+    def _no_network(*_a: Any, **_k: Any) -> Path:
+        raise AssertionError("ensure_model must not be called when auto_download=False")
+
+    monkeypatch.setattr(synth_mod, "ensure_model", _no_network)
+    offline = LocalSLMSynthesizer(models_dir=tmp_path, auto_download=False, auto_load=True)
+    try:
+        assert offline.is_ready is False
+    finally:
+        offline.close()
+
+    monkeypatch.setenv("EDGESPACE_SLM_TIMEOUT_S", "0")
+    clamp = LocalSLMSynthesizer(auto_load=False)
+    try:
+        assert clamp.timeout_s is not None and clamp.timeout_s > 0
+    finally:
+        clamp.close()
 
 
 def _apply_real_migrations(db_file: Path) -> None:

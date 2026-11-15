@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "NODE_HELLO UDP Payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "mac", "node_id", "timestamp_us"],
+  "properties": {
+    "v": { "const": 1 },
+    "type": { "const": "NODE_HELLO" },
+    "mac": { "type": "string", "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$" },
+    "node_id": { "type": "integer", "minimum": 0, "maximum": 4 },
+    "fw_version": { "type": "string" },
+    "peripherals": {
+      "type": "array",
+      "items": { "$ref": "../../enums/peripheral.json" }
+    },
+    "timestamp_us": { "type": "integer", "minimum": 0 }
+  }
+}
