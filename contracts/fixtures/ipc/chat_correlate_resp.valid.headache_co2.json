@@ -1,0 +1,24 @@
+{
+  "v": 1,
+  "type": "CHAT_CORRELATE_RESP",
+  "ts_us": 1699900015000000,
+  "crew_id": "crew_001",
+  "req_id": 8,
+  "payload": {
+    "model_status": "ENGINEERING_TEST_ONLY",
+    "matched_condition_ids": ["hypercapnia_headache"],
+    "max_severity": "YELLOW",
+    "text": "Seu CO2 esta em 3200 ppm, compativel com cefaleia por hipercapnia.",
+    "differentials": ["hypercapnia", "dehydration"],
+    "evidence": ["SCD40 3200 ppm"],
+    "countermeasures": ["Aumentar ventilacao do modulo"],
+    "source_ids": ["NASA-STD-3001-CO2"],
+    "escalation": "CREW",
+    "disclaimer": "Clinical decision support only — not a medical diagnosis.",
+    "disambiguation_question": "Voce bebeu agua nas ultimas 4 horas?",
+    "actions": ["OPEN_PROTOCOL:environment_check"],
+    "memory_updates": [
+      { "fact_type": "SYMPTOM", "fact_key": "headache", "fact_value": "reported", "confidence": 0.9, "source_role": "user" }
+    ]
+  }
+}

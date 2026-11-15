@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC Message Type Enum",
+  "type": "string",
+  "enum": [
+    "CSI_WINDOW",
+    "PERIPHERAL_SNAPSHOT",
+    "SET_ACTIVE_CREW",
+    "CREW_ACK",
+    "AI_INFERENCE",
+    "CHAT_CORRELATE_REQ",
+    "CHAT_CORRELATE_RESP",
+    "CALIBRATION_STEP",
+    "CALIBRATION_FEEDBACK"
+  ]
+}

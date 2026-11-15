@@ -1,0 +1,5 @@
+[
+  { "crew_id": "crew_001", "name": "Cmdr. Silva", "role": "Commander", "mission_day": 42, "calibration_required": false },
+  { "crew_id": "crew_002", "name": "Dr. Santos", "role": "Flight Surgeon", "mission_day": 42, "calibration_required": false },
+  { "crew_id": "crew_003", "name": "Eng. Costa", "role": "Flight Engineer", "mission_day": 42, "calibration_required": true }
+]

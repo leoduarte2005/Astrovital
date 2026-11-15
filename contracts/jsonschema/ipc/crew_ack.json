@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC CREW_ACK Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "required": ["req_id"],
+      "properties": {
+        "type": { "const": "CREW_ACK" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["ok", "baseline_found"],
+          "properties": {
+            "ok": { "type": "boolean" },
+            "baseline_found": { "type": "boolean" },
+            "error": { "type": "string" }
+          }
+        }
+      }
+    }
+  ]
+}

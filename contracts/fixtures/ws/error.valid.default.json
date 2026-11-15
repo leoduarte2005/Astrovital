@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "type": "ERROR",
+  "ts_us": 1699900030000000,
+  "crew_id": null,
+  "client_msg_id": "c2",
+  "payload": { "code": "CHAT_ERROR", "message": "ai_unavailable", "client_msg_id": "c2" }
+}

@@ -31,11 +31,22 @@ var (
 	ErrClosed = errors.New("store: closed")
 )
 
+// data_class values accepted by telemetry_timeseries / peripheral_readings (0003 CHECK).
+const (
+	DataClassReal      = "REAL"
+	DataClassSynthetic = "SYNTHETIC"
+	DataClassDerived   = "DERIVED"
+)
+
+// DataClass returns the data_class stamped on 1 Hz telemetry/peripheral writes.
+func (s *Store) DataClass() string { return s.cfg.DataClass }
+
 // Config configures Store.
 type Config struct {
 	DBPath             string
 	MigrationsDir      string
 	RequireOperational bool          // production must have M1 migrations, never silently use RAM
+	DataClass          string        // REAL (default) | SYNTHETIC (simulation) for 1 Hz telemetry/peripherals
 	BatchInterval      time.Duration // default 250ms
 	BatchSize          int           // default 512
 	CmdBuffer          int           // default 4096
@@ -115,6 +126,13 @@ func New(cfg Config, deps Deps) (*Store, error) {
 	}
 	if cfg.CmdBuffer <= 0 {
 		cfg.CmdBuffer = DefaultCmdBuffer
+	}
+	switch cfg.DataClass {
+	case "":
+		cfg.DataClass = DataClassReal
+	case DataClassReal, DataClassSynthetic, DataClassDerived:
+	default:
+		return nil, fmt.Errorf("store: invalid DataClass %q", cfg.DataClass)
 	}
 	log := deps.Logger
 	if log == nil {

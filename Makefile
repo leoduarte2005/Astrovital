@@ -101,7 +101,7 @@ firmware-flash:
 	else echo "[pendente] firmware/CMakeLists.txt ausente"; fi
 
 frontend-build:
-	@if [ -f frontend/package.json ]; then cd frontend && npm ci --offline && npm run build && \
+	@if [ -f frontend/package.json ]; then cd frontend && pnpm install --offline --frozen-lockfile && pnpm run build && \
 	rm -rf ../central/internal/httpws/ui && mkdir -p ../central/internal/httpws/ui && \
 	cp -r dist/. ../central/internal/httpws/ui/; \
 	else echo "[pendente] frontend/package.json ausente"; fi

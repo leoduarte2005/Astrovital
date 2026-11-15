@@ -74,9 +74,18 @@ func (s *Store) SaveBaselineUpdate(ctx context.Context, crew string, data []byte
 		Ratio       float64    `json:"clean_window_ratio"`
 		Postures    []string   `json:"covered_postures"`
 		StepID      string     `json:"step_id"`
+		PerPosture  json.RawMessage `json:"per_posture_stats"`
 	}
 	if err := json.Unmarshal(data, &b); err != nil {
 		return err
+	}
+	perPosture := "{}"
+	if len(b.PerPosture) > 0 && string(b.PerPosture) != "null" {
+		var obj map[string]json.RawMessage
+		if err := json.Unmarshal(b.PerPosture, &obj); err != nil {
+			return errors.New("store: per_posture_stats must be a JSON object")
+		}
+		perPosture = string(b.PerPosture)
 	}
 	if b.CrewID != crew || b.Schema != "EDGESPACE_DSP64_V1" || len(b.Mean) != 64 || len(b.Std) != 64 || b.Threshold <= 0 || b.SampleCount < 0 || b.Ratio < 0 || b.Ratio > 1 {
 		return errors.New("store: invalid calibration metadata")
@@ -100,11 +109,22 @@ func (s *Store) SaveBaselineUpdate(ctx context.Context, crew string, data []byte
 	if b.ModelPath != nil && *b.ModelPath != "" {
 		model = *b.ModelPath
 	}
+	insert := Exec{
+		Query: `INSERT INTO individual_baselines(baseline_id,crew_id,version,onnx_model_path,feature_dim,feature_schema_id,mean_json,std_json,anomaly_threshold,sample_count,clean_window_ratio,covered_postures_json,calibration_status,drift_score,is_active,updated_at_us,data_class)
+          VALUES (?,?,(SELECT COALESCE(MAX(version),0)+1 FROM individual_baselines WHERE crew_id=?),?,64,?,?,?,?,?,?,?,?,0,1,?,(SELECT data_class FROM crew_profiles WHERE crew_id=?))`,
+		Args: []any{id, crew, crew, model, b.Schema, string(mean), string(std), b.Threshold, b.SampleCount, b.Ratio, string(poses), b.Status, ts, crew},
+	}
+	// 0005 adds per_posture_stats_json; persist posture EMA stats when the column exists.
+	if cols, err := s.tableCols(ctx, "individual_baselines"); err == nil && cols["per_posture_stats_json"] {
+		insert = Exec{
+			Query: `INSERT INTO individual_baselines(baseline_id,crew_id,version,onnx_model_path,feature_dim,feature_schema_id,mean_json,std_json,anomaly_threshold,sample_count,clean_window_ratio,covered_postures_json,calibration_status,drift_score,is_active,updated_at_us,data_class,per_posture_stats_json)
+          VALUES (?,?,(SELECT COALESCE(MAX(version),0)+1 FROM individual_baselines WHERE crew_id=?),?,64,?,?,?,?,?,?,?,?,0,1,?,(SELECT data_class FROM crew_profiles WHERE crew_id=?),?)`,
+			Args: []any{id, crew, crew, model, b.Schema, string(mean), string(std), b.Threshold, b.SampleCount, b.Ratio, string(poses), b.Status, ts, crew, perPosture},
+		}
+	}
 	return s.writeNowOrEnqueue(ctx, Statements{Items: []Exec{
 		{Query: `UPDATE individual_baselines SET is_active=0 WHERE crew_id=? AND is_active=1`, Args: []any{crew}},
-		{Query: `INSERT INTO individual_baselines(baseline_id,crew_id,version,onnx_model_path,feature_dim,feature_schema_id,mean_json,std_json,anomaly_threshold,sample_count,clean_window_ratio,covered_postures_json,calibration_status,drift_score,is_active,updated_at_us,data_class)
-          VALUES (?,?,(SELECT COALESCE(MAX(version),0)+1 FROM individual_baselines WHERE crew_id=?),?,64,?,?,?,?,?,?,?,?,0,1,?,(SELECT data_class FROM crew_profiles WHERE crew_id=?))`,
-			Args: []any{id, crew, crew, model, b.Schema, string(mean), string(std), b.Threshold, b.SampleCount, b.Ratio, string(poses), b.Status, ts, crew}},
+		insert,
 		{Query: `UPDATE crew_profiles SET baseline_path=COALESCE(?, baseline_path) WHERE crew_id=?`, Args: []any{model, crew}},
 		{Query: `INSERT INTO calibration_sessions(session_id,crew_id,baseline_id,started_us,ended_us,status,sample_count,clean_window_ratio,covered_postures_json,notes) VALUES (?,?,?,?,?,?,?,?,?,?)`, Args: []any{id, crew, id, ts, ts, b.Status, b.SampleCount, b.Ratio, string(poses), "IPC: " + b.StepID}},
 	}}, true)

@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "type": "CREW_STATE",
+  "ts_us": 1699900022000000,
+  "crew_id": "crew_003",
+  "payload": {
+    "crew_id": "crew_003",
+    "mission_mode": "MODE_CABIN_TOMOGRAPHY",
+    "ai_ready": true
+  }
+}

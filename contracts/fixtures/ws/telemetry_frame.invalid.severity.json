@@ -1,0 +1,12 @@
+{
+  "v": 1,
+  "type": "TELEMETRY_FRAME",
+  "ts_us": 1699900020000000,
+  "crew_id": null,
+  "payload": {
+    "vitals": { "heart_rate_bpm": 0, "hrv_ms": 0, "resp_rate_bpm": 0, "spo2_pct": 0, "posture": "", "confidence_score": 0 },
+    "environment": { "co2_ppm": 0, "temp_c": 0, "humidity_pct": 0, "pressure_hpa": 0 },
+    "subsystems": [ { "subsystem": "CARDIOVASCULAR_FLUIDS", "severity": "ORANGE" } ],
+    "ai_ready": false
+  }
+}

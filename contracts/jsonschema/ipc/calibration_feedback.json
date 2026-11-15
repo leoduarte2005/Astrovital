@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC CALIBRATION_FEEDBACK Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "required": ["req_id"],
+      "properties": {
+        "type": { "const": "CALIBRATION_FEEDBACK" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["step_id", "progress", "quality"],
+          "properties": {
+            "baseline_update": { "type": "object" },
+            "step_id": { "type": "string" },
+            "progress": { "type": "integer", "minimum": 0, "maximum": 100 },
+            "quality": { "type": "number", "minimum": 0, "maximum": 1 },
+            "error": { "type": "string" }
+          }
+        }
+      }
+    }
+  ]
+}

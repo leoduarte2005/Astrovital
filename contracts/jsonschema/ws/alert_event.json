@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WS ALERT_EVENT Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "ALERT_EVENT" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["subsystem", "severity", "message", "countermeasure", "escalation", "source_id"],
+          "properties": {
+            "subsystem": { "$ref": "../../enums/subsystem.json" },
+            "severity": { "$ref": "../../enums/severity.json" },
+            "message": { "type": "string" },
+            "countermeasure": { "type": "string" },
+            "escalation": { "$ref": "../../enums/escalation.json" },
+            "source_id": { "type": "string" }
+          }
+        }
+      }
+    }
+  ]
+}

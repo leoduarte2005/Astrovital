@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PERIPHERAL_DATA UDP Payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "node_id", "cycle_seq", "timestamp_us", "peripherals"],
+  "properties": {
+    "v": { "const": 1 },
+    "type": { "const": "PERIPHERAL_DATA" },
+    "mac": { "type": "string", "pattern": "^([0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}$" },
+    "node_id": { "type": "integer", "minimum": 0, "maximum": 4 },
+    "cycle_seq": { "type": "integer", "minimum": 0 },
+    "timestamp_us": { "type": "integer", "minimum": 0 },
+    "peripherals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "value", "unit", "timestamp_us"],
+        "properties": {
+          "type": { "$ref": "../../enums/peripheral.json" },
+          "value": { "type": "number" },
+          "unit": { "type": "string" },
+          "timestamp_us": { "type": "integer", "minimum": 0 }
+        }
+      }
+    }
+  }
+}

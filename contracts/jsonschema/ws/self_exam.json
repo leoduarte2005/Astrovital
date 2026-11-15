@@ -1,0 +1,23 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WS SELF_EXAM Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "SELF_EXAM" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["exam_type", "result"],
+          "properties": {
+            "exam_type": { "type": "string", "minLength": 1 },
+            "result": { "type": "string", "minLength": 1 },
+            "observations": { "type": "string" }
+          }
+        }
+      }
+    }
+  ]
+}

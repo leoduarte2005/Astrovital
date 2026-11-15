@@ -120,6 +120,10 @@ func (s *Server) handleCrewTimeseries(w http.ResponseWriter, r *http.Request) {
 		})
 		return
 	}
+	if !contracts.IsTimeseriesMetric(metric) {
+		writeJSON(w, http.StatusBadRequest, map[string]string{"error": "unknown metric: " + metric})
+		return
+	}
 	res, err := ex.QueryTimeseries(r.Context(), id, metric, fromUs, toUs, bucketSec)
 	if err != nil {
 		writeJSON(w, http.StatusInternalServerError, map[string]string{"error": err.Error()})

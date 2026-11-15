@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GET /api/outbox response",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "additionalProperties": false,
+    "required": ["outbox_id", "ts_us", "subsystem", "severity", "message", "sent"],
+    "properties": {
+      "outbox_id": { "type": "string", "minLength": 1 },
+      "ts_us": { "type": "integer" },
+      "subsystem": { "$ref": "../../enums/subsystem.json" },
+      "severity": { "$ref": "../../enums/severity.json" },
+      "message": { "type": "string" },
+      "destination": { "type": "string" },
+      "sent": { "type": "boolean" }
+    }
+  }
+}

@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WS SET_CREW Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "SET_CREW" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["crew_id"],
+          "properties": {
+            "crew_id": { "type": "string", "minLength": 1 }
+          }
+        }
+      }
+    }
+  ]
+}

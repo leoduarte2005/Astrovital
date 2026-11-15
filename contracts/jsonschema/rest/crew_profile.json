@@ -1,0 +1,27 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GET /api/crew/{id}/profile response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["profile", "calibration_required"],
+  "properties": {
+    "profile": {
+      "type": "object",
+      "required": ["crew_id", "name"],
+      "properties": {
+        "crew_id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "role": { "type": "string" },
+        "mission_day": { "type": "integer", "minimum": 0 },
+        "age": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "baseline_path": { "type": "string" },
+    "calibration_status": { "type": "string", "enum": ["READY", "SYNTHETIC_SEED", "CALIBRATING", "REQUIRES_CALIBRATION"] },
+    "calibration_required": { "type": "boolean" },
+    "thresholds": {
+      "type": "object",
+      "additionalProperties": { "$ref": "../_defs.json#/$defs/threshold" }
+    }
+  }
+}

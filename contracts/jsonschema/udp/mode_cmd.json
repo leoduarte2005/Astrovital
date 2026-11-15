@@ -1,0 +1,14 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MODE_CMD UDP Payload",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["v", "type", "mode", "timestamp_us", "cycle_seq"],
+  "properties": {
+    "v": { "const": 1 },
+    "type": { "const": "MODE_CMD" },
+    "mode": { "$ref": "../../enums/mission_mode.json" },
+    "timestamp_us": { "type": "integer", "minimum": 0 },
+    "cycle_seq": { "type": "integer", "minimum": 0 }
+  }
+}

@@ -27,7 +27,7 @@ class Settings(BaseSettings):
     ort_threads: int = Field(default=2, ge=1, le=64, description="ONNX Runtime intra-op thread count")
     disable_slm: bool = Field(default=False, description="Disable local GGUF SLM conversational synthesizer")
     slm_auto_download: bool = Field(
-        default=True,
+        default=False,
         description="Download the default GGUF model into <models_dir>/slm on first run if missing",
     )
 

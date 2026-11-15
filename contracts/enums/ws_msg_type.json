@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WebSocket Message Type Enum",
+  "type": "string",
+  "enum": [
+    "TELEMETRY_FRAME",
+    "ALERT_EVENT",
+    "CREW_STATE",
+    "CLUSTER_STATUS",
+    "CHAT_REPLY",
+    "CALIBRATION_FEEDBACK",
+    "SET_CREW",
+    "CHAT_MSG",
+    "SELF_EXAM",
+    "CALIBRATION_STEP",
+    "ERROR"
+  ]
+}

@@ -10,6 +10,70 @@ from pathlib import Path
 import sqlite3
 
 
+# Self-exam normalization mirrored from central/internal/store/selfexam.go.
+# Keep SELF_EXAM_PROTOCOL_ALIASES / NORMAL_RESULTS in sync with the Go tables.
+SELF_EXAM_PROTOCOL_ALIASES={
+    'amsler':'amsler_grid','amsler_grid':'amsler_grid','ocular':'amsler_grid','vision':'amsler_grid',
+    'bp':'blood_pressure','blood_pressure':'blood_pressure','orthostatic':'blood_pressure','cardio':'blood_pressure',
+    'capillary_blood':'capillary_blood','fingerstick':'capillary_blood',
+    'onsd':'ultrasound_onsd','ultrasound_onsd':'ultrasound_onsd',
+    'temp':'temperature','temperature':'temperature',
+    'sleep':'sleep_review','sleep_review':'sleep_review',
+    'nutrition':'nutrition_review','nutrition_review':'nutrition_review','hydration':'nutrition_review',
+    'environment_check':'environment_check',
+    'cognitive':'cognitive_check','cognitive_check':'cognitive_check',
+    'behavioral':'behavioral_check','behavioral_check':'behavioral_check',
+    'musculoskeletal':'musculoskeletal_check','musculoskeletal_check':'musculoskeletal_check',
+    'oxygen':'oxygen_check','oxygen_check':'oxygen_check',
+    'symptom':'symptom_review','symptom_review':'symptom_review',
+    'post_eva':'post_eva_review','post_eva_review':'post_eva_review',
+}
+NORMAL_RESULTS=frozenset({'normal','ok','negative','clear','none','green','pass','passed','no','false','0'})
+# protocol_id -> causal metric fed by abnormal_flag (only when the metric exists in causal rules).
+SELF_EXAM_ABNORMAL_METRIC={'amsler_grid':'amsler_abnormal'}
+
+
+def self_exam_protocol_id(exam_type):
+    key=str(exam_type or '').strip().lower().replace('-','_').replace(' ','_')
+    return SELF_EXAM_PROTOCOL_ALIASES.get(key)
+
+
+def self_exam_abnormal(result):
+    """Derive abnormal_flag from a string (e.g. 'metamorphopsia') or JSON result."""
+    r=str(result or '').strip()
+    if not r:
+        return False
+    if r.startswith('{'):
+        try:
+            obj=json.loads(r)
+        except (json.JSONDecodeError,TypeError):
+            obj=None
+        if isinstance(obj,dict):
+            v=obj.get('abnormal_flag')
+            if isinstance(v,bool):
+                return v
+            if isinstance(v,(int,float)):
+                return v!=0
+            if isinstance(v,str):
+                return v.strip().lower() not in NORMAL_RESULTS
+            return False
+    return r.lower() not in NORMAL_RESULTS
+
+
+def normalize_self_exam(exam_type,result):
+    """Return protocol_id, abnormal_flag and numeric values for string or JSON results."""
+    values={}
+    r=str(result or '').strip()
+    if r.startswith('{'):
+        try:
+            obj=json.loads(r)
+        except (json.JSONDecodeError,TypeError):
+            obj=None
+        if isinstance(obj,dict):
+            values=obj
+    return dict(protocol_id=self_exam_protocol_id(exam_type),abnormal_flag=self_exam_abnormal(result),values=values)
+
+
 class ClinicalRepository:
     def __init__(self, path):
         self.connection = sqlite3.connect(Path(path).resolve().as_uri()+"?mode=ro",uri=True)
@@ -85,13 +149,20 @@ class ClinicalRepository:
             row=c.execute('SELECT heart_rate_bpm,hrv_ms,resp_rate_bpm,spo2_pct,co2_ppm FROM telemetry_timeseries WHERE crew_id=? AND ts_us=?',(crew_id,latest)).fetchone()
             if row: metrics.update({k:v for k,v in dict(row).items() if v is not None})
         allowed={r[0] for r in c.execute('SELECT DISTINCT metric FROM causal_sensor_rules')}|{r[0] for r in c.execute('SELECT DISTINCT guard_metric FROM causal_contraindications')}
-        for row in c.execute('SELECT result FROM self_exams WHERE crew_id=? ORDER BY ts_us DESC LIMIT 20',(crew_id,)):
-            try: values=json.loads(row['result'])
-            except (json.JSONDecodeError,TypeError): continue
-            if isinstance(values,dict):
-                for key,value in values.items():
-                    if key in allowed and isinstance(value,(int,float)):
-                        metrics.setdefault(key,value)
+        cols={r[1] for r in c.execute('PRAGMA table_info(self_exams)')}
+        has_v2='protocol_id' in cols and 'abnormal_flag' in cols
+        query=('SELECT exam_type,result,protocol_id,abnormal_flag FROM self_exams WHERE crew_id=? ORDER BY ts_us DESC LIMIT 20'
+               if has_v2 else 'SELECT exam_type,result FROM self_exams WHERE crew_id=? ORDER BY ts_us DESC LIMIT 20')
+        for row in c.execute(query,(crew_id,)):
+            exam=normalize_self_exam(row['exam_type'],row['result'])
+            protocol_id=(row['protocol_id'] if has_v2 else None) or exam['protocol_id']
+            abnormal=bool(row['abnormal_flag']) if has_v2 and row['abnormal_flag'] is not None else exam['abnormal_flag']
+            metric=SELF_EXAM_ABNORMAL_METRIC.get(protocol_id or '')
+            if metric and metric in allowed:
+                metrics.setdefault(metric,1 if abnormal else 0)
+            for key,value in exam['values'].items():
+                if key in allowed and isinstance(value,(int,float)) and not isinstance(value,bool):
+                    metrics.setdefault(key,value)
         now=int(datetime.now(timezone.utc).timestamp()*1_000_000)
         evt_rows=c.execute(
             'SELECT event_type, lookback_hours, ts_us, COALESCE(end_us, ts_us) AS end_us '

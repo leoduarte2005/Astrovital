@@ -1,0 +1,10 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Escalation Enum",
+  "type": "string",
+  "enum": [
+    "LOCAL",
+    "CREW",
+    "STORE_AND_FORWARD"
+  ]
+}

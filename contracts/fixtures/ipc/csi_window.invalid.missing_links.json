@@ -1,0 +1,11 @@
+{
+  "v": 1,
+  "type": "CSI_WINDOW",
+  "ts_us": 1699900010000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "cycle_seq_first": 1000,
+    "active_link_mask": 1048575,
+    "mode": "MODE_CABIN_TOMOGRAPHY"
+  }
+}

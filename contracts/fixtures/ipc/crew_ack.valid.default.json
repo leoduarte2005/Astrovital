@@ -1,0 +1,8 @@
+{
+  "v": 1,
+  "type": "CREW_ACK",
+  "ts_us": 1699900012100000,
+  "crew_id": "crew_001",
+  "req_id": 7,
+  "payload": { "ok": true, "baseline_found": true }
+}

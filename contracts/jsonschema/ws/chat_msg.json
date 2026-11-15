@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "WS CHAT_MSG Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "CHAT_MSG" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text"],
+          "properties": {
+            "text": { "type": "string", "minLength": 1, "maxLength": 2000 }
+          }
+        }
+      }
+    }
+  ]
+}

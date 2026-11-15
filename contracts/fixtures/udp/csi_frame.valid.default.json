@@ -1,0 +1,19 @@
+{
+  "v": 1,
+  "type": "CSI_FRAME",
+  "node_id": 1,
+  "slot_id": 2,
+  "mode": "MODE_CABIN_TOMOGRAPHY",
+  "timestamp_us": 1699900004000000,
+  "cycle_seq": 200,
+  "rssi_dbm": -52,
+  "mac": "02:ED:6E:00:00:01",
+  "fw_version": "sim-1.0.0",
+  "supported_peripherals": ["MAX30102", "BME280"],
+  "peripherals": [
+    { "type": "MAX30102", "value": 72.0, "unit": "bpm", "timestamp_us": 1699900004000000 },
+    { "type": "BME280", "value": 22.5, "unit": "C", "timestamp_us": 1699900004000000 },
+    { "type": "BME280", "value": 45.0, "unit": "%RH", "timestamp_us": 1699900004000000 },
+    { "type": "BME280", "value": 1013.25, "unit": "hPa", "timestamp_us": 1699900004000000 }
+  ]
+}

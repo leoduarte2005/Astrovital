@@ -1,0 +1,13 @@
+[
+  {
+    "alert_id": "alert-1",
+    "ts_us": 1699900021000000,
+    "crew_id": "crew_001",
+    "subsystem": "RESPIRATORY_ATMOSPHERE",
+    "severity": "RED",
+    "message": "CO2 critical",
+    "countermeasure": "Ventilate",
+    "escalation": "STORE_AND_FORWARD",
+    "handled": false
+  }
+]

@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC CSI_WINDOW Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "CSI_WINDOW" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["cycle_seq_first", "active_link_mask", "mode", "links"],
+          "properties": {
+            "cycle_seq_first": { "type": "integer", "minimum": 0 },
+            "active_link_mask": { "type": "integer", "minimum": 0 },
+            "mode": { "$ref": "../../enums/mission_mode.json" },
+            "links": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["tx_node_id", "rx_node_id", "iq_samples", "rssi_dbm", "noise_floor"],
+                "properties": {
+                  "tx_node_id": { "type": "integer", "minimum": 0, "maximum": 255 },
+                  "rx_node_id": { "type": "integer", "minimum": 0, "maximum": 255 },
+                  "iq_samples": {
+                    "type": "array",
+                    "items": { "$ref": "../_defs.json#/$defs/iq_sample" }
+                  },
+                  "rssi_dbm": { "type": "integer" },
+                  "noise_floor": { "type": "number" }
+                }
+              }
+            },
+            "quality_per_link": {
+              "type": "array",
+              "items": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

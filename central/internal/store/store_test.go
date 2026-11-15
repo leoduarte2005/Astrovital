@@ -532,7 +532,7 @@ func TestStoreFallbackModeAndRegistry(t *testing.T) {
 	if err != nil || len(tsResp.Buckets) != 1 {
 		t.Fatalf("QueryTimeseries fallback got %+v err=%v", tsResp, err)
 	}
-	if tsResp.Buckets[0].Vitals.HeartRateBpm != 75 || tsResp.Buckets[0].Environment.CO2Ppm != 1000 {
+	if b := tsResp.Buckets[0]; b.Vitals.HeartRateBpm == nil || *b.Vitals.HeartRateBpm != 75 || b.Environment.CO2Ppm == nil || *b.Environment.CO2Ppm != 1000 {
 		t.Fatalf("unexpected averaged bucket: %+v", tsResp.Buckets[0])
 	}
 
@@ -656,7 +656,7 @@ VALUES ('amsler_grid', 'Amsler SQL', '["NEURO_OCULAR_SANS"]', 'SQL desc', '["Ste
 	}
 
 	tsResp, err := s.QueryTimeseries(ctx, cid, "", now-10_000_000, now, 10)
-	if err != nil || len(tsResp.Buckets) != 1 || tsResp.Buckets[0].Vitals.HeartRateBpm != 65 {
+	if err != nil || len(tsResp.Buckets) != 1 || tsResp.Buckets[0].Vitals.HeartRateBpm == nil || *tsResp.Buckets[0].Vitals.HeartRateBpm != 65 {
 		t.Fatalf("QueryTimeseries M1: %+v err=%v", tsResp, err)
 	}
 	alerts, err := s.ListAlerts(ctx, 10)
@@ -761,7 +761,8 @@ func TestStoreWithRealDatabaseMigrations(t *testing.T) {
 	}{
 		"crew_001": {role: "Commander", missionDay: 42, calRequired: false},
 		"crew_002": {role: "Flight Surgeon", missionDay: 42, calRequired: false},
-		"crew_003": {role: "Flight Engineer", missionDay: 42, calRequired: false},
+		// SYNTHETIC_SEED without baseline_path -> calibration pending (single rule, IsCalibrated).
+		"crew_003": {role: "Flight Engineer", missionDay: 42, calRequired: true},
 	}
 	for id, exp := range expectedCrew {
 		c, ok := byID[id]
@@ -882,7 +883,7 @@ func TestStoreWithRealDatabaseMigrations(t *testing.T) {
 		t.Fatalf("LoadNodeIDs: %+v err=%v", nodes, err)
 	}
 	tsResp, err := s.QueryTimeseries(ctx, cid, "", now-10_000_000, now, 10)
-	if err != nil || len(tsResp.Buckets) != 1 || tsResp.Buckets[0].Vitals.HeartRateBpm != 65 {
+	if err != nil || len(tsResp.Buckets) != 1 || tsResp.Buckets[0].Vitals.HeartRateBpm == nil || *tsResp.Buckets[0].Vitals.HeartRateBpm != 65 {
 		t.Fatalf("QueryTimeseries: %+v err=%v", tsResp, err)
 	}
 	summary, err := s.Summary24h(ctx, cid)

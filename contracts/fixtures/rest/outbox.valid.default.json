@@ -1,0 +1,11 @@
+[
+  {
+    "outbox_id": "outbox-1",
+    "ts_us": 1699900021000000,
+    "subsystem": "RESPIRATORY_ATMOSPHERE",
+    "severity": "RED",
+    "message": "CO2 critical",
+    "destination": "FLIGHT_SURGEON_GROUND",
+    "sent": false
+  }
+]

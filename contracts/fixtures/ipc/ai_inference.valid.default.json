@@ -1,0 +1,15 @@
+{
+  "v": 1,
+  "type": "AI_INFERENCE",
+  "ts_us": 1699900013000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "cycle_seq_first": 1000,
+    "posture": "sitting",
+    "respiration_hz": 0.25,
+    "heart_rate_bpm": 68.4,
+    "hrv_ms": 52.1,
+    "anomaly_score": 0.12,
+    "confidence": 0.91
+  }
+}

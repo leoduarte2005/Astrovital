@@ -7,9 +7,10 @@
   2. Gera modelos .onnx se faltar algum (edge-ai/training/build_all_models.py).
      Instala llama-cpp-python e baixa o modelo SLM GGUF (edge-ai/models/slm/) na 1a execucao.
   3. Compila build/edgespace-central.exe (go build dentro de central/).
-  4. Sobe o worker Python edgespace_ai em background e espera a porta 5006.
-  5. Sobe a Central Go (sem --mock-ai) com logs legiveis no console.
-  6. Ctrl+C (ou fim do smoke test) encerra Central e worker (try/finally).
+  4. Aplica migrations M1 (database/tools/operational.py migrate) em var/edgespace.db.
+  5. Sobe o worker Python edgespace_ai em background e espera a porta 5006.
+  6. Sobe a Central Go (sem --mock-ai) com logs legiveis no console.
+  7. Ctrl+C (ou fim do smoke test) encerra Central e worker (try/finally).
 
 .EXAMPLE
   powershell -ExecutionPolicy Bypass -File scripts/run_stack.ps1
@@ -233,8 +234,14 @@ try {
         $ErrorActionPreference = 'Stop'
     }
 
-    # 4. worker IA (background, logs em var/)
+    # 4. Schema M1 antes do worker IA (que abre o SQLite em mode=ro).
+    #    Funciona a partir de var/ limpo: operational.py cria o arquivo e aplica as migrations.
     New-Item -ItemType Directory -Force -Path $VarDir | Out-Null
+    Write-Step "aplicando migrations M1 (database\tools\operational.py migrate --db var\edgespace.db)"
+    & $PythonExe (Join-Path $Root 'database\tools\operational.py') migrate --db $DbPath
+    if ($LASTEXITCODE -ne 0) { throw "operational.py migrate falhou (exit $LASTEXITCODE)" }
+
+    # 5. worker IA (background, logs em var/)
     Write-Step "subindo edge-ai em $IpcAddr (logs: var\edge-ai.log, var\edge-ai.err.log)"
     $env:PYTHONPATH = 'src'
     $env:PYTHONUNBUFFERED = '1'
@@ -250,7 +257,7 @@ try {
     }
     Write-Step "edge-ai pronto (PID $($aiProc.Id), porta $IpcPort aberta)"
 
-    # 5. Central Go (sem -mock-ai)
+    # 6. Central Go (sem -mock-ai)
     $clusterMode = if ($RealCluster) { 'false' } else { 'inproc' }
     $migrationsDir = Join-Path $Root 'database\migrations'
     $centralArgs = @(

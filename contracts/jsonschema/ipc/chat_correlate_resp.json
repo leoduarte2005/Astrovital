@@ -1,0 +1,38 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC CHAT_CORRELATE_RESP Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "required": ["req_id"],
+      "properties": {
+        "type": { "const": "CHAT_CORRELATE_RESP" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["text", "escalation"],
+          "properties": {
+            "memory_updates": {
+              "type": "array",
+              "items": { "$ref": "../_defs.json#/$defs/clinical_memory_update" }
+            },
+            "model_status": { "type": "string" },
+            "matched_condition_ids": { "type": "array", "items": { "type": "string" } },
+            "max_severity": { "$ref": "../../enums/severity.json" },
+            "blocked_actions": { "type": "array", "items": { "type": "string" } },
+            "text": { "type": "string", "minLength": 1 },
+            "differentials": { "type": "array", "items": { "type": "string" } },
+            "evidence": { "type": "array", "items": { "type": "string" } },
+            "countermeasures": { "type": "array", "items": { "type": "string" } },
+            "source_ids": { "type": "array", "items": { "type": "string" } },
+            "escalation": { "$ref": "../../enums/escalation.json" },
+            "disclaimer": { "type": "string" },
+            "disambiguation_question": { "type": "string" },
+            "actions": { "type": "array", "items": { "type": "string" } }
+          }
+        }
+      }
+    }
+  ]
+}

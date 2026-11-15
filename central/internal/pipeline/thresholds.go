@@ -201,6 +201,29 @@ func isSelfExamAltered(result string) (altered bool, severe bool) {
 	}
 }
 
+// Exercise heart-rate ceilings applied in MODE_COUNTERMEASURE_EXERCISE.
+const (
+	ExerciseHRYellowHigh = 165.0
+	ExerciseHRRedHigh    = 185.0
+)
+
+// exerciseHeartRateThreshold raises resting HR ceilings to exercise levels.
+// Crew-specific thresholds (e.g. seeded 110/140 resting) must not trigger
+// RED during ARED/CEVIS countermeasures; ceilings already above the exercise
+// floor are kept, and low limits (bradycardia) are preserved unchanged.
+func exerciseHeartRateThreshold(t contracts.Threshold) contracts.Threshold {
+	if t.MetricName == "" {
+		t.MetricName = "heart_rate_bpm"
+	}
+	if t.YellowHigh < ExerciseHRYellowHigh {
+		t.YellowHigh = ExerciseHRYellowHigh
+	}
+	if t.RedHigh < ExerciseHRRedHigh {
+		t.RedHigh = ExerciseHRRedHigh
+	}
+	return t
+}
+
 func evalHighLow(val float64, t contracts.Threshold) contracts.Severity {
 	if t.RedHigh > 0 && val > t.RedHigh {
 		return contracts.SeverityRed
@@ -236,9 +259,8 @@ func (c *clinicalState) evaluate(now time.Time, view SessionView) ([6]contracts.
 		hr := c.vitals.HeartRateBpm
 		if hr > 0 {
 			t := c.thresholdFor("heart_rate_bpm", view.Thresholds)
-			if view.MissionMode == contracts.ModeCountermeasureExercise && (view.Thresholds == nil || view.Thresholds["heart_rate_bpm"].MetricName == "") {
-				t.YellowHigh = 165
-				t.RedHigh = 185
+			if view.MissionMode == contracts.ModeCountermeasureExercise {
+				t = exerciseHeartRateThreshold(t)
 			}
 			if s := evalHighLow(hr, t); s != contracts.SeverityGreen {
 				sev, msg, cm, src = pickWorst(sev, msg, cm, src, s,

@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Subsystem Enum",
+  "type": "string",
+  "enum": [
+    "CARDIOVASCULAR_FLUIDS",
+    "RESPIRATORY_ATMOSPHERE",
+    "NEURO_OCULAR_SANS",
+    "MUSCULOSKELETAL_POSTURE",
+    "IMMUNE_HEMATO_NUTRITION",
+    "NEUROBEHAVIORAL_RADIATION"
+  ]
+}

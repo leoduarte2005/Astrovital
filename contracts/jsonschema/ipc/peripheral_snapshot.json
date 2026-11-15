@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC PERIPHERAL_SNAPSHOT Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "properties": {
+        "type": { "const": "PERIPHERAL_SNAPSHOT" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["readings", "timestamp_us"],
+          "properties": {
+            "readings": {
+              "type": "array",
+              "items": { "$ref": "../_defs.json#/$defs/peripheral_reading" }
+            },
+            "timestamp_us": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC SET_ACTIVE_CREW Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "required": ["req_id"],
+      "properties": {
+        "type": { "const": "SET_ACTIVE_CREW" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["crew_id"],
+          "properties": {
+            "crew_id": { "type": "string", "minLength": 1 },
+            "profile": {
+              "type": ["object", "null"],
+              "required": ["crew_id", "name"],
+              "properties": {
+                "crew_id": { "type": "string", "minLength": 1 },
+                "name": { "type": "string", "minLength": 1 }
+              }
+            },
+            "baseline_path": { "type": "string" },
+            "thresholds": {
+              "type": "object",
+              "additionalProperties": { "$ref": "../_defs.json#/$defs/threshold" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "v": 2,
+  "type": "CHAT_MSG",
+  "ts_us": 1699900027000000,
+  "crew_id": "crew_001",
+  "payload": { "text": "Ola" }
+}

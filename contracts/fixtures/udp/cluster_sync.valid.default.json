@@ -1,0 +1,16 @@
+{
+  "v": 1,
+  "type": "CLUSTER_SYNC",
+  "cycle_seq": 42,
+  "timestamp_us": 1699900000000000,
+  "mode": "MODE_CABIN_TOMOGRAPHY",
+  "slot_ms": 20,
+  "active_node_mask": 31,
+  "slots": [
+    { "node_id": 0, "slot_id": 0, "ms": 20 },
+    { "node_id": 1, "slot_id": 1, "ms": 20 },
+    { "node_id": 2, "slot_id": 2, "ms": 20 },
+    { "node_id": 3, "slot_id": 3, "ms": 20 },
+    { "node_id": 4, "slot_id": 4, "ms": 20 }
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "v": 1,
+  "type": "CSI_WINDOW",
+  "ts_us": 1699900010000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "cycle_seq_first": 1000,
+    "active_link_mask": 1048575,
+    "mode": "MODE_CABIN_TOMOGRAPHY",
+    "links": [
+      {
+        "tx_node_id": 0,
+        "rx_node_id": 1,
+        "iq_samples": [
+          { "real": 0.812, "imag": -0.104 },
+          { "real": 0.799, "imag": -0.121 }
+        ],
+        "rssi_dbm": -42,
+        "noise_floor": -92.0
+      }
+    ],
+    "quality_per_link": [0.97]
+  }
+}

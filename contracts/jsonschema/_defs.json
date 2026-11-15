@@ -1,0 +1,134 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Common Shared Definitions",
+  "$defs": {
+    "peripheral_reading": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "value", "unit", "timestamp_us"],
+      "properties": {
+        "type": { "$ref": "../enums/peripheral.json" },
+        "value": { "type": "number" },
+        "unit": { "type": "string" },
+        "timestamp_us": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "iq_sample": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["real", "imag"],
+      "properties": {
+        "real": { "type": "number" },
+        "imag": { "type": "number" }
+      }
+    },
+    "threshold": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metric_name", "yellow_high", "red_high"],
+      "properties": {
+        "metric_name": { "type": "string", "minLength": 1 },
+        "yellow_high": { "type": "number" },
+        "red_high": { "type": "number" },
+        "yellow_low": { "type": ["number", "null"] },
+        "red_low": { "type": ["number", "null"] }
+      }
+    },
+    "vitals_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["heart_rate_bpm", "hrv_ms", "resp_rate_bpm", "spo2_pct", "posture", "confidence_score"],
+      "properties": {
+        "heart_rate_bpm": { "type": ["number", "null"] },
+        "hrv_ms": { "type": ["number", "null"] },
+        "resp_rate_bpm": { "type": ["number", "null"] },
+        "spo2_pct": { "type": ["number", "null"] },
+        "posture": { "type": "string" },
+        "confidence_score": { "type": "number" }
+      }
+    },
+    "environment_data": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["co2_ppm", "temp_c", "humidity_pct", "pressure_hpa"],
+      "properties": {
+        "co2_ppm": { "type": ["number", "null"] },
+        "temp_c": { "type": ["number", "null"] },
+        "humidity_pct": { "type": ["number", "null"] },
+        "pressure_hpa": { "type": ["number", "null"] }
+      }
+    },
+    "subsystem_state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["subsystem", "severity"],
+      "properties": {
+        "subsystem": { "$ref": "../enums/subsystem.json" },
+        "severity": { "$ref": "../enums/severity.json" },
+        "message": { "type": "string" }
+      }
+    },
+    "node_status": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["node_id", "mac", "state", "slot", "peripherals", "last_seen_us"],
+      "properties": {
+        "node_id": { "type": "integer", "minimum": 0, "maximum": 4 },
+        "mac": { "type": "string" },
+        "state": { "$ref": "../enums/node_state.json" },
+        "slot": { "type": "integer" },
+        "peripherals": { "type": ["array", "null"], "items": { "$ref": "../enums/peripheral.json" } },
+        "last_seen_us": { "type": "integer", "minimum": 0 },
+        "rssi_dbm": { "type": "integer" }
+      }
+    },
+    "crew_summary": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["crew_id", "name", "calibration_required"],
+      "properties": {
+        "crew_id": { "type": "string", "minLength": 1 },
+        "name": { "type": "string", "minLength": 1 },
+        "role": { "type": "string" },
+        "mission_day": { "type": "integer", "minimum": 0 },
+        "calibration_required": { "type": "boolean" }
+      }
+    },
+    "chat_message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sent_at_us", "role", "content"],
+      "properties": {
+        "sent_at_us": { "type": "integer", "minimum": 0 },
+        "role": { "type": "string", "enum": ["user", "assistant"] },
+        "content": { "type": "string" }
+      }
+    },
+    "clinical_memory_update": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["fact_type", "fact_key", "fact_value", "confidence", "source_role"],
+      "properties": {
+        "fact_type": { "type": "string" },
+        "fact_key": { "type": "string" },
+        "fact_value": { "type": "string" },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 },
+        "source_role": { "type": "string" }
+      }
+    },
+    "ai_inference": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["cycle_seq_first", "posture", "respiration_hz", "heart_rate_bpm", "hrv_ms", "anomaly_score", "confidence"],
+      "properties": {
+        "cycle_seq_first": { "type": "integer", "minimum": 0 },
+        "posture": { "type": "string" },
+        "respiration_hz": { "type": "number" },
+        "heart_rate_bpm": { "type": "number" },
+        "hrv_ms": { "type": "number" },
+        "anomaly_score": { "type": "number", "minimum": 0 },
+        "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    }
+  }
+}

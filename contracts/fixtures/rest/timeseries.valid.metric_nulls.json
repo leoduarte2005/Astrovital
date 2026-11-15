@@ -1,0 +1,13 @@
+{
+  "crew_id": "crew_001",
+  "metric": "heart_rate_bpm",
+  "start_us": 1699900000000000,
+  "end_us": 1699900060000000,
+  "buckets": [
+    {
+      "ts_us": 1699900000000000,
+      "vitals": { "heart_rate_bpm": 68.5, "hrv_ms": null, "resp_rate_bpm": null, "spo2_pct": null, "confidence_score": null },
+      "environment": { "co2_ppm": null, "temp_c": null, "humidity_pct": null, "pressure_hpa": null }
+    }
+  ]
+}

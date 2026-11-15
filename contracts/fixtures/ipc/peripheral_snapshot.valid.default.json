@@ -1,0 +1,13 @@
+{
+  "v": 1,
+  "type": "PERIPHERAL_SNAPSHOT",
+  "ts_us": 1699900011000000,
+  "crew_id": null,
+  "payload": {
+    "readings": [
+      { "type": "SCD40", "value": 612.0, "unit": "ppm", "timestamp_us": 1699900011000000 },
+      { "type": "BME280", "value": 22.1, "unit": "C", "timestamp_us": 1699900011000000 }
+    ],
+    "timestamp_us": 1699900011000000
+  }
+}

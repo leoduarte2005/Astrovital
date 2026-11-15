@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GET /api/protocols/{id} response",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["protocol_id", "name", "subsystems"],
+  "properties": {
+    "protocol_id": { "type": "string", "minLength": 1 },
+    "name": { "type": "string", "minLength": 1 },
+    "subsystems": { "type": ["array", "null"], "items": { "$ref": "../../enums/subsystem.json" } },
+    "description": { "type": "string" },
+    "steps": { "type": "array", "items": { "type": "string" } },
+    "duration_s": { "type": "integer", "minimum": 0 },
+    "materials": { "type": "array", "items": { "type": "string" } },
+    "rich_steps": {},
+    "result_schema": {},
+    "linked_risks": { "type": "array", "items": { "type": "string" } }
+  }
+}

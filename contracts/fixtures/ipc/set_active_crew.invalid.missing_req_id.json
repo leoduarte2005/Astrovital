@@ -1,0 +1,9 @@
+{
+  "v": 1,
+  "type": "SET_ACTIVE_CREW",
+  "ts_us": 1699900012000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "crew_id": "crew_001"
+  }
+}

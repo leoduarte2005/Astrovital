@@ -1,0 +1,7 @@
+{
+  "v": 1,
+  "type": "SELF_EXAM",
+  "ts_us": 1699900028000000,
+  "crew_id": "crew_001",
+  "payload": { "exam_type": "AMSLER" }
+}

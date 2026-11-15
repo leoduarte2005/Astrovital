@@ -1,0 +1,10 @@
+[
+  {
+    "outbox_id": "",
+    "ts_us": 1,
+    "subsystem": "RESPIRATORY_ATMOSPHERE",
+    "severity": "RED",
+    "message": "x",
+    "sent": "false"
+  }
+]

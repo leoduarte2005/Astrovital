@@ -1,0 +1,17 @@
+{
+  "v": 1,
+  "type": "CHAT_REPLY",
+  "ts_us": 1699900024000000,
+  "crew_id": "crew_001",
+  "payload": {
+    "text": "Seu CO2 esta em 3200 ppm, compativel com cefaleia por hipercapnia.",
+    "evidence": ["SCD40 3200 ppm"],
+    "countermeasures": ["Aumentar ventilacao do modulo"],
+    "source_ids": ["NASA-STD-3001-CO2"],
+    "escalation": "CREW",
+    "disclaimer": "Clinical decision support only — not a medical diagnosis.",
+    "differentials": ["hypercapnia"],
+    "disambiguation_question": "Voce bebeu agua nas ultimas 4 horas?",
+    "actions": ["OPEN_PROTOCOL:environment_check"]
+  }
+}

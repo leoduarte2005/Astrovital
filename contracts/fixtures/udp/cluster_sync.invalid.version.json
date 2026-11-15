@@ -1,0 +1,10 @@
+{
+  "v": 99,
+  "type": "CLUSTER_SYNC",
+  "cycle_seq": 42,
+  "timestamp_us": 1699900000000000,
+  "mode": "MODE_CABIN_TOMOGRAPHY",
+  "slot_ms": 20,
+  "active_node_mask": 31,
+  "slots": []
+}

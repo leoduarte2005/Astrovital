@@ -1,0 +1,13 @@
+{
+  "v": 1,
+  "type": "PERIPHERAL_DATA",
+  "mac": "02:ED:6E:00:00:02",
+  "node_id": 2,
+  "cycle_seq": 300,
+  "timestamp_us": 1699900005000000,
+  "peripherals": [
+    { "type": "MAX30102", "value": 68.0, "unit": "bpm", "timestamp_us": 1699900005000000 },
+    { "type": "MAX30102", "value": 98.5, "unit": "%", "timestamp_us": 1699900005000000 },
+    { "type": "SCD40", "value": 580.0, "unit": "ppm", "timestamp_us": 1699900005000000 }
+  ]
+}

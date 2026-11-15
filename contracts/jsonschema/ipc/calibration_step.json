@@ -1,0 +1,24 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "IPC CALIBRATION_STEP Message",
+  "allOf": [
+    { "$ref": "./envelope.json" },
+    {
+      "type": "object",
+      "required": ["req_id"],
+      "properties": {
+        "type": { "const": "CALIBRATION_STEP" },
+        "payload": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["step_id", "action"],
+          "properties": {
+            "step_id": { "type": "string", "minLength": 1 },
+            "action": { "type": "string", "minLength": 1 },
+            "duration_ms": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    }
+  ]
+}

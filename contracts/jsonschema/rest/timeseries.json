@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "GET /api/crew/{id}/timeseries response (NULL preserved for missing metrics)",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["crew_id", "start_us", "end_us", "buckets"],
+  "properties": {
+    "crew_id": { "type": "string" },
+    "metric": { "type": "string" },
+    "start_us": { "type": "integer" },
+    "end_us": { "type": "integer" },
+    "buckets": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["ts_us", "vitals", "environment"],
+        "properties": {
+          "ts_us": { "type": "integer" },
+          "vitals": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "heart_rate_bpm": { "type": ["number", "null"] },
+              "hrv_ms": { "type": ["number", "null"] },
+              "resp_rate_bpm": { "type": ["number", "null"] },
+              "spo2_pct": { "type": ["number", "null"] },
+              "confidence_score": { "type": ["number", "null"] }
+            }
+          },
+          "environment": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "co2_ppm": { "type": ["number", "null"] },
+              "temp_c": { "type": ["number", "null"] },
+              "humidity_pct": { "type": ["number", "null"] },
+              "pressure_hpa": { "type": ["number", "null"] }
+            }
+          }
+        }
+      }
+    }
+  }
+}

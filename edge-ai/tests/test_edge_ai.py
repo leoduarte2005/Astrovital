@@ -221,9 +221,14 @@ def test_adaptation_registry_and_calibration(tmp_path: Path) -> None:
     t0 = time.perf_counter()
     b0, found = registry.set_active_crew("crew_001")
     elapsed_ms = (time.perf_counter() - t0) * 1000.0
-    # SYNTHETIC_SEED has sample_count=164 but calibration_status != READY
-    assert found is False
+    # Single rule: SYNTHETIC_SEED + samples + baseline_path -> calibrated (crew_001/002).
+    assert found is True
+    assert b0.sample_count == 164  # preserved, not zeroed
     assert elapsed_ms < 300.0
+    # crew_003: SYNTHETIC_SEED without baseline_path -> calibration pending.
+    _, found3 = registry.set_active_crew("crew_003")
+    assert found3 is False
+    registry.set_active_crew("crew_001")
     assert b0.per_posture_stats
     assert b0.normalize_vital("heart_rate_bpm", 72.0, posture="sitting") is not None
 
@@ -242,6 +247,8 @@ def test_adaptation_registry_and_calibration(tmp_path: Path) -> None:
         latest_features=vec * 1.1,
     )
     assert res2.progress == 100
+    # EMA continues from the persisted SYNTHETIC_SEED sample_count (164 + 2 steps).
+    assert res2.baseline.sample_count == 166
     assert "supine" in res2.baseline.per_posture_stats
     assert "mean" in res2.baseline.per_posture_stats["supine"]
     norm_vec = res2.baseline.normalize(vec, posture="supine")
@@ -591,9 +598,9 @@ def test_multi_astronaut_hotswap_astro01_astro02_and_calibration(tmp_path: Path)
                 assert ack.payload["ok"] is True
                 return ack.payload, dt_ms
 
-            # Initial swap to crew_001: uncalibrated yet -> baseline_found=False, < 300 ms
+            # Initial swap to crew_001: SYNTHETIC_SEED + baseline_path -> baseline_found=True, < 300 ms
             ack1, ms1 = await _swap("crew_001", 1)
-            assert ack1["baseline_found"] is False
+            assert ack1["baseline_found"] is True
             assert ms1 < 300.0
 
             # Stream CSI window then run 3 calibration steps for crew_001
@@ -619,14 +626,19 @@ def test_multi_astronaut_hotswap_astro01_astro02_and_calibration(tmp_path: Path)
 
             assert not (tmp_path / "profiles").exists()
 
-            # Hot-swap to crew_002 (< 300 ms, initially baseline_found=False)
+            # Hot-swap to crew_002 (< 300 ms, SYNTHETIC_SEED + baseline_path -> True)
             ack2, ms2 = await _swap("crew_002", 2)
-            assert ack2["baseline_found"] is False
+            assert ack2["baseline_found"] is True
             assert ms2 < 300.0
+
+            # crew_003 has no baseline_path -> calibration pending
+            ack4, ms4 = await _swap("crew_003", 4)
+            assert ack4["baseline_found"] is False
+            assert ms4 < 300.0
 
             # Swap back to crew_001 -> baseline_found=True (< 300 ms)
             ack3, ms3 = await _swap("crew_001", 3)
-            assert ack3["baseline_found"] is False
+            assert ack3["baseline_found"] is True
             assert ms3 < 300.0
 
             writer.close()
@@ -637,7 +649,7 @@ def test_multi_astronaut_hotswap_astro01_astro02_and_calibration(tmp_path: Path)
         # Reloading handler from disk still sees persisted crew_001 baseline
         handler_reloaded = IPCHandler(settings=settings)
         _, found_disk = handler_reloaded.baseline_registry.set_active_crew("crew_001")
-        assert found_disk is False
+        assert found_disk is True
 
     asyncio.run(_run())
 
@@ -912,8 +924,13 @@ def test_baseline_registry_parity_with_sql_seeds(tmp_path: Path) -> None:
         resolved = str((edge_ai_dir / baseline_path).resolve()) if baseline_path else None
         b, found = registry.set_active_crew(crew_id, baseline_path=resolved)
         assert b.per_posture_stats
+        assert b.sample_count == 164
         results[crew_id] = (found, registry.last_switch_ms)
 
+    # Single calibration rule (mirrors store.IsCalibrated in Go).
+    assert results["crew_001"][0] is True
+    assert results["crew_002"][0] is True
+    assert results["crew_003"][0] is False
     assert results["crew_001"][1] < 300.0
     assert results["crew_002"][1] < 300.0
     assert results["crew_003"][1] < 300.0
