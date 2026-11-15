@@ -454,6 +454,7 @@ func startBridges(
 	pipeEventCh <-chan contracts.AlertEventPayload,
 	pipeDataCh chan<- pipeline.DataMsg,
 	udpSink *udp.ChannelSink,
+	udpTx *udp.Transmitter,
 	cm *cluster.Manager,
 	ipcClient *ipc.Client,
 	sessMgr *session.Manager,
@@ -553,6 +554,7 @@ func startBridges(
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
+			var hbCount uint64
 			for {
 				select {
 				case <-ctx.Done():
@@ -561,14 +563,31 @@ func startBridges(
 					switch msg.Type {
 					case contracts.UDPMsgNodeHello:
 						if msg.Hello != nil {
-							if _, err := cm.HandleNodeHello(ctx, *msg.Hello); err != nil {
+							id, err := cm.HandleNodeHello(ctx, *msg.Hello)
+							if err != nil {
 								log.Warn("udp hello failed", "err", err)
+							} else if udpTx != nil && msg.SrcAddr != "" {
+								udpTx.RegisterPeer(msg.SrcAddr)
+								_, slotID, _ := cm.NodeIDForMAC(msg.Hello.MAC)
+								if err := udpTx.SendNodeAssign(msg.SrcAddr, msg.Hello.MAC, id, slotID, cm.Peers()); err != nil {
+									log.Warn("udp node_assign failed", "err", err)
+								} else {
+									log.Info("udp node hello registered", "mac", msg.Hello.MAC, "node_id", id, "src", msg.SrcAddr)
+								}
 							}
 						}
 					case contracts.UDPMsgHeartbeat:
 						if msg.Heartbeat != nil {
 							if err := cm.HandleHeartbeat(ctx, *msg.Heartbeat); err != nil {
 								log.Warn("udp heartbeat failed", "err", err)
+							} else if udpTx != nil && msg.SrcAddr != "" {
+								udpTx.RegisterPeer(msg.SrcAddr)
+								hbCount++
+								if msg.Heartbeat.MAC != "" {
+									if id, slotID, ok := cm.NodeIDForMAC(msg.Heartbeat.MAC); ok && (msg.Heartbeat.NodeID != id || hbCount%10 == 1) {
+										_ = udpTx.SendNodeAssign(msg.SrcAddr, msg.Heartbeat.MAC, id, slotID, cm.Peers())
+									}
+								}
 							}
 						}
 					}

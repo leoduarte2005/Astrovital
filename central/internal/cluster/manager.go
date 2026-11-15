@@ -545,6 +545,37 @@ func (m *Manager) emitStatus(snap contracts.ClusterSnapshot) {
 	}
 }
 
+// Peers returns a snapshot map of registered node_id -> MAC address.
+func (m *Manager) Peers() map[uint8]string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make(map[uint8]string, len(m.macToID))
+	for mac, id := range m.macToID {
+		out[id] = mac
+	}
+	return out
+}
+
+// NodeIDForMAC resolves the assigned node_id and current slot (-1 if inactive) for a MAC.
+func (m *Manager) NodeIDForMAC(mac string) (uint8, int, bool) {
+	norm := normalizeMAC(mac)
+	if norm == "" {
+		return 0, -1, false
+	}
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	id, ok := m.macToID[norm]
+	if !ok {
+		return 0, -1, false
+	}
+	sm := m.slotMap.Load()
+	slot := -1
+	if sm != nil && int(id) < MaxNodes {
+		slot = sm.NodeSlot[id]
+	}
+	return id, slot, true
+}
+
 func normalizeMAC(mac string) string {
 	return strings.TrimSpace(mac)
 }

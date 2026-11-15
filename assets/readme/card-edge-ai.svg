@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 220" width="580" height="220" role="img" aria-label="Adaptive Edge AI and Local SLM">
+  <rect width="580" height="220" rx="12" fill="#0B1020" stroke="#1E293B" stroke-width="1.5"/>
+  <rect x="18" y="16" width="180" height="188" rx="10" fill="#0F172A" stroke="#A78BFA" stroke-width="1.2"/>
+  <text x="32" y="40" fill="#C4B5FD" font-family="ui-monospace, monospace" font-size="10.5" font-weight="700">ONNX + CREW EMA</text>
+  <rect x="32" y="54" width="152" height="20" rx="4" fill="#0B1020" stroke="#38BDF8"/>
+  <text x="40" y="68" fill="#E0F2FE" font-family="ui-monospace, monospace" font-size="10">posture_cls.onnx</text>
+  <rect x="32" y="80" width="152" height="20" rx="4" fill="#0B1020" stroke="#38BDF8"/>
+  <text x="40" y="94" fill="#E0F2FE" font-family="ui-monospace, monospace" font-size="10">vitals_reg.onnx (P4)</text>
+  <rect x="32" y="106" width="152" height="20" rx="4" fill="#0B1020" stroke="#22C55E"/>
+  <text x="40" y="120" fill="#DCFCE7" font-family="ui-monospace, monospace" font-size="10">baseline_ae_&lt;crew&gt;</text>
+  <rect x="32" y="132" width="152" height="20" rx="4" fill="#0B1020" stroke="#A78BFA"/>
+  <text x="40" y="146" fill="#EDE9FE" font-family="ui-monospace, monospace" font-size="10">isolation_forest</text>
+  <rect x="32" y="162" width="152" height="26" rx="4" fill="#1E1B4B" stroke="#F59E0B"/>
+  <text x="108" y="179" text-anchor="middle" fill="#FDE68A" font-family="ui-monospace, monospace" font-size="10" font-weight="700">Qwen2.5-1.5B GGUF</text>
+
+  <text x="218" y="42" fill="#C4B5FD" font-family="ui-monospace, monospace" font-size="11.5" font-weight="700">ADAPTIVE EDGE AI · ARM64</text>
+  <text x="218" y="68" fill="#F8FAFC" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">Personalized Per-Astronaut AI</text>
+  <text x="218" y="92" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5">• Incremental EMA calibration per crew_id</text>
+  <text x="218" y="114" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5">• Persistent clinical memory &amp; Shannon IG</text>
+  <text x="218" y="136" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5">• Rule P4: confidence ≤ 0.65 w/o MAX30102</text>
+
+  <rect x="218" y="156" width="340" height="32" rx="6" fill="#0F172A" stroke="#1E293B"/>
+  <rect x="224" y="162" width="180" height="20" rx="4" fill="#22C55E" opacity="0.25">
+    <animate attributeName="width" values="120;240;120" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <text x="234" y="176" fill="#4ADE80" font-family="ui-monospace, monospace" font-size="11" font-weight="700">&lt; 50 ms / window · &lt; 400 MB RAM · 100% Offline</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 95" width="180" height="95" role="img" aria-label="Quick Start">
+  <rect width="180" height="95" rx="10" fill="#0B1020" stroke="#1E293B" stroke-width="1.5"/>
+  <rect x="14" y="14" width="152" height="44" rx="6" fill="#0F172A" stroke="#22C55E" stroke-width="1.2"/>
+  <circle cx="26" cy="25" r="3" fill="#EF4444"/>
+  <circle cx="35" cy="25" r="3" fill="#F59E0B"/>
+  <circle cx="44" cy="25" r="3" fill="#22C55E"/>
+  <text x="24" y="45" fill="#4ADE80" font-family="ui-monospace, monospace" font-size="11" font-weight="700">$ demo --mock</text>
+  <polygon points="145,30 156,37 145,44" fill="#22C55E">
+    <animate attributeName="opacity" values="1;0.3;1" dur="1.5s" repeatCount="indefinite"/>
+  </polygon>
+  <text x="90" y="79" text-anchor="middle" fill="#E2E8F0" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5" font-weight="700">1-Command Quick Start</text>
+</svg>

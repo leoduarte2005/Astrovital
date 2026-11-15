@@ -399,3 +399,32 @@ func TestConcurrentTicksAndHeartbeatsConsistencyAndUnknownMAC(t *testing.T) {
 	close(stop)
 	wg.Wait()
 }
+
+func TestPeersAndNodeIDForMAC(t *testing.T) {
+	ctx := context.Background()
+	clk := newFakeClock()
+	m := New(Config{Now: clk.Now}, nil)
+
+	id0, err := m.HandleNodeHello(ctx, contracts.NodeHelloPayload{MAC: "AA:BB:CC:DD:EE:01"})
+	if err != nil || id0 != 0 {
+		t.Fatalf("HandleNodeHello 0: id=%d err=%v", id0, err)
+	}
+	id1, err := m.HandleNodeHello(ctx, contracts.NodeHelloPayload{MAC: "AA:BB:CC:DD:EE:02"})
+	if err != nil || id1 != 1 {
+		t.Fatalf("HandleNodeHello 1: id=%d err=%v", id1, err)
+	}
+	for i := 0; i < 3; i++ {
+		clk.Advance(50 * time.Millisecond)
+		_ = m.HandleHeartbeat(ctx, contracts.HeartbeatPayload{MAC: "AA:BB:CC:DD:EE:01"})
+	}
+
+	gotID, gotSlot, ok := m.NodeIDForMAC("AA:BB:CC:DD:EE:01")
+	if !ok || gotID != 0 || gotSlot != 0 {
+		t.Fatalf("NodeIDForMAC 0 = (%d, %d, %v), want (0, 0, true)", gotID, gotSlot, ok)
+	}
+	peers := m.Peers()
+	if len(peers) != 2 || peers[0] != "AA:BB:CC:DD:EE:01" || peers[1] != "AA:BB:CC:DD:EE:02" {
+		t.Fatalf("Peers() = %+v", peers)
+	}
+}
+

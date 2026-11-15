@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 95" width="180" height="95" role="img" aria-label="3D Digital Twin">
+  <rect width="180" height="95" rx="10" fill="#0B1020" stroke="#1E293B" stroke-width="1.5"/>
+  <circle cx="90" cy="21" r="8" fill="#1E293B" stroke="#38BDF8" stroke-width="1.5"/>
+  <rect x="78" y="31" width="24" height="28" rx="6" fill="#1E293B" stroke="#38BDF8" stroke-width="1.5"/>
+  <path d="M78,35 L66,50 M102,35 L114,50 M84,59 L82,69 M96,59 L98,69" stroke="#38BDF8" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="87" cy="40" r="3" fill="#22C55E">
+    <animate attributeName="opacity" values="1;0.35;1" dur="1.2s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="94" cy="43" r="2.8" fill="#F59E0B"/>
+  <circle cx="90" cy="21" r="2.5" fill="#38BDF8"/>
+  <text x="90" y="84" text-anchor="middle" fill="#E2E8F0" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5" font-weight="700">3D Digital Twin</text>
+</svg>

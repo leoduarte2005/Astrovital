@@ -2,8 +2,12 @@ package main
 
 import (
 	"context"
+	"encoding/binary"
 	"encoding/json"
+	"fmt"
 	"io"
+	"math"
+	"net"
 	"net/http"
 	"path/filepath"
 	"strings"
@@ -265,4 +269,129 @@ func TestE2ENodeLossFailover(t *testing.T) {
 		var cs contracts.ClusterStatusPayload
 		return json.Unmarshal(env.Payload, &cs) == nil && cs.ActiveLinks == 20
 	}, "recovery to 20 active links")
+}
+
+
+func TestE2ERealUDPHandshakeAndCSIPipeline(t *testing.T) {
+	// Reserve free UDP ports for Central RX and a simulated ESP32-S3 hardware socket.
+	rxProbe, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
+	if err != nil {
+		t.Fatalf("probe udp rx: %v", err)
+	}
+	centralUDPPort := rxProbe.LocalAddr().(*net.UDPAddr).Port
+	_ = rxProbe.Close()
+
+	espConn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
+	if err != nil {
+		t.Fatalf("listen esp udp: %v", err)
+	}
+	defer espConn.Close()
+	espPort := espConn.LocalAddr().(*net.UDPAddr).Port
+
+	migAbs, err := filepath.Abs(filepath.Join("..", "..", "..", "database", "migrations"))
+	if err != nil {
+		t.Fatalf("abs migrations: %v", err)
+	}
+
+	baseURL, stop := startCentralE2E(t,
+		"--mock-cluster=false",
+		"--mock-ai",
+		"--migrations", migAbs,
+		"--udp-addr", fmt.Sprintf("127.0.0.1:%d", centralUDPPort),
+		"--broadcast-addr", fmt.Sprintf("127.0.0.1:%d", espPort),
+	)
+	defer stop()
+
+	centralAddr := &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: centralUDPPort}
+
+	// 1. Send NODE_HELLO in exact ESP32-S3 firmware JSON format.
+	hello := fmt.Sprintf(`{"v":1,"type":"NODE_HELLO","mac":"AA:BB:CC:DD:EE:10","node_id":0,"fw_version":"1.0.0","peripherals":["BME280"],"timestamp_us":%d}`, time.Now().UnixMicro())
+	if _, err := espConn.WriteToUDP([]byte(hello), centralAddr); err != nil {
+		t.Fatalf("WriteToUDP hello: %v", err)
+	}
+
+	// Expect NODE_ASSIGN back on espConn.
+	_ = espConn.SetReadDeadline(time.Now().Add(3 * time.Second))
+	buf := make([]byte, 2048)
+	gotAssign := false
+	for !gotAssign {
+		n, _, err := espConn.ReadFromUDP(buf)
+		if err != nil {
+			t.Fatalf("ReadFromUDP NODE_ASSIGN: %v", err)
+		}
+		var m map[string]any
+		if json.Unmarshal(buf[:n], &m) == nil && m["type"] == "NODE_ASSIGN" {
+			gotAssign = true
+		}
+	}
+
+	// 2. Send 3 HEARTBEATs (<200ms apart) -> node becomes ACTIVE in CLUSTER_STATUS.
+	for i := 0; i < 4; i++ {
+		hb := fmt.Sprintf(`{"v":1,"type":"HEARTBEAT","mac":"AA:BB:CC:DD:EE:10","node_id":0,"cycle_seq":%d,"rssi_dbm":-42,"peripherals":["BME280"],"timestamp_us":%d}`, i+1, time.Now().UnixMicro())
+		if _, err := espConn.WriteToUDP([]byte(hb), centralAddr); err != nil {
+			t.Fatalf("WriteToUDP hb: %v", err)
+		}
+		time.Sleep(40 * time.Millisecond)
+	}
+
+	// Wait for CLUSTER_SYNC confirming node is scheduled.
+	gotSync := false
+	_ = espConn.SetReadDeadline(time.Now().Add(3 * time.Second))
+	for !gotSync {
+		n, _, err := espConn.ReadFromUDP(buf)
+		if err != nil {
+			t.Fatalf("ReadFromUDP CLUSTER_SYNC: %v", err)
+		}
+		var m struct {
+			Type  string `json:"type"`
+			Slots []any  `json:"slots"`
+		}
+		if json.Unmarshal(buf[:n], &m) == nil && m.Type == "CLUSTER_SYNC" && len(m.Slots) >= 1 {
+			gotSync = true
+		}
+	}
+
+	// 3. Send binary P6 CSI_FRAME + PERIPHERAL_DATA in exact firmware wire format.
+	hdr := fmt.Sprintf(`{"v":1,"type":"CSI_FRAME","node_id":0,"slot_id":0,"mode":"MODE_CABIN_TOMOGRAPHY","timestamp_us":%d,"cycle_seq":1,"rssi_dbm":-42}`+"\n", time.Now().UnixMicro())
+	const sc = 8
+	bin := make([]byte, 10+sc*4)
+	bin[0] = 1 // tx_node_id
+	bin[1] = 0 // rx_node_id
+	rssiVal := int16(-42)
+	binary.LittleEndian.PutUint16(bin[2:4], uint16(rssiVal))
+	binary.LittleEndian.PutUint32(bin[4:8], math.Float32bits(-92.0))
+	binary.LittleEndian.PutUint16(bin[8:10], sc)
+	for k := 0; k < sc; k++ {
+		iv := int16(500 + k*10)
+		qv := int16(-200 + k*5)
+		binary.LittleEndian.PutUint16(bin[10+k*4:12+k*4], uint16(iv))
+		binary.LittleEndian.PutUint16(bin[12+k*4:14+k*4], uint16(qv))
+	}
+	csiPkt := append([]byte(hdr), bin...)
+	if _, err := espConn.WriteToUDP(csiPkt, centralAddr); err != nil {
+		t.Fatalf("WriteToUDP CSI_FRAME: %v", err)
+	}
+
+	periph := fmt.Sprintf(`{"v":1,"type":"PERIPHERAL_DATA","node_id":0,"slot_id":0,"mode":"MODE_CABIN_TOMOGRAPHY","timestamp_us":%d,"cycle_seq":1,"mac":"AA:BB:CC:DD:EE:10","peripherals":[{"type":"BME280","value":23.75,"unit":"C","timestamp_us":%d}]}`, time.Now().UnixMicro(), time.Now().UnixMicro())
+	if _, err := espConn.WriteToUDP([]byte(periph), centralAddr); err != nil {
+		t.Fatalf("WriteToUDP PERIPHERAL_DATA: %v", err)
+	}
+
+	// 4. Verify WS receives CLUSTER_STATUS with ACTIVE node and TELEMETRY_FRAME with temp_c=23.75.
+	wsURL := "ws" + strings.TrimPrefix(baseURL, "http") + "/ws"
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	conn, _, err := websocket.Dial(ctx, wsURL, nil)
+	if err != nil {
+		t.Fatalf("ws dial: %v", err)
+	}
+	defer conn.CloseNow()
+
+	dialWSAndReadUntil(t, ctx, conn, 6*time.Second, func(env contracts.WSEnvelope) bool {
+		if env.Type != contracts.WSMsgTelemetryFrame {
+			return false
+		}
+		var tf contracts.TelemetryFramePayload
+		return json.Unmarshal(env.Payload, &tf) == nil && math.Abs(tf.Environment.TempC-23.75) < 0.01
+	}, "TELEMETRY_FRAME with real BME280 temp_c=23.75")
 }

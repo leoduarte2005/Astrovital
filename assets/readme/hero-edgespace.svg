@@ -1,0 +1,121 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 420" width="1200" height="420" role="img" aria-label="EdgeSpace Autonomous Edge AI and Wi-Fi CSI Digital Twin">
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#070B16"/>
+      <stop offset="55%" stop-color="#0B1020"/>
+      <stop offset="100%" stop-color="#0E172D"/>
+    </linearGradient>
+    <radialGradient id="cabinGlow" cx="50%" cy="50%" r="55%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.18"/>
+      <stop offset="65%" stop-color="#38BDF8" stop-opacity="0.04"/>
+      <stop offset="100%" stop-color="#0B1020" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="accentCyan" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#38BDF8"/>
+      <stop offset="100%" stop-color="#22C55E"/>
+    </linearGradient>
+    <pattern id="grid" width="32" height="32" patternUnits="userSpaceOnUse">
+      <path d="M 32 0 L 0 0 0 32" fill="none" stroke="#1E293B" stroke-width="0.6" opacity="0.5"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="420" rx="16" fill="url(#bgGrad)"/>
+  <rect width="1200" height="420" rx="16" fill="url(#grid)"/>
+  <rect x="1" y="1" width="1198" height="418" rx="15" fill="none" stroke="#1E293B" stroke-width="1.5"/>
+
+  <rect x="24" y="18" width="1152" height="34" rx="8" fill="#0F172A" stroke="#1E293B" stroke-width="1"/>
+  <circle cx="44" cy="35" r="5" fill="#22C55E">
+    <animate attributeName="opacity" values="1;0.35;1" dur="2s" repeatCount="indefinite"/>
+  </circle>
+  <text x="58" y="39" fill="#E2E8F0" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" font-weight="700">EDGESPACE // AUTONOMOUS FLIGHT SURGEON</text>
+  <text x="530" y="39" fill="#38BDF8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">2.4 GHz CH6 HT20 · TDM 100 ms (5×20 ms)</text>
+  <rect x="975" y="25" width="188" height="20" rx="5" fill="#052E16" stroke="#22C55E" stroke-width="1"/>
+  <text x="1069" y="39" text-anchor="middle" fill="#4ADE80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10.5" font-weight="700">100% OFFLINE · ZERO CLOUD</text>
+
+  <rect x="24" y="68" width="560" height="328" rx="12" fill="#0F172A" stroke="#1E293B" stroke-width="1.2"/>
+  <circle cx="304" cy="224" r="155" fill="url(#cabinGlow)"/>
+  <polygon points="150,115 458,115 530,185 530,275 458,345 150,345 78,275 78,185" fill="none" stroke="#334155" stroke-width="1.5" stroke-dasharray="6 4"/>
+
+  <g stroke="#38BDF8" stroke-width="1.1" opacity="0.32">
+    <line x1="304" y1="98" x2="482" y2="178"/><line x1="482" y1="178" x2="424" y2="338"/>
+    <line x1="424" y1="338" x2="184" y2="338"/><line x1="184" y1="338" x2="126" y2="178"/>
+    <line x1="126" y1="178" x2="304" y2="98"/><line x1="304" y1="98" x2="424" y2="338"/>
+    <line x1="304" y1="98" x2="184" y2="338"/><line x1="482" y1="178" x2="184" y2="338"/>
+    <line x1="482" y1="178" x2="126" y2="178"/><line x1="424" y1="338" x2="126" y2="178"/>
+  </g>
+
+  <circle cx="304" cy="98" r="18" fill="none" stroke="#38BDF8" stroke-width="1.4" opacity="0.7">
+    <animate attributeName="r" values="10;95;150" dur="3s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.75;0.25;0" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="482" cy="178" r="18" fill="none" stroke="#22C55E" stroke-width="1.4" opacity="0.7">
+    <animate attributeName="r" values="10;95;150" dur="3s" begin="1s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.75;0.25;0" dur="3s" begin="1s" repeatCount="indefinite"/>
+  </circle>
+  <circle cx="184" cy="338" r="18" fill="none" stroke="#38BDF8" stroke-width="1.4" opacity="0.7">
+    <animate attributeName="r" values="10;95;150" dur="3s" begin="2s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.75;0.25;0" dur="3s" begin="2s" repeatCount="indefinite"/>
+  </circle>
+
+  <g transform="translate(304, 224)">
+    <ellipse cx="0" cy="0" rx="48" ry="68" fill="#0B1020" fill-opacity="0.75" stroke="#38BDF8" stroke-width="1" stroke-dasharray="3 3"/>
+    <circle cx="0" cy="-34" r="16" fill="#1E293B" stroke="#38BDF8" stroke-width="1.8"/>
+    <rect x="-10" y="-40" width="20" height="11" rx="5" fill="#0EA5E9" opacity="0.75"/>
+    <rect x="-18" y="-15" width="36" height="44" rx="10" fill="#1E293B" stroke="#38BDF8" stroke-width="1.8"/>
+    <circle cx="-5" cy="1" r="4" fill="#22C55E">
+      <animate attributeName="r" values="3.5;5.5;3.5" dur="1.1s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="6" cy="5" r="3.5" fill="#38BDF8">
+      <animate attributeName="opacity" values="1;0.4;1" dur="2.6s" repeatCount="indefinite"/>
+    </circle>
+    <path d="M-18,-10 L-32,18 M18,-10 L32,18 M-9,29 L-13,60 M9,29 L13,60" stroke="#38BDF8" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+  </g>
+  <g font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" font-weight="700">
+    <g transform="translate(304,98)"><rect x="-26" y="-12" width="52" height="24" rx="6" fill="#0B1020" stroke="#38BDF8" stroke-width="1.6"/><text x="0" y="4" text-anchor="middle" fill="#E0F2FE">ESP-0</text></g>
+    <g transform="translate(482,178)"><rect x="-28" y="-12" width="56" height="24" rx="6" fill="#0B1020" stroke="#22C55E" stroke-width="1.6"/><text x="0" y="4" text-anchor="middle" fill="#DCFCE7">ESP-1</text></g>
+    <g transform="translate(424,338)"><rect x="-28" y="-12" width="56" height="24" rx="6" fill="#0B1020" stroke="#F59E0B" stroke-width="1.6"/><text x="0" y="4" text-anchor="middle" fill="#FEF3C7">ESP-2</text></g>
+    <g transform="translate(184,338)"><rect x="-26" y="-12" width="52" height="24" rx="6" fill="#0B1020" stroke="#38BDF8" stroke-width="1.6"/><text x="0" y="4" text-anchor="middle" fill="#E0F2FE">ESP-3</text></g>
+    <g transform="translate(126,178)"><rect x="-26" y="-12" width="52" height="24" rx="6" fill="#0B1020" stroke="#38BDF8" stroke-width="1.6"/><text x="0" y="4" text-anchor="middle" fill="#E0F2FE">ESP-4</text></g>
+  </g>
+
+  <rect x="42" y="362" width="524" height="24" rx="6" fill="#0B1020" stroke="#1E293B"/>
+  <text x="304" y="378" text-anchor="middle" fill="#94A3B8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">5× ESP32-S3 = 20 Links (3× Min) · I²C GPIO8/9: MAX30102 · BME280 · SCD40</text>
+
+  <path d="M584,224 L622,224" stroke="url(#accentCyan)" stroke-width="2.5" stroke-dasharray="5 4">
+    <animate attributeName="stroke-dashoffset" values="18;0" dur="0.9s" repeatCount="indefinite"/>
+  </path>
+  <polygon points="620,218 632,224 620,230" fill="#22C55E"/>
+
+  <rect x="634" y="68" width="542" height="328" rx="12" fill="#0F172A" stroke="#1E293B" stroke-width="1.2"/>
+  <text x="656" y="96" fill="#E2E8F0" font-family="ui-sans-serif, system-ui, sans-serif" font-size="15" font-weight="700">Orange Pi 4 Pro (ARM64) — Autonomous Medical Hub</text>
+  <text x="656" y="114" fill="#64748B" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11">UDP :5005  →  Go Central :8000  ↔  Edge AI :5006  →  SQLite WAL/FTS5</text>
+
+  <rect x="656" y="128" width="240" height="72" rx="8" fill="#0B1020" stroke="#0EA5E9" stroke-width="1.3"/>
+  <text x="670" y="149" fill="#38BDF8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11.5" font-weight="700">Go 1.27 Orchestrator</text>
+  <text x="670" y="167" fill="#CBD5E1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5">N+1 Failover (20→12→6 links)</text>
+  <text x="670" y="185" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">Zero-GC Ring · HTTP/WS :8000</text>
+
+  <rect x="912" y="128" width="242" height="72" rx="8" fill="#0B1020" stroke="#A78BFA" stroke-width="1.3"/>
+  <text x="926" y="149" fill="#C4B5FD" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11.5" font-weight="700">Edge AI (ONNX + SLM)</text>
+  <text x="926" y="167" fill="#CBD5E1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5">5 ONNX (&lt;50 ms) · Crew EMA</text>
+  <text x="926" y="185" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">Qwen2.5-1.5B · Rule P4 ≤ 0.65</text>
+
+  <rect x="656" y="214" width="498" height="86" rx="8" fill="#0B1020" stroke="#1E293B" stroke-width="1.2"/>
+  <text x="670" y="233" fill="#22C55E" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11" font-weight="700">LIVE CSI + I²C TELEMETRY STREAM</text>
+  <text x="1140" y="233" text-anchor="end" fill="#94A3B8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10.5">HR 68 BPM · SpO₂ 98% · CO₂ 620 ppm</text>
+  <path d="M670,268 L715,268 L727,252 L737,284 L748,244 L758,274 L770,268 L830,268 L842,252 L852,284 L863,244 L873,274 L885,268 L945,268 L957,252 L967,284 L978,244 L988,274 L1000,268 L1060,268 L1072,252 L1082,284 L1093,244 L1103,274 L1115,268 L1140,268"
+        fill="none" stroke="#22C55E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="28 6">
+    <animate attributeName="stroke-dashoffset" values="68;0" dur="1.8s" repeatCount="indefinite"/>
+  </path>
+
+  <rect x="656" y="312" width="240" height="68" rx="8" fill="#0B1020" stroke="#F59E0B" stroke-width="1.2"/>
+  <text x="670" y="333" fill="#FBBF24" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11.5" font-weight="700">NASA HRP/CSA Knowledge</text>
+  <text x="670" y="351" fill="#CBD5E1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">SQLite FTS5 BM25 · Causal Graph</text>
+  <text x="670" y="368" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10.5">23+ Reports · 36 Golden Cases</text>
+
+  <rect x="912" y="312" width="242" height="68" rx="8" fill="#0B1020" stroke="#22C55E" stroke-width="1.2"/>
+  <text x="926" y="333" fill="#4ADE80" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="11.5" font-weight="700">3D Digital Twin &amp; Games</text>
+  <text x="926" y="351" fill="#CBD5E1" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11">Three.js + Draco · 6 Subsystems</text>
+  <text x="926" y="368" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="10.5">Guided Self-Exam · Anti-Stress</text>
+
+</svg>

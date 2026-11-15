@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 580 220" width="580" height="220" role="img" aria-label="Anti-Stress Interactive Game and Guided Self-Exam">
+  <rect width="580" height="220" rx="12" fill="#0B1020" stroke="#1E293B" stroke-width="1.5"/>
+  <rect x="18" y="16" width="180" height="188" rx="10" fill="#0F172A" stroke="#22C55E" stroke-width="1.2"/>
+  <circle cx="108" cy="84" r="44" fill="none" stroke="#38BDF8" stroke-width="1.2" stroke-dasharray="4 3"/>
+  <circle cx="108" cy="84" r="24" fill="none" stroke="#22C55E" stroke-width="1.4"/>
+  <line x1="58" y1="84" x2="158" y2="84" stroke="#334155" stroke-width="1"/>
+  <line x1="108" y1="34" x2="108" y2="134" stroke="#334155" stroke-width="1"/>
+  <circle cx="108" cy="84" r="5" fill="#22C55E">
+    <animate attributeName="r" values="4;7;4" dur="1.8s" repeatCount="indefinite"/>
+  </circle>
+  <path d="M36,166 Q72,146 108,166 T180,166" fill="none" stroke="#22C55E" stroke-width="2"/>
+  <text x="108" y="190" text-anchor="middle" fill="#4ADE80" font-family="ui-monospace, monospace" font-size="10">CALM HRV · CLEAN CSI</text>
+
+  <text x="218" y="42" fill="#4ADE80" font-family="ui-monospace, monospace" font-size="11.5" font-weight="700">CLINICAL GAMIFICATION &amp; SELF-EXAM</text>
+  <text x="218" y="68" fill="#F8FAFC" font-family="ui-sans-serif, system-ui, sans-serif" font-size="17" font-weight="700">Anti-Stress Game &amp; Guided Exams</text>
+  <text x="218" y="92" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5">• Reduces "white-coat" HR/BP spikes</text>
+  <text x="218" y="114" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5">• Stabilizes posture &amp; breathing for CSI</text>
+  <text x="218" y="136" fill="#94A3B8" font-family="ui-sans-serif, system-ui, sans-serif" font-size="12.5">• Logs SELF_EXAM (Amsler / Capillary) to AI</text>
+
+  <rect x="218" y="156" width="160" height="28" rx="6" fill="#0F172A" stroke="#38BDF8"/>
+  <text x="298" y="174" text-anchor="middle" fill="#E0F2FE" font-family="ui-monospace, monospace" font-size="10.5">Landing &amp; Asteroids</text>
+  <rect x="388" y="156" width="170" height="28" rx="6" fill="#0F172A" stroke="#22C55E"/>
+  <text x="473" y="174" text-anchor="middle" fill="#DCFCE7" font-family="ui-monospace, monospace" font-size="10.5">CALIBRATION_STEP</text>
+</svg>

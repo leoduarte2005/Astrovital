@@ -273,7 +273,7 @@ func run(ctx context.Context, args []string, stdout io.Writer) int {
 	defer cancelBridges()
 	var bridgeWG sync.WaitGroup
 	startBridges(bridgeCtx, &bridgeWG, log, srv.EventCh(), wsOutCh, pipeInfCh, pipeEventCh, pipeDataCh,
-		udpSink, clusterMgr, ipcClient, sessMgr, lastInference, latestClusterStatus)
+		udpSink, udpTx, clusterMgr, ipcClient, sessMgr, lastInference, latestClusterStatus)
 
 	httpCtx, cancelHTTP := context.WithCancel(context.Background())
 	defer cancelHTTP()

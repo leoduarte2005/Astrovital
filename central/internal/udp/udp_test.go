@@ -376,3 +376,44 @@ func TestReceiverFlood5000NonBlockingShutdownAndNoGoroutineLeak(t *testing.T) {
 		t.Fatalf("goroutine leak: before=%d after=%d", baseGoroutines, got)
 	}
 }
+
+func TestTransmitterNodeAssignAndRegisteredPeer(t *testing.T) {
+	peerConn, err := net.ListenUDP("udp4", &net.UDPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 0})
+	if err != nil {
+		t.Fatalf("ListenUDP: %v", err)
+	}
+	defer peerConn.Close()
+	peerAddr := peerConn.LocalAddr().(*net.UDPAddr)
+
+	// Point Transmitter default dst to peer port (simulating discovered ESP on port)
+	tx := NewTransmitter(TransmitterConfig{
+		BroadcastAddr: peerAddr.String(),
+		InitialMode:   contracts.ModeCabinTomography,
+	}, nil)
+	if err := tx.Bind(); err != nil {
+		t.Fatalf("tx.Bind: %v", err)
+	}
+	tx.RegisterPeer(peerAddr.String())
+
+	peersMap := map[uint8]string{
+		0: "AA:BB:CC:DD:EE:01",
+		1: "AA:BB:CC:DD:EE:02",
+	}
+	if err := tx.SendNodeAssign(peerAddr.String(), "AA:BB:CC:DD:EE:01", 0, 0, peersMap); err != nil {
+		t.Fatalf("SendNodeAssign: %v", err)
+	}
+
+	_ = peerConn.SetReadDeadline(time.Now().Add(time.Second))
+	buf := make([]byte, 2048)
+	n, _, err := peerConn.ReadFromUDP(buf)
+	if err != nil {
+		t.Fatalf("ReadFromUDP NODE_ASSIGN: %v", err)
+	}
+	var assign NodeAssignPayload
+	if err := json.Unmarshal(buf[:n], &assign); err != nil {
+		t.Fatalf("unmarshal NODE_ASSIGN: %v", err)
+	}
+	if assign.Type != "NODE_ASSIGN" || assign.NodeID != 0 || len(assign.Peers) != 2 {
+		t.Fatalf("unexpected NODE_ASSIGN: %+v", assign)
+	}
+}

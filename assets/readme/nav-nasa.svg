@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 95" width="180" height="95" role="img" aria-label="NASA Clinical Brain">
+  <rect width="180" height="95" rx="10" fill="#0B1020" stroke="#1E293B" stroke-width="1.5"/>
+  <rect x="26" y="14" width="128" height="46" rx="6" fill="#0F172A" stroke="#F59E0B" stroke-width="1.2"/>
+  <text x="36" y="30" fill="#FBBF24" font-family="ui-monospace, monospace" font-size="10" font-weight="700">NASA HRP / CSA</text>
+  <text x="36" y="43" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="9">FTS5 BM25 · 36 Cases</text>
+  <rect x="36" y="49" width="76" height="4" rx="2" fill="#22C55E" opacity="0.8">
+    <animate attributeName="width" values="38;104;38" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <text x="90" y="82" text-anchor="middle" fill="#E2E8F0" font-family="ui-sans-serif, system-ui, sans-serif" font-size="11.5" font-weight="700">NASA Clinical Brain</text>
+</svg>
