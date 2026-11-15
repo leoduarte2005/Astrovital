@@ -8,8 +8,19 @@ import type { TwinRenderer } from './renderer'
 type Status = 'loading' | 'ready' | 'error'
 
 /** Mounts the lazy three.js renderer on a canvas. The twin takes no pointer input. */
-export function TwinCanvas({ skinTone, heightM }: { skinTone: string; heightM: number }) {
+interface TwinCanvasProps {
+  skinTone: string
+  heightM: number
+  onSelect?: (id: TwinAnchorId | null) => void
+}
+
+export function TwinCanvas({ skinTone, heightM, onSelect }: TwinCanvasProps) {
   const { t } = useI18n()
+  // Kept in a ref so a new callback does not remount the renderer.
+  const onSelectRef = useRef(onSelect)
+  useEffect(() => {
+    onSelectRef.current = onSelect
+  })
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const markerRefs = useRef<Partial<Record<TwinAnchorId, HTMLElement | null>>>({})
   const [status, setStatus] = useState<Status>('loading')
@@ -28,7 +39,15 @@ export function TwinCanvas({ skinTone, heightM }: { skinTone: string; heightM: n
     let handle: TwinRenderer | null = null
 
     import('./renderer')
-      .then((module) => module.mount(canvas, { skinTone, heightM, signal: controller.signal, markers }))
+      .then((module) =>
+        module.mount(canvas, {
+          skinTone,
+          heightM,
+          signal: controller.signal,
+          markers,
+          onSelect: (id) => onSelectRef.current?.(id),
+        }),
+      )
       .then((renderer) => {
         if (controller.signal.aborted) {
           renderer.dispose()

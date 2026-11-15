@@ -1,7 +1,9 @@
 import {
   ACESFilmicToneMapping,
   Box3,
+  Color,
   DirectionalLight,
+  GridHelper,
   Group,
   HemisphereLight,
   MathUtils,
@@ -9,6 +11,7 @@ import {
   Scene,
   Vector3,
   WebGLRenderer,
+  type LineBasicMaterial,
   type Material,
   type Mesh,
   type MeshStandardMaterial,
@@ -24,12 +27,18 @@ import { DEFAULT_TWIN_LAYERS, TWIN_ANCHORS, TWIN_LAYER_IDS, type TwinAnchorId, t
 
 /** Relative paths: the central (or the dev middleware) serves `data/models` under `/models`. */
 const LAYER_URLS: Record<TwinLayerId, string> = {
-  skin: './models/anatomy/skin.glb',
-  bones: './models/anatomy/bones-compressed.glb', // Draco
+  skin: './models/reduced/skin.glb', // plain GLB, no compression
+  eyes: './models/reduced/eyes.glb', // meshopt; default layer, with the skin
   organs: './models/anatomy/organs.glb', // loaded on demand, when a marker selects it
   heart: './models/reduced/heart.glb', // meshopt; same body origin, no repositioning
   brain: './models/reduced/brain.glb', // meshopt
   lungs: './models/reduced/lungs.glb', // meshopt
+  kidneys: './models/reduced/kidneys.glb', // meshopt
+  liver: './models/reduced/liver.glb', // meshopt
+  gut: './models/reduced/gut.glb', // meshopt
+  jugular: './models/reduced/jugular.glb', // meshopt
+  spine: './models/reduced/spine.glb', // meshopt
+  vascular: './models/reduced/vascular.glb', // 18 MB, uncompressed; loaded on demand by the right-hand marker
 }
 /** Local copy of three's Draco WASM decoder (public/draco). No network. */
 const DRACO_DECODER_PATH = './draco/'
@@ -60,6 +69,11 @@ const LAYER_TINTS: Partial<Record<TwinLayerId, string>> = {
   heart: '#c8283f',
   brain: '#ffc0cb',
   lungs: '#d4a5a0',
+  kidneys: '#7a2e2e', // deep red-brown
+  liver: '#8b4a3c', // brown-red
+  gut: '#d8a48f', // soft pink
+  jugular: '#3f5f9a', // venous blue
+  spine: '#e8dfc8', // bone ivory
 }
 /** Skin opacity while an organ is selected: a ghost that keeps the body outline over the organ. */
 const SKIN_GHOST_OPACITY = 0.1
@@ -77,6 +91,8 @@ export interface TwinOptions {
   heightM: number
   /** HTML markers by anchor id; moved each frame by projection, never by React state. */
   markers: Partial<Record<TwinAnchorId, HTMLElement>>
+  /** Called when a marker becomes the selection (its id) or the selection is cleared (null). */
+  onSelect?: (id: TwinAnchorId | null) => void
 }
 
 export interface TwinRenderer {
@@ -158,11 +174,11 @@ function applySkinTone(root: Object3D, skinTone: string): void {
  * Resolves once the default layers are loaded and framed; the caller owns `dispose()`.
  */
 export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Promise<TwinRenderer> {
-  const [skinGltf, bonesGltf] = await Promise.all([new GLTFLoader().loadAsync(LAYER_URLS.skin), loadGltf(LAYER_URLS.bones)])
+  const [skinGltf, eyesGltf] = await Promise.all([new GLTFLoader().loadAsync(LAYER_URLS.skin), loadGltf(LAYER_URLS.eyes)])
   // Every layer is a child of `body`: they share one coordinate space, transform and centring.
   const body = new Group()
-  const layers: Partial<Record<TwinLayerId, Object3D>> = { skin: skinGltf.scene, bones: bonesGltf.scene }
-  body.add(skinGltf.scene, bonesGltf.scene)
+  const layers: Partial<Record<TwinLayerId, Object3D>> = { skin: skinGltf.scene, eyes: eyesGltf.scene }
+  body.add(skinGltf.scene, eyesGltf.scene)
   let disposed = false
   if (options.signal.aborted) {
     disposeObject(body)
@@ -177,7 +193,7 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
     const box = new Box3().setFromObject(body)
     const size = box.getSize(new Vector3())
     const center = box.getCenter(new Vector3())
-    // Uniform scale keeps the body's proportions: skin, bones, organs and markers all scale together.
+    // Uniform scale keeps the body's proportions: skin, eyes, organs and markers all scale together.
     const scale = options.heightM / size.y
     size.multiplyScalar(scale)
     // Anchors are children of the body, so they turn with it. Set in model units before the
@@ -189,12 +205,23 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
       object.name = `anchor-${anchor.id}`
       object.position.set(center.x + anchor.offset.x, center.y + anchor.offset.y, center.z + anchor.offset.z)
       body.add(object)
-      return [{ object, element, layerIds: anchor.layers }]
+      return [{ id: anchor.id, object, element, layerIds: anchor.layers }]
     })
     body.scale.setScalar(scale)
     body.position.copy(center).multiplyScalar(-scale)
     // Radius of the horizontal footprint: worst case while the body turns.
     const radius = Math.hypot(size.x, size.z) / 2
+
+    // Grid floor under the feet. It is a child of `body`, so it turns and tilts with the model. Model units,
+    // so it scales with the body. Colour from the `--ink-3` token.
+    const pageInk = getComputedStyle(document.documentElement).getPropertyValue('--ink-3').trim()
+    const floor = new GridHelper(Math.max(size.x, size.z) * 8, 8, new Color(pageInk || LIGHT_GROUND), new Color(pageInk || LIGHT_GROUND))
+    const floorMaterial = floor.material as LineBasicMaterial
+    floorMaterial.transparent = true
+    floorMaterial.opacity = 0.16
+    floorMaterial.depthWrite = false
+    floor.position.set(center.x, box.min.y, center.z)
+    body.add(floor)
 
     const pivot = new Group()
     pivot.add(body)
@@ -268,9 +295,11 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
     const zoomTarget = new Vector3()
     const easeNow = () => 1 - (1 - Math.min(1, (performance.now() - zoomStartedAt) / ZOOM_MS)) ** 3 // ease-out cubic
     const blendNow = () => blendFrom + (blendTo - blendFrom) * easeNow()
-    const startZoom = (object: Object3D, layerIds: readonly TwinLayerId[], element: HTMLElement) => {
+    const startZoom = (id: TwinAnchorId, object: Object3D, layerIds: readonly TwinLayerId[], element: HTMLElement) => {
       if (zoomAnchor) return
       zoomAnchor = object
+      floor.visible = false // hidden while zoomed in; back when the view resets
+      options.onSelect?.(id)
       viewAnchor = object
       viewMarker = element
       setMarkerActive(element, true)
@@ -359,6 +388,8 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
     const resetView = () => {
       if (!zoomAnchor) return
       zoomAnchor = null
+      floor.visible = true
+      options.onSelect?.(null)
       if (viewMarker) setMarkerActive(viewMarker, false)
       viewMarker = null
       blendFrom = blendNow()
@@ -455,8 +486,8 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
       }
     }
 
-    const markerClicks = anchors.map(({ object, element, layerIds }) => {
-      const onClick = () => startZoom(object, layerIds, element)
+    const markerClicks = anchors.map(({ id, object, element, layerIds }) => {
+      const onClick = () => startZoom(id, object, layerIds, element)
       element.addEventListener('click', onClick)
       return { element, onClick }
     })

@@ -15,6 +15,7 @@ export const MODULES: AppModule[] = [
   { path: '/diagnosis', icon: 'diagnosis', labelKey: 'nav.diagnosis' },
   { path: '/encyclopedia', icon: 'book', labelKey: 'nav.encyclopedia', homeMenu: true },
   { path: '/garden', icon: 'leaf', labelKey: 'nav.garden', homeMenu: true },
-  { path: '/landing', icon: 'rocket', labelKey: 'nav.landing', homeMenu: true },
+  { path: '/games', icon: 'rocket', labelKey: 'nav.games', homeMenu: true },
+  { path: '/leisure', icon: 'gamepad', labelKey: 'nav.leisure', homeMenu: true },
   { path: '/profile', icon: 'user', labelKey: 'nav.profile' },
 ]

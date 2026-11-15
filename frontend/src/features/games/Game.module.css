@@ -1,0 +1,92 @@
+/* Full-page game screen, shared by every game. Colours come from the kit's tokens. */
+.root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  min-height: 100vh;
+  padding: var(--space-4);
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.hud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--space-4);
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.hudValue {
+  color: var(--ink);
+  font-weight: var(--weight-bold);
+}
+
+/* Fixed 4:3 drawing surface, scaled by CSS to the largest size that fits the screen. */
+.canvas {
+  display: block;
+  width: min(100vw - 2 * var(--space-4), (100vh - 14rem) * 4 / 3);
+  height: auto;
+  aspect-ratio: 4 / 3;
+  border: var(--border-thin) solid var(--line-strong);
+  border-radius: var(--radius-md);
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.control {
+  min-width: var(--touch-min);
+  min-height: var(--touch-min);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-thin) solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+}
+
+.control:active {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  max-width: 32rem;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-frame) solid var(--ink);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  text-align: center;
+}
+
+.panelTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
+}
+
+.panelText {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--ink-2);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--text-sm);
+}
