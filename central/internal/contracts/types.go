@@ -202,6 +202,7 @@ type PeripheralSnapshotPayload struct {
 // SetActiveCrewPayload sent C→IA in IPC (request).
 type SetActiveCrewPayload struct {
 	CrewID       string               `json:"crew_id"`
+	Profile      *CrewProfile         `json:"profile,omitempty"`
 	BaselinePath string               `json:"baseline_path,omitempty"`
 	Thresholds   map[string]Threshold `json:"thresholds,omitempty"`
 }
@@ -245,13 +246,32 @@ type ChatCorrelateReqPayload struct {
 	RecentHistory   []ChatMessage        `json:"recent_history,omitempty"`
 }
 
-// CrewProfile is a minimal crew record for IPC context.
+// CrewProfile is a crew clinical/baseline record for IPC context.
 type CrewProfile struct {
-	CrewID     string `json:"crew_id"`
-	Name       string `json:"name"`
-	Role       string `json:"role,omitempty"`
-	MissionDay int    `json:"mission_day,omitempty"`
-	Age        int    `json:"age,omitempty"`
+	CrewID                  string   `json:"crew_id"`
+	Name                    string   `json:"name"`
+	Role                    string   `json:"role,omitempty"`
+	MissionDay              int      `json:"mission_day,omitempty"`
+	Age                     int      `json:"age,omitempty"`
+	BiologicalSex           *string  `json:"biological_sex,omitempty"`
+	HeightCm                *float64 `json:"height_cm,omitempty"`
+	PreflightWeightKg       *float64 `json:"preflight_weight_kg,omitempty"`
+	VO2MaxBaseline          *float64 `json:"vo2max_baseline,omitempty"`
+	PreflightHRBpm          *float64 `json:"preflight_hr_bpm,omitempty"`
+	PreflightHRVMs          *float64 `json:"preflight_hrv_ms,omitempty"`
+	PreflightSpO2Pct        *float64 `json:"preflight_spo2_pct,omitempty"`
+	PreflightSBPMmHg        *float64 `json:"preflight_sbp_mmhg,omitempty"`
+	PreflightDBPMmHg        *float64 `json:"preflight_dbp_mmhg,omitempty"`
+	PreflightFerritinUgL    *float64 `json:"preflight_ferritin_ug_l,omitempty"`
+	PreflightHemoglobinGDl  *float64 `json:"preflight_hemoglobin_g_dl,omitempty"`
+	PreflightONSDMm         *float64 `json:"preflight_onsd_mm,omitempty"`
+	SANSSusceptibility      *string  `json:"sans_susceptibility,omitempty"`
+	CO2Sensitivity          *string  `json:"co2_sensitivity,omitempty"`
+	MotionSicknessHistory   *string  `json:"motion_sickness_history,omitempty"`
+	TargetKcalDay           *float64 `json:"target_kcal_day,omitempty"`
+	TargetWaterMlDay        *float64 `json:"target_water_ml_day,omitempty"`
+	RadiationCareerLimitMsv *float64 `json:"radiation_career_limit_msv,omitempty"`
+	MissionStartUs          *int64   `json:"mission_start_us,omitempty"`
 }
 
 // ChatMessage is one record in chat history.

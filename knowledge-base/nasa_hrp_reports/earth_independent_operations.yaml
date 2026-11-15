@@ -20,7 +20,7 @@
     "Estado do enlace na Central",
     "Autoexames guiados"
   ],
-  "scientific_scope": "Referência de risco; regras, priors e limiares são fixtures de engenharia, não validação clínica.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "legacy_reference": {
     "id": "HRP-RISK-EARTH-INDEP",
     "source": {
@@ -66,10 +66,13 @@
           "threshold_value": 1,
           "source_sensor": "MISSION_CONTEXT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 2.2,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Sinal de teste para revisão contextual, não diagnóstico."
+          "description": "Sinal de teste para revisão contextual, não diagnóstico.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 24,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -86,7 +89,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "symptom_review"
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "BEHAVIORAL_HEALTH",
+            "TEAMWORK",
+            "COGNITIVE_FATIGUE"
+          ]
         }
       ],
       "contraindications": [
@@ -95,9 +103,32 @@
           "guard_metric": "clinical_authorization",
           "guard_op": "EQ",
           "guard_value": 0,
-          "rationale": "Não iniciar tratamento sem autorização clínica."
+          "rationale": "Guarda de seguran?a de engenharia: n?o iniciar interven??o terap?utica aut?noma sem autoriza??o cl?nica (clinical_authorization == 0) durante atraso de comunica??o."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "clinical_uncertainty": 0.85,
+        "anxiety": 0.65,
+        "response_delay": 0.8
+      },
+      "differential_ids": [
+        "BEHAVIORAL_HEALTH",
+        "TEAMWORK",
+        "COGNITIVE_FATIGUE"
+      ],
+      "expected_biomarkers": {
+        "MISSION_CONTEXT": {
+          "medical_capability_gap": "comm_delay_or_no_evacuation_window"
+        },
+        "SELF_EXAM": {
+          "guided_protocol_completion": "structured_triage_required"
+        }
+      },
+      "severity_thresholds": {
+        "medical_capability_gap": {
+          "yellow_high": 1
+        }
+      }
     }
   ]
 }

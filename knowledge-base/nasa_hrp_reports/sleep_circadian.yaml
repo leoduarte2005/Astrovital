@@ -36,7 +36,7 @@
     "Entrevista contextual e registros de qualidade.",
     "LONGITUDINAL quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "SLEEP_CIRCADIAN",
@@ -89,10 +89,13 @@
           "threshold_value": 5,
           "source_sensor": "LONGITUDINAL",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.5,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "ROLLUP_3D",
+          "window_hours": 72,
+          "baseline_field": "preflight_sleep_h"
         }
       ],
       "questions": [
@@ -104,7 +107,13 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "sleep_review"
+          "linked_protocol_id": "sleep_review",
+          "target_differential_ids": [
+            "SANS",
+            "COGNITIVE_FATIGUE",
+            "BEHAVIORAL_HEALTH",
+            "IMMUNE_VIRAL_REACTIVATION"
+          ]
         }
       ],
       "contraindications": [
@@ -113,9 +122,49 @@
           "guard_metric": "clinical_authorization",
           "guard_op": "EQ",
           "guard_value": 0,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: n?o administrar sedativos sem autoriza??o cl?nica (clinical_authorization == 0) pelo risco de preju?zo cognitivo em emerg?ncia."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "fatigue": 0.9,
+        "insomnia": 0.9,
+        "headache": 0.5,
+        "confusion": 0.55,
+        "malaise": 0.75,
+        "rash_infection": 0.7
+      },
+      "differential_ids": [
+        "SANS",
+        "HYPERCAPNIA",
+        "COGNITIVE_FATIGUE",
+        "BEHAVIORAL_HEALTH",
+        "IMMUNE_VIRAL_REACTIVATION"
+      ],
+      "expected_biomarkers": {
+        "LONGITUDINAL": {
+          "sleep_duration_h": "short_3d_to_7d_sleep_fixture",
+          "deep_sleep_h": "reduced_deep_sleep_trend"
+        },
+        "ESP32_CSI": {
+          "sleep_architecture": "fragmented_rest_vitals_fixture"
+        },
+        "MAX30102": {
+          "hrv_ms": "reduced_nocturnal_recovery_fixture"
+        },
+        "MISSION_CONTEXT": {
+          "light_therapy": "circadian_schedule_shift_check"
+        }
+      },
+      "severity_thresholds": {
+        "sleep_duration_h": {
+          "yellow_low": 5.5,
+          "red_low": 4.0
+        },
+        "hrv_ms": {
+          "yellow_low": 30.0,
+          "red_low": 20.0
+        }
+      }
     }
   ],
   "legacy_reference": {

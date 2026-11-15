@@ -33,7 +33,7 @@
     "Entrevista contextual e registros de qualidade.",
     "MISSION_CONTEXT quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "DECOMPRESSION_SICKNESS",
@@ -83,10 +83,13 @@
           "threshold_value": 1,
           "source_sensor": "MISSION_CONTEXT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 6.0,
           "severity_tier": "RED",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 72,
+          "baseline_field": null
         },
         {
           "metric": "joint_pain",
@@ -94,10 +97,13 @@
           "threshold_value": 1,
           "source_sensor": "SELF_REPORT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 4.2,
           "severity_tier": "RED",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -109,7 +115,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "post_eva_review"
+          "linked_protocol_id": "post_eva_review",
+          "target_differential_ids": [
+            "MUSCLE_DECONDITIONING",
+            "RENAL_STONES",
+            "HYPOXIA"
+          ]
         }
       ],
       "contraindications": [
@@ -118,9 +129,48 @@
           "guard_metric": "dcs_suspected",
           "guard_op": "EQ",
           "guard_value": 1,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: interromper EVA quando houver suspeita de doen?a descompressiva (dcs_suspected == 1); requer protocolo de emerg?ncia autorizado."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "joint_pain": 0.9,
+        "dizziness": 0.8,
+        "dyspnea": 0.8,
+        "rash_infection": 0.75,
+        "paresthesia": 0.95,
+        "confusion": 0.75,
+        "chest_pain": 0.9
+      },
+      "differential_ids": [
+        "MUSCLE_DECONDITIONING",
+        "RENAL_STONES",
+        "HYPOXIA",
+        "ORTHOSTATIC_INTOLERANCE"
+      ],
+      "expected_biomarkers": {
+        "MISSION_CONTEXT": {
+          "eva_recent": "eva_within_72h_lookback"
+        },
+        "MAX30102": {
+          "spo2_pct": "possible_desaturation_in_chokes_fixture",
+          "heart_rate_bpm": "elevated_stress_response_fixture"
+        },
+        "BME280": {
+          "pressure_hpa": "cabin_or_suit_pressure_transition_check"
+        },
+        "SELF_EXAM": {
+          "neurologic_and_joint_exam": "focal_paresthesia_or_deep_joint_pain"
+        }
+      },
+      "severity_thresholds": {
+        "spo2_pct": {
+          "yellow_low": 94.0,
+          "red_low": 90.0
+        },
+        "eva_recent": {
+          "red_high": 1
+        }
+      }
     }
   ],
   "legacy_reference": {

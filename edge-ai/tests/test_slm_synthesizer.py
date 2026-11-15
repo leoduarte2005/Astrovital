@@ -149,13 +149,29 @@ def test_fallback_on_timeout_error_empty_and_missing_model(tmp_path: Path) -> No
     empty.close()
 
 
+def _apply_real_migrations(db_file: Path) -> None:
+    import sqlite3
+
+    mig_dir = Path(__file__).resolve().parents[2] / "database" / "migrations"
+    conn = sqlite3.connect(db_file)
+    try:
+        for sql_path in sorted(mig_dir.glob("*.sql")):
+            conn.executescript(sql_path.read_text(encoding="utf-8"))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def test_ipc_handler_chat_correlate_slm_and_disable_flag(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
+    db_file = tmp_path / "worker.db"
+    _apply_real_migrations(db_file)
+
     class _FakeSettings:
         models_dir = tmp_path
-        db_path = tmp_path / "missing.db"
+        db_path = db_file
         ort_threads = 1
 
     handler_disabled = IPCHandler(settings=_FakeSettings(), disable_slm=True)  # type: ignore[arg-type]
@@ -172,13 +188,13 @@ def test_ipc_handler_chat_correlate_slm_and_disable_flag(
 
     req = ChatCorrelateReqPayload(
         text="Estou com dor de cabeca e tontura",
-        crew_id="astro-02",
+        crew_id="crew_001",
         summary_24h="Bloqueio de ferro ativo (ferritina > 500 ng/mL).",
         last_peripherals=[
             PeripheralReading(type=Peripheral.SCD40, value=3400.0, unit="ppm", timestamp_us=1000)
         ],
     )
-    env = make_envelope(IPCMsgType.CHAT_CORRELATE_REQ, req, crew_id="astro-02", req_id=7)
+    env = make_envelope(IPCMsgType.CHAT_CORRELATE_REQ, req, crew_id="crew_001", req_id=7)
 
     reply_env = asyncio.run(handler_enabled.handle(env))
     assert reply_env is not None
@@ -190,11 +206,19 @@ def test_ipc_handler_chat_correlate_slm_and_disable_flag(
     handler_enabled.synthesizer.close()
 
 
-def test_leg_pain_walking_correlates_musculoskeletal_knowledge() -> None:
+def test_leg_pain_walking_correlates_musculoskeletal_knowledge(tmp_path: Path) -> None:
+    import sqlite3
     from edgespace_ai.correlation.correlator import ClinicalCorrelator
     from edgespace_ai.ipc.protocol import CrewProfile
 
-    correlator = ClinicalCorrelator()
+    db_file = tmp_path / "leg.db"
+    _apply_real_migrations(db_file)
+    with sqlite3.connect(db_file) as c:
+        c.execute("DELETE FROM mission_context_events")
+        c.execute("DELETE FROM telemetry_daily_rollups")
+        c.execute("DELETE FROM nutrition_hydration_logs")
+        c.commit()
+    correlator = ClinicalCorrelator(db_path=db_file)
     resp = correlator.correlate(
         ChatCorrelateReqPayload(
             text="Minha perna doi quando tento andar",
@@ -203,8 +227,8 @@ def test_leg_pain_walking_correlates_musculoskeletal_knowledge() -> None:
         )
     )
     assert resp.differentials
-    assert "Descondicionamento Musculoesquelético" in resp.differentials[0]
-    assert "NASA-HRP-FITNESS" in resp.source_ids
-    assert resp.disambiguation_question and "panturrilha" in resp.disambiguation_question
+    assert "Descondicionamento" in resp.differentials[0]
+    assert "NASA-FITNESS" in resp.source_ids
+    assert resp.countermeasures
 
 

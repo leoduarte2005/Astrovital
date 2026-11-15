@@ -350,53 +350,115 @@ func (s *Store) GetCrewProfile(ctx context.Context, id string) (CrewProfileRecor
 	}
 	if hasCols(cols, "crew_id", "name") {
 		selectCols := []string{"crew_id", "name"}
-		hasRole := cols["role"]
-		hasDay := cols["mission_day"]
-		hasAge := cols["age"]
-		hasBase := cols["baseline_path"]
-		hasThresh := cols["thresholds_json"]
-		if hasRole {
-			selectCols = append(selectCols, "COALESCE(role,'')")
-		}
-		if hasDay {
-			selectCols = append(selectCols, "COALESCE(mission_day,0)")
-		}
-		if hasAge {
-			selectCols = append(selectCols, "COALESCE(age,0)")
-		}
-		if hasBase {
-			selectCols = append(selectCols, "COALESCE(baseline_path,'')")
-		}
-		if hasThresh {
-			selectCols = append(selectCols, "COALESCE(thresholds_json,'')")
-		}
-		q := fmt.Sprintf("SELECT %s FROM crew_profiles WHERE crew_id=?", strings.Join(selectCols, ","))
 		var rec CrewProfileRecord
 		var threshJSON string
 		dest := []any{&rec.Profile.CrewID, &rec.Profile.Name}
-		if hasRole {
+
+		if cols["role"] {
+			selectCols = append(selectCols, "COALESCE(role,'')")
 			dest = append(dest, &rec.Profile.Role)
 		}
-		if hasDay {
+		if cols["mission_day"] {
+			selectCols = append(selectCols, "COALESCE(mission_day,0)")
 			dest = append(dest, &rec.Profile.MissionDay)
 		}
-		if hasAge {
+		if cols["age"] {
+			selectCols = append(selectCols, "COALESCE(age,0)")
 			dest = append(dest, &rec.Profile.Age)
 		}
-		if hasBase {
+		if cols["baseline_path"] {
+			selectCols = append(selectCols, "COALESCE(baseline_path,'')")
 			dest = append(dest, &rec.BaselinePath)
 		}
-		if hasThresh {
+		if cols["thresholds_json"] {
+			selectCols = append(selectCols, "COALESCE(thresholds_json,'')")
 			dest = append(dest, &threshJSON)
 		}
+
+		type strOpt struct {
+			col string
+			dst **string
+			val sql.NullString
+		}
+		type fltOpt struct {
+			col string
+			dst **float64
+			val sql.NullFloat64
+		}
+		strOpts := []*strOpt{
+			{col: "biological_sex", dst: &rec.Profile.BiologicalSex},
+			{col: "sans_susceptibility", dst: &rec.Profile.SANSSusceptibility},
+			{col: "co2_sensitivity", dst: &rec.Profile.CO2Sensitivity},
+			{col: "motion_sickness_history", dst: &rec.Profile.MotionSicknessHistory},
+		}
+		fltOpts := []*fltOpt{
+			{col: "height_cm", dst: &rec.Profile.HeightCm},
+			{col: "preflight_weight_kg", dst: &rec.Profile.PreflightWeightKg},
+			{col: "vo2max_baseline", dst: &rec.Profile.VO2MaxBaseline},
+			{col: "preflight_hr_bpm", dst: &rec.Profile.PreflightHRBpm},
+			{col: "preflight_hrv_ms", dst: &rec.Profile.PreflightHRVMs},
+			{col: "preflight_spo2_pct", dst: &rec.Profile.PreflightSpO2Pct},
+			{col: "preflight_sbp_mmhg", dst: &rec.Profile.PreflightSBPMmHg},
+			{col: "preflight_dbp_mmhg", dst: &rec.Profile.PreflightDBPMmHg},
+			{col: "preflight_ferritin_ug_l", dst: &rec.Profile.PreflightFerritinUgL},
+			{col: "preflight_hemoglobin_g_dl", dst: &rec.Profile.PreflightHemoglobinGDl},
+			{col: "preflight_onsd_mm", dst: &rec.Profile.PreflightONSDMm},
+			{col: "target_kcal_day", dst: &rec.Profile.TargetKcalDay},
+			{col: "target_water_ml_day", dst: &rec.Profile.TargetWaterMlDay},
+			{col: "radiation_career_limit_msv", dst: &rec.Profile.RadiationCareerLimitMsv},
+		}
+		for _, o := range strOpts {
+			if cols[o.col] {
+				selectCols = append(selectCols, o.col)
+				dest = append(dest, &o.val)
+			}
+		}
+		for _, o := range fltOpts {
+			if cols[o.col] {
+				selectCols = append(selectCols, o.col)
+				dest = append(dest, &o.val)
+			}
+		}
+		var missionStart sql.NullInt64
+		if cols["mission_start_us"] {
+			selectCols = append(selectCols, "mission_start_us")
+			dest = append(dest, &missionStart)
+		}
+
+		q := fmt.Sprintf("SELECT %s FROM crew_profiles WHERE crew_id=?", strings.Join(selectCols, ","))
 		if err := s.readerDB.QueryRowContext(ctx, q, id).Scan(dest...); err != nil {
 			if errors.Is(err, sql.ErrNoRows) {
 				return CrewProfileRecord{}, ErrNotFound
 			}
 			return CrewProfileRecord{}, err
 		}
+		for _, o := range strOpts {
+			if o.val.Valid {
+				v := o.val.String
+				*o.dst = &v
+			}
+		}
+		for _, o := range fltOpts {
+			if o.val.Valid {
+				v := o.val.Float64
+				*o.dst = &v
+			}
+		}
+		if missionStart.Valid {
+			v := missionStart.Int64
+			rec.Profile.MissionStartUs = &v
+		}
 		if threshJSON != "" {
 			_ = json.Unmarshal([]byte(threshJSON), &rec.Thresholds)
+		}
+		if s.operational {
+			var modelPath string
+			if err := s.readerDB.QueryRowContext(ctx,
+				`SELECT COALESCE(model_path,'') FROM v_active_crew_baselines WHERE crew_id=?`, id,
+			).Scan(&modelPath); err != nil {
+				return CrewProfileRecord{}, err
+			}
+			rec.BaselinePath = modelPath
 		}
 		return rec, nil
 	}
@@ -638,6 +700,29 @@ func (s *Store) SaveChatExchange(ctx context.Context, crewID string, req contrac
 			if err != nil {
 				return err
 			}
+			if cols["session_id"] {
+				var sessionID string
+				qErr := s.readerDB.QueryRowContext(ctx,
+					`SELECT session_id FROM chat_sessions WHERE crew_id=? AND ended_us IS NULL ORDER BY started_us DESC LIMIT 1`,
+					crewID,
+				).Scan(&sessionID)
+				var prefix []Exec
+				if errors.Is(qErr, sql.ErrNoRows) || sessionID == "" {
+					sessionID = fmt.Sprintf("chat-%s-%d", crewID, tsUs)
+					prefix = append(prefix, Exec{
+						Query: `INSERT OR IGNORE INTO chat_sessions(session_id, crew_id, started_us) VALUES (?,?,?)`,
+						Args:  []any{sessionID, crewID, tsUs},
+					})
+				} else if qErr != nil {
+					return qErr
+				}
+				prefix = append(prefix, Exec{
+					Query: `INSERT INTO chat_messages(ts_us,crew_id,role,content,metadata_json,session_id) VALUES (?,?,'user',?,'{}',?),(?,?,'assistant',?,?,?)`,
+					Args:  []any{tsUs, crewID, req.Text, sessionID, tsUs + 1, crewID, resp.Text, string(metadata), sessionID},
+				})
+				writes = append(prefix, writes...)
+				return s.writeNowOrEnqueue(ctx, Statements{Items: writes}, true)
+			}
 			writes = append([]Exec{{Query: `INSERT INTO chat_messages(ts_us,crew_id,role,content,metadata_json) VALUES (?,?,'user',?,'{}'),(?,?,'assistant',?,?)`, Args: []any{tsUs, crewID, req.Text, tsUs + 1, crewID, resp.Text, string(metadata)}}}, writes...)
 			return s.writeNowOrEnqueue(ctx, Statements{Items: writes}, true)
 		}
@@ -713,7 +798,85 @@ func (s *Store) SaveCSIBlob(ctx context.Context, rec CSIBlobWriteRecord) error {
 
 // Summary24h builds a compact 24h clinical summary for CHAT_CORRELATE_REQ.
 func (s *Store) Summary24h(ctx context.Context, crewID string) (string, error) {
-	cutoff := time.Now().Add(-24 * time.Hour).UnixMicro()
+	nowUs := time.Now().UnixMicro()
+	cutoff := nowUs - int64(24*time.Hour/time.Microsecond)
+
+	if s.operational {
+		var n int
+		var avgHR, avgSpO2, maxCO2 sql.NullFloat64
+		if err := s.readerDB.QueryRowContext(ctx,
+			`SELECT COUNT(1), AVG(heart_rate_bpm), AVG(spo2_pct), MAX(co2_ppm)
+			 FROM telemetry_timeseries WHERE crew_id=? AND ts_us>=?`,
+			crewID, cutoff,
+		).Scan(&n, &avgHR, &avgSpO2, &maxCO2); err != nil {
+			return "", s.schemaError("telemetry_timeseries", err)
+		}
+
+		var targetKcal, targetWater sql.NullFloat64
+		var avgKcal7d, avgWater7d, deepSleep3d, hrvDelta, rad30d sql.NullFloat64
+		err := s.readerDB.QueryRowContext(ctx, `
+			SELECT cp.target_kcal_day, cp.target_water_ml_day,
+			       w.energy_7d_avg_kcal, w.water_7d_avg_ml,
+			       w.deep_sleep_3d_avg_h, w.hrv_delta_7d_vs_30d_ms, w.radiation_30d_sum_msv
+			FROM crew_profiles cp
+			LEFT JOIN v_crew_longitudinal_windows w ON w.crew_id = cp.crew_id
+			WHERE cp.crew_id=?`, crewID,
+		).Scan(&targetKcal, &targetWater, &avgKcal7d, &avgWater7d, &deepSleep3d, &hrvDelta, &rad30d)
+		if err != nil && !errors.Is(err, sql.ErrNoRows) {
+			return "", s.schemaError("v_crew_longitudinal_windows", err)
+		}
+
+		var eva72h, spe72h, ex2h int
+		if err := s.readerDB.QueryRowContext(ctx, `
+			SELECT
+				COUNT(CASE WHEN event_type='EVA' AND COALESCE(end_us, ts_us) >= ? - CAST(lookback_hours * 3600000000 AS INTEGER) THEN 1 END),
+				COUNT(CASE WHEN event_type='RADIATION_SPE_ALERT' AND COALESCE(end_us, ts_us) >= ? - CAST(lookback_hours * 3600000000 AS INTEGER) THEN 1 END),
+				COUNT(CASE WHEN event_type IN ('EXERCISE_ARED','EXERCISE_AEROBIC') AND COALESCE(end_us, ts_us) >= ? - CAST(lookback_hours * 3600000000 AS INTEGER) THEN 1 END)
+			FROM mission_context_events
+			WHERE (crew_id=? OR crew_id IS NULL) AND ts_us <= ?`,
+			nowUs, nowUs, nowUs, crewID, nowUs,
+		).Scan(&eva72h, &spe72h, &ex2h); err != nil {
+			return "", s.schemaError("mission_context_events", err)
+		}
+
+		var alertsY, alertsR int
+		if err := s.readerDB.QueryRowContext(ctx, `
+			SELECT COALESCE(SUM(CASE WHEN severity='YELLOW' THEN 1 ELSE 0 END), 0),
+			       COALESCE(SUM(CASE WHEN severity='RED' THEN 1 ELSE 0 END), 0)
+			FROM alerts_audit
+			WHERE (crew_id=? OR crew_id IS NULL) AND ts_us>=?`,
+			crewID, cutoff,
+		).Scan(&alertsY, &alertsR); err != nil {
+			return "", s.schemaError("alerts_audit", err)
+		}
+
+		var abnExams int
+		if err := s.readerDB.QueryRowContext(ctx,
+			`SELECT COUNT(1) FROM self_exams WHERE crew_id=? AND ts_us>=? AND abnormal_flag=1`,
+			crewID, cutoff,
+		).Scan(&abnExams); err != nil {
+			return "", s.schemaError("self_exams", err)
+		}
+
+		deficitKcal := "na"
+		if targetKcal.Valid && avgKcal7d.Valid {
+			deficitKcal = fmt.Sprintf("%.0f", targetKcal.Float64-avgKcal7d.Float64)
+		}
+		deficitWater := "na"
+		if targetWater.Valid && avgWater7d.Valid {
+			deficitWater = fmt.Sprintf("%.0f", targetWater.Float64-avgWater7d.Float64)
+		}
+		out := fmt.Sprintf(
+			"24h samples=%d hr=%.1f spo2=%.1f co2=%.0f | eva_72h=%d spe_72h=%d ex_2h=%d | alerts_y=%d alerts_r=%d abn_exams=%d | deficit_kcal_7d=%s deficit_water_7d=%s rad_30d=%.2f",
+			n, avgHR.Float64, avgSpO2.Float64, maxCO2.Float64,
+			eva72h, spe72h, ex2h, alertsY, alertsR, abnExams,
+			deficitKcal, deficitWater, rad30d.Float64,
+		)
+		if len(out) > 600 {
+			out = out[:600]
+		}
+		return out, nil
+	}
 
 	cols, err := s.tableCols(ctx, "telemetry_timeseries")
 	if err == nil && hasCols(cols, "ts_us", "crew_id", "heart_rate_bpm", "co2_ppm") {
@@ -729,10 +892,6 @@ func (s *Store) Summary24h(ctx context.Context, crewID string) (string, error) {
 		}
 		return fmt.Sprintf("24h samples=%d avg_hr=%.1f bpm avg_spo2=%.1f%% max_co2=%.0f ppm",
 			n, avgHR.Float64, avgSpO2.Float64, maxCO2.Float64), nil
-	}
-
-	if s.operational {
-		return "", s.schemaError("telemetry_timeseries", err)
 	}
 
 	s.fallback.mu.RLock()

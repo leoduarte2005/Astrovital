@@ -17,7 +17,7 @@
     "Entrevista contextual e registros de qualidade.",
     "LAB quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "INFLIGHT_ANEMIA",
@@ -52,10 +52,13 @@
           "threshold_value": 2,
           "source_sensor": "LAB",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.7,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "ROLLUP_7D",
+          "window_hours": 168,
+          "baseline_field": "preflight_hemoglobin_g_dl"
         }
       ],
       "questions": [
@@ -67,7 +70,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "capillary_blood"
+          "linked_protocol_id": "capillary_blood",
+          "target_differential_ids": [
+            "IRON_OVERLOAD",
+            "NUTRITION_DEFICIT",
+            "CARDIOVASCULAR_DECONDITIONING"
+          ]
         }
       ],
       "contraindications": [
@@ -76,9 +84,39 @@
           "guard_metric": "ferritin_ug_l",
           "guard_op": "GT",
           "guard_value": 500,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: bloquear suplementa??o emp?rica de ferro enquanto o marcador laboratorial de ferro estiver acima do limite de teste da guarda; requer revis?o laboratorial e m?dica autorizada."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "fatigue": 0.85,
+        "exercise_intolerance": 0.8,
+        "pallor": 0.75,
+        "dizziness": 0.55
+      },
+      "differential_ids": [
+        "IRON_OVERLOAD",
+        "NUTRITION_DEFICIT",
+        "CARDIOVASCULAR_DECONDITIONING",
+        "ORTHOSTATIC_INTOLERANCE"
+      ],
+      "expected_biomarkers": {
+        "LAB": {
+          "hemoglobin_drop_g_dl": "reduced_vs_preflight_baseline_fixture"
+        },
+        "MAX30102": {
+          "heart_rate_bpm": "exertional_tachycardia_fixture",
+          "spo2_pct": "normal_pulse_ox_expected"
+        },
+        "LONGITUDINAL": {
+          "mission_day": "prolonged_flight_hematologic_shift"
+        }
+      },
+      "severity_thresholds": {
+        "hemoglobin_drop_g_dl": {
+          "yellow_high": 2.0,
+          "red_high": 3.5
+        }
+      }
     }
   ]
 }

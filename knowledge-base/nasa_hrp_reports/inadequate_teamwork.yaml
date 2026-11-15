@@ -22,7 +22,7 @@
     "Padrões de presença/locomoção via MODE_CABIN_TOMOGRAPHY",
     "Autorrelato de coesão"
   ],
-  "scientific_scope": "Referência de risco; regras, priors e limiares são fixtures de engenharia, não validação clínica.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "legacy_reference": {
     "id": "HRP-RISK-TEAM",
     "source": {
@@ -70,10 +70,13 @@
           "threshold_value": 1,
           "source_sensor": "MISSION_CONTEXT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 2.4,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Sinal de teste para revisão contextual, não diagnóstico."
+          "description": "Sinal de teste para revisão contextual, não diagnóstico.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 24,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -92,7 +95,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "symptom_review"
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "BEHAVIORAL_HEALTH",
+            "SLEEP_CIRCADIAN",
+            "EARTH_INDEPENDENT_OPERATIONS"
+          ]
         }
       ],
       "contraindications": [
@@ -101,9 +109,37 @@
           "guard_metric": "clinical_authorization",
           "guard_op": "EQ",
           "guard_value": 0,
-          "rationale": "Não iniciar tratamento sem autorização clínica."
+          "rationale": "Guarda de seguran?a de engenharia: n?o iniciar interven??o sem autoriza??o cl?nica (clinical_authorization == 0) quando houver sinal contextual de conflito ou falha de coes?o."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "interpersonal_conflict": 0.85,
+        "communication_failure": 0.9,
+        "irritability": 0.7,
+        "low_cohesion": 0.85
+      },
+      "differential_ids": [
+        "BEHAVIORAL_HEALTH",
+        "SLEEP_CIRCADIAN",
+        "COGNITIVE_FATIGUE",
+        "EARTH_INDEPENDENT_OPERATIONS"
+      ],
+      "expected_biomarkers": {
+        "ESP32_CSI": {
+          "cabin_presence_pattern": "tomography_cohesion_context_fixture"
+        },
+        "MISSION_CONTEXT": {
+          "teamwork_concern": "operational_communication_incident"
+        },
+        "LONGITUDINAL": {
+          "sleep_duration_h": "concurrent_sleep_deficit_check"
+        }
+      },
+      "severity_thresholds": {
+        "teamwork_concern": {
+          "yellow_high": 1
+        }
+      }
     }
   ]
 }

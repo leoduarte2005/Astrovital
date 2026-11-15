@@ -31,7 +31,7 @@
     "Entrevista contextual e registros de qualidade.",
     "LAB quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "BONE_LOSS",
@@ -80,10 +80,13 @@
           "threshold_value": 2,
           "source_sensor": "LAB",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.8,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "ROLLUP_30D",
+          "window_hours": 720,
+          "baseline_field": "preflight_bmd_zscore"
         }
       ],
       "questions": [
@@ -95,7 +98,11 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "musculoskeletal_check"
+          "linked_protocol_id": "musculoskeletal_check",
+          "target_differential_ids": [
+            "RENAL_STONES",
+            "MUSCLE_DECONDITIONING"
+          ]
         }
       ],
       "contraindications": [
@@ -104,9 +111,43 @@
           "guard_metric": "suspected_fracture",
           "guard_op": "EQ",
           "guard_value": 1,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: suspender exerc?cio de alto impacto diante de suspeita de fratura (suspected_fracture == 1) at? avalia??o cl?nica autorizada."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "bone_pain": 0.8,
+        "back_pain": 0.8,
+        "muscle_weakness": 0.5,
+        "flank_pain": 0.95,
+        "hematuria": 0.95,
+        "nausea": 0.6,
+        "dysuria": 0.85,
+        "abdominal_pain": 0.45
+      },
+      "differential_ids": [
+        "RENAL_STONES",
+        "MUSCLE_DECONDITIONING",
+        "NUTRITION_DEFICIT"
+      ],
+      "expected_biomarkers": {
+        "LAB": {
+          "bone_loss_pct": "elevated_vs_preflight_bmd_fixture",
+          "calcium_urinary": "elevated_trend_fixture"
+        },
+        "LONGITUDINAL": {
+          "mission_day": "prolonged_unloading_exposure",
+          "exercise_minutes": "reduced_ared_adherence"
+        },
+        "SELF_EXAM": {
+          "pain_location": "axial_or_weightbearing_bone"
+        }
+      },
+      "severity_thresholds": {
+        "bone_loss_pct": {
+          "yellow_high": 2.0,
+          "red_high": 5.0
+        }
+      }
     }
   ],
   "legacy_reference": {

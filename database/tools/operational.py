@@ -69,16 +69,77 @@ def migrate(path, migrations=MIGRATIONS):
     return applied
 
 
+LONGITUDINAL_AGGREGATES=('mean','sum','delta','count','last')
+
+
+def longitudinal_metrics(repo, crew_id, specs):
+    """Derive named metrics from telemetry_daily_rollups; a missing series stays None (unknown)."""
+    values={}
+    for name,spec in specs.items():
+        if spec['agg'] not in LONGITUDINAL_AGGREGATES:
+            raise ValueError(f"Unsupported longitudinal aggregate: {spec['agg']}")
+        series=[r[spec['field']] for r in repo.rollups(crew_id,spec['days']) if r[spec['field']] is not None]
+        if spec['agg']=='count':
+            values[name]=len(series)
+        elif not series:
+            values[name]=None
+        elif spec['agg']=='mean':
+            values[name]=sum(series)/len(series)
+        elif spec['agg']=='sum':
+            values[name]=sum(series)
+        elif spec['agg']=='delta':
+            values[name]=series[-1]-series[0]
+        else:
+            values[name]=series[-1]
+    return values
+
+
+def check_case(repo, case_id, crew_id, metrics, expected, longitudinal=None):
+    """Return a failure record, or None when the engineering assessment meets the expectation."""
+    derived=longitudinal_metrics(repo,crew_id,longitudinal) if longitudinal else {}
+    result=repo.assess_fixture(crew_id,{**metrics,**derived},allow_engineering=True)
+    actual={m['condition_id'] for m in result['matches']}
+    problems=[]
+    if actual!=set(expected['expected_conditions']):
+        problems.append('conditions')
+    if result['max_severity']!=expected['expected_max_severity']:
+        problems.append('severity')
+    if not set(expected['expected_blocked_actions']) <= set(result['blocked_actions']):
+        problems.append('blocked_actions')
+    if set(expected.get('forbidden_blocked_actions',[])) & set(result['blocked_actions']):
+        problems.append('unexpected_blocked_actions')
+    for name,bound in expected.get('expected_longitudinal',{}).items():
+        value=derived.get(name)
+        if value is None or ('lt' in bound and not value<bound['lt']) or ('gt' in bound and not value>bound['gt']):
+            problems.append(f'longitudinal:{name}')
+    if problems:
+        return {'case_id':case_id,'crew_id':crew_id,'problems':problems,'expected':expected['expected_conditions'],
+                'actual':sorted(actual),'longitudinal':derived,'result':result}
+    return None
+
+
 def golden(path):
-    suite=json.loads((ROOT/'knowledge-base/datasets/golden_cases/golden_cases.yaml').read_text())
+    suite=json.loads((ROOT/'knowledge-base/datasets/golden_cases/golden_cases.yaml').read_text(encoding='utf-8'))
     failures=[]
+    crew_cases=suite.get('crew_cases',[])
     with ClinicalRepository(path) as repo:
         for case in suite['cases']:
-            result=repo.assess_fixture(case['crew_id'],case['metrics'],allow_engineering=True)
-            actual={m['condition_id'] for m in result['matches']}
-            if actual!=set(case['expected_conditions']) or result['max_severity']!=case['expected_max_severity'] or not set(case['expected_blocked_actions']) <= set(result['blocked_actions']):
-                failures.append({'case_id':case['case_id'],'expected':case['expected_conditions'],'actual':sorted(actual),'result':result})
-    return {'cases':len(suite['cases']),'passed':len(suite['cases'])-len(failures),'failures':failures}
+            failure=check_case(repo,case['case_id'],case['crew_id'],case['metrics'],case,case.get('longitudinal'))
+            if failure:
+                failures.append(failure)
+        for case in crew_cases:
+            outcomes=set()
+            for crew_id,expected in case['crews'].items():
+                failure=check_case(repo,case['case_id'],crew_id,case.get('metrics',{}),expected,case.get('longitudinal'))
+                if failure:
+                    failures.append(failure)
+                outcomes.add(tuple(sorted(expected['expected_conditions'])))
+            if case.get('require_distinct_outputs') and len(outcomes)!=len(case['crews']):
+                failures.append({'case_id':case['case_id'],'problems':['outputs_not_distinct'],'outcomes':sorted(outcomes)})
+    total=len(suite['cases'])+len(crew_cases)
+    failed_ids={f['case_id'] for f in failures}
+    return {'cases':total,'passed':total-len(failed_ids),'failures':failures,
+            'crew_cases':len(crew_cases),'format_version':suite.get('schema_version',1)}
 
 
 def validate(path):
@@ -107,9 +168,10 @@ def validate(path):
         checks['ranked_fts']=bool(repo.search_reports('cefaleia OR SANS OR CO2'))
         checks['protocol_fts']=bool(c.execute("SELECT protocol_id FROM protocols_fts WHERE protocols_fts MATCH 'Amsler'").fetchall())
         checks['seven_days_per_crew']=all(len(repo.rollups(f'crew_{i:03d}',7))==7 for i in range(1,4))
+        checks['thirty_days_per_crew']=all(len(repo.rollups(f'crew_{i:03d}',30))==30 for i in range(1,4))
         checks['enriched_protocols']=not c.execute("SELECT protocol_id FROM protocols WHERE json_array_length(rich_steps_json)=0 OR json_array_length(materials_json)=0 OR result_schema_json='{}'").fetchall()
     suite=golden(path)
-    checks['golden_cases']=suite['cases']>=16 and not suite['failures']
+    checks['golden_cases']=suite['cases']>=33 and not suite['failures']
     return {'database':str(Path(path).resolve()),'checks':checks,'passed':all(checks.values()),'counts':counts,'golden_cases':suite,
             'model_status':'ENGINEERING_TEST_ONLY','fixture_data_class':'SYNTHETIC'}
 

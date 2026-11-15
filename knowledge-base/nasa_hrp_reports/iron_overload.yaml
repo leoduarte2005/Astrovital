@@ -16,7 +16,7 @@
     "Entrevista contextual e registros de qualidade.",
     "LAB quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "IRON_OVERLOAD",
@@ -50,10 +50,13 @@
           "threshold_value": 500,
           "source_sensor": "LAB",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.9,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "ROLLUP_30D",
+          "window_hours": 720,
+          "baseline_field": "preflight_ferritin_ug_l"
         }
       ],
       "questions": [
@@ -64,7 +67,11 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "capillary_blood"
+          "linked_protocol_id": "capillary_blood",
+          "target_differential_ids": [
+            "INFLIGHT_ANEMIA",
+            "IMMUNE_VIRAL_REACTIVATION"
+          ]
         }
       ],
       "contraindications": [
@@ -73,9 +80,38 @@
           "guard_metric": "ferritin_ug_l",
           "guard_op": "GT",
           "guard_value": 500,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: evitar suplementa??o de ferro quando ferritina exceder o limiar de teste (500 ?g/L, fixture de engenharia); revis?o cl?nica e autoriza??o da miss?o s?o necess?rias."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "fatigue": 0.8,
+        "joint_pain": 0.85,
+        "abdominal_pain": 0.55,
+        "malaise": 0.65,
+        "dizziness": 0.45
+      },
+      "differential_ids": [
+        "INFLIGHT_ANEMIA",
+        "IMMUNE_VIRAL_REACTIVATION",
+        "BONE_LOSS"
+      ],
+      "expected_biomarkers": {
+        "LAB": {
+          "ferritin_ug_l": "elevated_above_preflight_fixture"
+        },
+        "ESP32_CSI": {
+          "anomaly_score": "persistent_drift_vs_baseline_fixture"
+        },
+        "LONGITUDINAL": {
+          "mission_day": "prolonged_mission_iron_accumulation"
+        }
+      },
+      "severity_thresholds": {
+        "ferritin_ug_l": {
+          "yellow_high": 500.0,
+          "red_high": 1000.0
+        }
+      }
     }
   ]
 }

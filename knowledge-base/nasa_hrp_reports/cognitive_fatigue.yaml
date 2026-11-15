@@ -17,7 +17,7 @@
     "Entrevista contextual e registros de qualidade.",
     "SELF_EXAM quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "COGNITIVE_FATIGUE",
@@ -52,10 +52,13 @@
           "threshold_value": 5,
           "source_sensor": "SELF_EXAM",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.6,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -66,7 +69,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "cognitive_check"
+          "linked_protocol_id": "cognitive_check",
+          "target_differential_ids": [
+            "SLEEP_CIRCADIAN",
+            "HYPERCAPNIA",
+            "RADIATION_CNS"
+          ]
         }
       ],
       "contraindications": [
@@ -75,9 +83,43 @@
           "guard_metric": "pvt_lapses",
           "guard_op": "GT",
           "guard_value": 5,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: restringir opera??o de equipamentos cr?ticos quando pvt_lapses exceder o limiar de teste (> 5); requer revis?o operacional e cl?nica."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "attention_lapse": 0.9,
+        "slowed_cognition": 0.85,
+        "somnolence": 0.75,
+        "fatigue": 0.8
+      },
+      "differential_ids": [
+        "SLEEP_CIRCADIAN",
+        "HYPERCAPNIA",
+        "HYPOXIA",
+        "RADIATION_CNS",
+        "BEHAVIORAL_HEALTH"
+      ],
+      "expected_biomarkers": {
+        "SELF_EXAM": {
+          "pvt_lapses": "elevated_above_baseline_fixture"
+        },
+        "SCD40": {
+          "co2_ppm": "check_to_rule_out_hypercapnia"
+        },
+        "MAX30102": {
+          "spo2_pct": "check_to_rule_out_hypoxia"
+        },
+        "LONGITUDINAL": {
+          "sleep_duration_h": "reduced_3d_to_7d_trend",
+          "deep_sleep_h": "reduced_trend"
+        }
+      },
+      "severity_thresholds": {
+        "pvt_lapses": {
+          "yellow_high": 5,
+          "red_high": 10
+        }
+      }
     }
   ]
 }

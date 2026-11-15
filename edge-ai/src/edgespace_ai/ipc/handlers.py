@@ -115,6 +115,7 @@ class IPCHandler:
         self.synthesizer = LocalSLMSynthesizer(
             models_dir=self._settings.models_dir,
             disabled=slm_disabled,
+            auto_download=bool(getattr(self._settings, "slm_auto_download", False)),
         )
 
     async def handle(self, env: IPCEnvelope) -> Optional[IPCEnvelope]:

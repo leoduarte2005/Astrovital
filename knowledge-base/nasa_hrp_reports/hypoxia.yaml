@@ -18,7 +18,7 @@
     "Entrevista contextual e registros de qualidade.",
     "MAX30102 quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "HYPOXIA",
@@ -54,10 +54,13 @@
           "threshold_value": 90,
           "source_sensor": "MAX30102",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 6.5,
           "severity_tier": "RED",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
         },
         {
           "metric": "dyspnea",
@@ -65,10 +68,13 @@
           "threshold_value": 1,
           "source_sensor": "SELF_REPORT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.8,
           "severity_tier": "RED",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -80,7 +86,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "oxygen_check"
+          "linked_protocol_id": "oxygen_check",
+          "target_differential_ids": [
+            "HYPERCAPNIA",
+            "DECOMPRESSION_SICKNESS",
+            "ORTHOSTATIC_INTOLERANCE"
+          ]
         }
       ],
       "contraindications": [
@@ -89,9 +100,48 @@
           "guard_metric": "spo2_pct",
           "guard_op": "LT",
           "guard_value": 90,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: n?o descartar sintomas como ansiedade quando SpO2 estiver abaixo do limiar de teste (< 90%); conferir ox?metro, press?o da cabine e protocolo m?dico."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "dyspnea": 0.9,
+        "dizziness": 0.85,
+        "confusion": 0.85,
+        "cyanosis": 0.95,
+        "headache": 0.6,
+        "fatigue": 0.7
+      },
+      "differential_ids": [
+        "HYPERCAPNIA",
+        "DECOMPRESSION_SICKNESS",
+        "ORTHOSTATIC_INTOLERANCE",
+        "CARDIOVASCULAR_DECONDITIONING"
+      ],
+      "expected_biomarkers": {
+        "MAX30102": {
+          "spo2_pct": "reduced_desaturation_fixture",
+          "heart_rate_bpm": "compensatory_tachycardia_fixture"
+        },
+        "BME280": {
+          "pressure_hpa": "reduced_cabin_pressure_check"
+        },
+        "ESP32_CSI": {
+          "respiration_hz": "hypoxic_hyperventilation_fixture"
+        },
+        "MISSION_CONTEXT": {
+          "cabin_depressurization": "check_seal_and_o2_supply"
+        }
+      },
+      "severity_thresholds": {
+        "spo2_pct": {
+          "yellow_low": 94.0,
+          "red_low": 90.0
+        },
+        "pressure_hpa": {
+          "yellow_low": 800.0,
+          "red_low": 750.0
+        }
+      }
     }
   ],
   "search_aliases": [

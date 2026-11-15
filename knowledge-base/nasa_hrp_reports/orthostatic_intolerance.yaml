@@ -28,7 +28,7 @@
     "Entrevista contextual e registros de qualidade.",
     "SELF_EXAM quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "ORTHOSTATIC_INTOLERANCE",
@@ -73,10 +73,13 @@
           "threshold_value": 20,
           "source_sensor": "SELF_EXAM",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 4.5,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": "preflight_sbp_mmhg"
         },
         {
           "metric": "dizziness",
@@ -84,10 +87,13 @@
           "threshold_value": 1,
           "source_sensor": "SELF_REPORT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 2.6,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -99,7 +105,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "blood_pressure"
+          "linked_protocol_id": "blood_pressure",
+          "target_differential_ids": [
+            "DEHYDRATION",
+            "CARDIOVASCULAR_DECONDITIONING",
+            "SPACE_MOTION_SICKNESS"
+          ]
         }
       ],
       "contraindications": [
@@ -108,9 +119,48 @@
           "guard_metric": "syncope",
           "guard_op": "EQ",
           "guard_value": 1,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: n?o realizar teste ortost?tico em p? sem supervis?o ap?s evento de s?ncope (syncope == 1); risco de queda e les?o secund?ria."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "orthostatic_intolerance": 0.95,
+        "dizziness": 0.85,
+        "fatigue": 0.7,
+        "muscle_weakness": 0.6,
+        "syncope": 0.9,
+        "palpitations": 0.75
+      },
+      "differential_ids": [
+        "DEHYDRATION",
+        "CARDIOVASCULAR_DECONDITIONING",
+        "EXERCISE_RECOVERY",
+        "HYPOXIA",
+        "SPACE_MOTION_SICKNESS"
+      ],
+      "expected_biomarkers": {
+        "SELF_EXAM": {
+          "postural_sbp_drop_mmhg": "systolic_drop_on_standing_fixture"
+        },
+        "MAX30102": {
+          "heart_rate_bpm": "orthostatic_tachycardia_fixture"
+        },
+        "ESP32_CSI": {
+          "posture": "standing_or_transition_from_supine"
+        },
+        "LONGITUDINAL": {
+          "water_ml_total": "check_hydration_status"
+        }
+      },
+      "severity_thresholds": {
+        "postural_sbp_drop_mmhg": {
+          "yellow_high": 20.0,
+          "red_high": 30.0
+        },
+        "heart_rate_bpm": {
+          "yellow_high": 95.0,
+          "red_high": 120.0
+        }
+      }
     },
     {
       "prior": 0.05,
@@ -138,7 +188,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "blood_pressure"
+          "linked_protocol_id": "blood_pressure",
+          "target_differential_ids": [
+            "EXERCISE_RECOVERY",
+            "ORTHOSTATIC_INTOLERANCE",
+            "DEHYDRATION"
+          ]
         }
       ],
       "contraindications": [
@@ -147,7 +202,7 @@
           "guard_metric": "clinical_authorization",
           "guard_op": "EQ",
           "guard_value": 0,
-          "rationale": "Não iniciar tratamento a partir de um cenário sintético."
+          "rationale": "Guarda de seguran?a de engenharia: revisar contexto de repouso, hidrata??o e baseline cardiovascular antes de qualquer interven??o sem autoriza??o cl?nica (clinical_authorization == 0)."
         }
       ],
       "condition_id": "CARDIOVASCULAR_DECONDITIONING",
@@ -161,10 +216,13 @@
             "baseline_field": "preflight_hr_bpm"
           },
           "source_sensor": "CONTEXT_AND_BASELINE",
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.4,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+          "description": "Exercício e baseline individual contextualizam esta regra de teste.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": "preflight_hr_bpm"
         },
         {
           "metric": "exercise_recent",
@@ -172,15 +230,49 @@
           "threshold_value": 0,
           "values_json": {},
           "source_sensor": "CONTEXT_AND_BASELINE",
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 2.3,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+          "description": "Exercício e baseline individual contextualizam esta regra de teste.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 2,
+          "baseline_field": null
         }
       ],
       "source_id": "NASA-CARDIO",
       "model_status": "ENGINEERING_TEST_ONLY",
-      "match_policy": "ALL"
+      "match_policy": "ALL",
+      "symptom_weights": {
+        "fatigue": 0.75,
+        "orthostatic_intolerance": 0.8,
+        "dizziness": 0.7,
+        "palpitations": 0.75,
+        "dyspnea": 0.6
+      },
+      "differential_ids": [
+        "ORTHOSTATIC_INTOLERANCE",
+        "EXERCISE_RECOVERY",
+        "MUSCLE_DECONDITIONING",
+        "DEHYDRATION",
+        "INFLIGHT_ANEMIA"
+      ],
+      "expected_biomarkers": {
+        "MAX30102": {
+          "heart_rate_bpm": "elevated_delta_above_preflight_at_rest_fixture"
+        },
+        "MISSION_CONTEXT": {
+          "exercise_recent": "absent_in_2h_lookback_window"
+        },
+        "ESP32_CSI": {
+          "anomaly_score": "elevated_vs_individual_baseline_fixture"
+        }
+      },
+      "severity_thresholds": {
+        "heart_rate_bpm_delta": {
+          "yellow_high": 35.0,
+          "red_high": 50.0
+        }
+      }
     },
     {
       "prior": 0.05,
@@ -208,7 +300,11 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "blood_pressure"
+          "linked_protocol_id": "blood_pressure",
+          "target_differential_ids": [
+            "CARDIOVASCULAR_DECONDITIONING",
+            "ORTHOSTATIC_INTOLERANCE"
+          ]
         }
       ],
       "contraindications": [
@@ -217,7 +313,7 @@
           "guard_metric": "clinical_authorization",
           "guard_op": "EQ",
           "guard_value": 0,
-          "rationale": "Não iniciar tratamento a partir de um cenário sintético."
+          "rationale": "Guarda de seguran?a de engenharia: n?o iniciar interven??o m?dica diante de eleva??o fisiol?gica esperada p?s-ARED sem autoriza??o cl?nica (clinical_authorization == 0)."
         }
       ],
       "condition_id": "EXERCISE_RECOVERY",
@@ -231,10 +327,13 @@
             "baseline_field": "preflight_hr_bpm"
           },
           "source_sensor": "CONTEXT_AND_BASELINE",
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 2.1,
           "severity_tier": "INFO",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+          "description": "Exercício e baseline individual contextualizam esta regra de teste.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": "preflight_hr_bpm"
         },
         {
           "metric": "exercise_recent",
@@ -242,15 +341,43 @@
           "threshold_value": 1,
           "values_json": {},
           "source_sensor": "CONTEXT_AND_BASELINE",
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.8,
           "severity_tier": "INFO",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Exercício e baseline individual contextualizam esta regra de teste."
+          "description": "Exercício e baseline individual contextualizam esta regra de teste.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 2,
+          "baseline_field": null
         }
       ],
       "source_id": "NASA-CARDIO",
       "model_status": "ENGINEERING_TEST_ONLY",
-      "match_policy": "ALL"
+      "match_policy": "ALL",
+      "symptom_weights": {
+        "fatigue": 0.55,
+        "muscle_pain": 0.45,
+        "palpitations": 0.45
+      },
+      "differential_ids": [
+        "CARDIOVASCULAR_DECONDITIONING",
+        "ORTHOSTATIC_INTOLERANCE",
+        "DEHYDRATION",
+        "MUSCLE_DECONDITIONING"
+      ],
+      "expected_biomarkers": {
+        "MAX30102": {
+          "heart_rate_bpm": "transient_post_exercise_elevation_fixture"
+        },
+        "MISSION_CONTEXT": {
+          "exercise_recent": "ared_or_aerobic_within_2h_window"
+        }
+      },
+      "severity_thresholds": {
+        "heart_rate_bpm_delta": {
+          "yellow_high": 55.0,
+          "red_high": 75.0
+        }
+      }
     }
   ],
   "legacy_reference": {

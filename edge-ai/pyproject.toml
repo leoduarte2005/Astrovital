@@ -37,6 +37,7 @@ dev = [
 
 [project.scripts]
 edgespace-ai = "edgespace_ai.main:main"
+edgespace-slm-fetch = "edgespace_ai.utils.model_fetch:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

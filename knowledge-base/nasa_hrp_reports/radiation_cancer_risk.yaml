@@ -21,7 +21,7 @@
     "Dosímetros pessoais",
     "Séries de radiação da missão (contexto)"
   ],
-  "scientific_scope": "Referência de risco; regras, priors e limiares são fixtures de engenharia, não validação clínica.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "legacy_reference": {
     "id": "HRP-RISK-RAD-CANCER",
     "source": {
@@ -59,7 +59,7 @@
       "linked_protocols": [
         "symptom_review"
       ],
-      "match_policy": "ALL",
+      "match_policy": "ANY",
       "model_status": "ENGINEERING_TEST_ONLY",
       "sensor_rules": [
         {
@@ -68,10 +68,27 @@
           "threshold_value": 1,
           "source_sensor": "MISSION_CONTEXT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 2.5,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Sinal de teste para revisão contextual, não diagnóstico."
+          "description": "Sinal de teste para revisão contextual, não diagnóstico.",
+          "rule_scope": "ROLLUP_30D",
+          "window_hours": 720,
+          "baseline_field": "radiation_career_limit_msv"
+        },
+        {
+          "metric": "radiation_dose_30d_msv",
+          "op": "GT",
+          "threshold_value": 5.0,
+          "source_sensor": "LONGITUDINAL",
+          "values_json": {},
+          "likelihood_ratio": 3.1,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Dose acumulada em 30 dias acima do limiar de teste (5.0 mSv e LR 3.1 s?o fixtures de engenharia, n?o limite de exposi??o nem valida??o cl?nica).",
+          "rule_scope": "ROLLUP_30D",
+          "window_hours": 720,
+          "baseline_field": "radiation_career_limit_msv"
         }
       ],
       "questions": [
@@ -89,7 +106,11 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "symptom_review"
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "RADIATION_CNS",
+            "RADIATION_ACUTE"
+          ]
         }
       ],
       "contraindications": [
@@ -98,9 +119,36 @@
           "guard_metric": "clinical_authorization",
           "guard_op": "EQ",
           "guard_value": 0,
-          "rationale": "Não iniciar tratamento sem autorização clínica."
+          "rationale": "Guarda de seguran?a de engenharia: risco de longo prazo requer acompanhamento dosim?trico e autoriza??o cl?nica (clinical_authorization == 0) antes de qualquer conduta."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "cumulative_radiation_exposure": 0.9,
+        "fatigue": 0.4,
+        "malaise": 0.4
+      },
+      "differential_ids": [
+        "RADIATION_CNS",
+        "RADIATION_ACUTE",
+        "IMMUNE_VIRAL_REACTIVATION"
+      ],
+      "expected_biomarkers": {
+        "LONGITUDINAL": {
+          "radiation_dose_msv": "cumulative_30d_and_career_dose_tracking",
+          "radiation_dose_30d_msv": "cumulative_30d_dose_above_engineering_fixture"
+        },
+        "MISSION_CONTEXT": {
+          "radiation_spe_alert": "historical_spe_or_gcr_exposure_events"
+        }
+      },
+      "severity_thresholds": {
+        "radiation_long_term_review": {
+          "yellow_high": 1
+        },
+        "radiation_dose_30d_msv": {
+          "yellow_high": 5.0
+        }
+      }
     }
   ]
 }

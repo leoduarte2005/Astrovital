@@ -28,7 +28,7 @@
     "HRV em queda (MODE_RADIATION_ALERT)",
     "Autoexame de sintomas"
   ],
-  "scientific_scope": "Referência de risco; regras, priors e limiares são fixtures de engenharia, não validação clínica.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "legacy_reference": {
     "id": "HRP-RISK-RADIATION-ROS",
     "source": {
@@ -81,10 +81,13 @@
           "threshold_value": 1,
           "source_sensor": "MISSION_CONTEXT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 6.0,
           "severity_tier": "RED",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Sinal de teste para revisão contextual, não diagnóstico."
+          "description": "Sinal de teste para revisão contextual, não diagnóstico.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 72,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -108,7 +111,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "symptom_review"
+          "linked_protocol_id": "symptom_review",
+          "target_differential_ids": [
+            "RADIATION_CNS",
+            "SPACE_MOTION_SICKNESS",
+            "MICROBIOME_GI"
+          ]
         }
       ],
       "contraindications": [
@@ -117,9 +125,43 @@
           "guard_metric": "clinical_authorization",
           "guard_op": "EQ",
           "guard_value": 0,
-          "rationale": "Não iniciar tratamento sem autorização clínica."
+          "rationale": "Guarda de seguran?a de engenharia: em alerta SPE, priorizar abrigo e aguardar autoriza??o cl?nica (clinical_authorization == 0) antes de terapia medicamentosa."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "nausea": 0.85,
+        "fatigue": 0.75,
+        "headache": 0.6,
+        "malaise": 0.8,
+        "dizziness": 0.6,
+        "blurred_vision": 0.45
+      },
+      "differential_ids": [
+        "RADIATION_CNS",
+        "SPACE_MOTION_SICKNESS",
+        "HYPERCAPNIA",
+        "MICROBIOME_GI"
+      ],
+      "expected_biomarkers": {
+        "MISSION_CONTEXT": {
+          "spe_alert": "active_or_recent_72h_spe_alert"
+        },
+        "MAX30102": {
+          "hrv_ms": "autonomic_oxidative_stress_drop_fixture"
+        },
+        "LONGITUDINAL": {
+          "radiation_dose_msv": "acute_dose_spike_tracking"
+        }
+      },
+      "severity_thresholds": {
+        "spe_alert": {
+          "red_high": 1
+        },
+        "hrv_ms": {
+          "yellow_low": 30.0,
+          "red_low": 20.0
+        }
+      }
     }
   ]
 }

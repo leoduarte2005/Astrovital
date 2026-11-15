@@ -12,6 +12,7 @@ from typing import Any, Callable, Optional, Sequence
 
 from ..ipc.protocol import ChatCorrelateRespPayload
 from ..utils.logging import get_logger
+from ..utils.model_fetch import ensure_model
 
 logger = get_logger("edgespace_ai.correlation.synthesizer")
 
@@ -133,6 +134,7 @@ class LocalSLMSynthesizer:
         temperature: float = 0.1,
         min_free_ram_mb: float = DEFAULT_MIN_FREE_RAM_MB,
         disabled: bool = False,
+        auto_download: Optional[bool] = None,
         llm: Any = None,
         llm_factory: Optional[Callable[..., Any]] = None,
         auto_load: bool = True,
@@ -151,6 +153,12 @@ class LocalSLMSynthesizer:
         self.temperature = float(temperature)
         self.min_free_ram_mb = float(min_free_ram_mb)
         self.disabled = bool(disabled)
+        # Only auto-download when using the default repo model dir unless explicitly opted in.
+        self.auto_download = (
+            bool(auto_download)
+            if auto_download is not None
+            else (models_dir is None and slm_dir is None and model_path is None)
+        )
         self._llm_factory = llm_factory
         self._llm: Any = llm
         self._executor = concurrent.futures.ThreadPoolExecutor(
@@ -175,6 +183,8 @@ class LocalSLMSynthesizer:
             return True
 
         resolved_path = self.model_path or _discover_gguf_model(self.slm_dir)
+        if (resolved_path is None or not resolved_path.is_file()) and self.auto_download:
+            resolved_path = ensure_model(self.slm_dir)
         if resolved_path is None or not resolved_path.is_file():
             logger.info(
                 "SLM GGUF model not found; deterministic template fallback active",

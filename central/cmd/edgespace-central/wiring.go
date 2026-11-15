@@ -58,6 +58,12 @@ func (a storeSessionAdapter) SaveSelfExam(ctx context.Context, crewID string, ex
 func (a storeSessionAdapter) SaveOutbox(ctx context.Context, rec contracts.OutboxRecord) error {
 	return a.st.SaveOutbox(ctx, rec)
 }
+func (a storeSessionAdapter) StartChatSession(ctx context.Context, sessionID, crewID string, startedUs int64) error {
+	return a.st.StartChatSession(ctx, sessionID, crewID, startedUs)
+}
+func (a storeSessionAdapter) EndChatSession(ctx context.Context, sessionID string, endedUs int64) error {
+	return a.st.EndChatSession(ctx, sessionID, endedUs)
+}
 
 type storeHTTPAdapter struct {
 	st *store.Store

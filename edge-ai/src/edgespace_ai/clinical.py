@@ -65,6 +65,12 @@ class ClinicalRepository:
         start=end-timedelta(days=days-1)
         return [dict(r) for r in self.connection.execute('SELECT * FROM telemetry_daily_rollups WHERE crew_id=? AND day_utc BETWEEN ? AND ? ORDER BY day_utc',(crew_id,str(start),str(end)))]
 
+    def longitudinal(self, crew_id):
+        """Return longitudinal rollup window metrics from v_crew_longitudinal_windows."""
+        self.crew(crew_id)
+        row=self.connection.execute('SELECT * FROM v_crew_longitudinal_windows WHERE crew_id=?',(crew_id,)).fetchone()
+        return dict(row) if row else {}
+
     def context_metrics(self, crew_id):
         """Only recorded context is evidence; absent measurements stay unknown."""
         c=self.connection
@@ -87,10 +93,42 @@ class ClinicalRepository:
                     if key in allowed and isinstance(value,(int,float)):
                         metrics.setdefault(key,value)
         now=int(datetime.now(timezone.utc).timestamp()*1_000_000)
-        types=[r[0] for r in c.execute('SELECT event_type FROM mission_context_events WHERE (crew_id=? OR crew_id IS NULL) AND ts_us<=? AND COALESCE(end_us,ts_us)>=?',(crew_id,now,now-2*3600_000_000))]
-        if any(t.startswith('EXERCISE_') for t in types):metrics['exercise_recent']=1
-        if 'EVA' in types:metrics['eva_recent']=1
-        if 'RADIATION_SPE_ALERT' in types:metrics['spe_alert']=1
+        evt_rows=c.execute(
+            'SELECT event_type, lookback_hours, ts_us, COALESCE(end_us, ts_us) AS end_us '
+            'FROM mission_context_events '
+            'WHERE (crew_id=? OR crew_id IS NULL) AND ts_us<=? '
+            'AND COALESCE(end_us, ts_us) >= ? - CAST(COALESCE(lookback_hours, 2) * 3600000000 AS INTEGER)',
+            (crew_id,now,now),
+        ).fetchall()
+        eva_24h=eva_72h=spe_alert=exercise_recent=0
+        for er in evt_rows:
+            etype=er['event_type']
+            end_us=er['end_us']
+            if etype.startswith('EXERCISE_'):
+                exercise_recent=1
+            elif etype=='EVA':
+                eva_72h=1
+                if end_us >= now - 24*3600_000_000:
+                    eva_24h=1
+            elif etype=='RADIATION_SPE_ALERT':
+                spe_alert=1
+        if eva_24h:
+            metrics['eva_recent_24h']=1
+        else:
+            metrics.setdefault('eva_recent_24h',0)
+        if eva_72h:
+            metrics['eva_recent_72h']=1
+            metrics['eva_recent']=1
+        else:
+            metrics.setdefault('eva_recent_72h',0)
+        if spe_alert:
+            metrics['spe_alert']=1
+        else:
+            metrics.setdefault('spe_alert',0)
+        if exercise_recent:
+            metrics['exercise_recent']=1
+        else:
+            metrics.setdefault('exercise_recent',0)
         rows=c.execute("SELECT date(ts_us/1000000,'unixepoch') AS day,SUM(water_ml) AS water,SUM(energy_kcal) AS energy FROM nutrition_hydration_logs WHERE crew_id=? AND ts_us BETWEEN ? AND ? GROUP BY day",(crew_id,now-7*86400_000_000,now)).fetchall()
         metrics.setdefault('nutrition_days_observed',len(rows))
         water=[r['water'] for r in rows if r['water'] is not None];energy=[r['energy'] for r in rows if r['energy'] is not None]
@@ -116,7 +154,14 @@ class ClinicalRepository:
         return result
 
     @staticmethod
-    def compare(value, op, threshold, values=None, profile=None):
+    def compare(value, op, threshold, values=None, profile=None, *, rule_scope=None, metric=None, longitudinal=None, repo=None, crew_id=None):
+        if rule_scope and str(rule_scope).startswith('ROLLUP_') and metric:
+            if longitudinal is None and repo is not None and crew_id is not None:
+                longitudinal=repo.longitudinal(crew_id)
+            if longitudinal is not None:
+                view_val=longitudinal.get(metric)
+                if view_val is not None:
+                    value=view_val
         if value is None:
             return None
         if isinstance(value,(float,int)) and not math.isfinite(value):
@@ -138,12 +183,13 @@ class ClinicalRepository:
         if not allow_engineering:
             raise ValueError('Synthetic model: explicitly enable engineering acceptance mode')
         profile=self.crew(crew_id)
+        long_row=self.longitudinal(crew_id)
         answered={m['fact_key'] for m in self.memory(crew_id) if m['fact_type']=='ANSWERED_TOPIC'}
         answers=answers or {}
         matches=[]
         unknown=[]
         for condition in self.conditions():
-            states=[self.compare(metrics.get(r['metric']),r['op'],r['threshold_value'],r['values'],profile) for r in condition['rules']]
+            states=[self.compare(metrics.get(r['metric']),r['op'],r['threshold_value'],r['values'],profile,rule_scope=r.get('rule_scope'),metric=r['metric'],longitudinal=long_row) for r in condition['rules']]
             if any(s is None for s in states):
                 unknown.append(condition['condition_id'])
             matched=bool(states) and (all(s is True for s in states) if condition['match_policy']=='ALL' else any(s is True for s in states))
@@ -151,7 +197,7 @@ class ClinicalRepository:
                 continue
             odds=condition['prior']/(1-condition['prior'])
             for rule in condition['rules']:
-                if self.compare(metrics.get(rule['metric']),rule['op'],rule['threshold_value'],rule['values'],profile):
+                if self.compare(metrics.get(rule['metric']),rule['op'],rule['threshold_value'],rule['values'],profile,rule_scope=rule.get('rule_scope'),metric=rule['metric'],longitudinal=long_row):
                     odds*=rule['likelihood_ratio']
             questions=[]
             for question in condition['questions']:

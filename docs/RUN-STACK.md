@@ -25,10 +25,11 @@ make run
 ### O que o script faz automaticamente
 1. **Limpa processos órfãos** presos nas portas `5006` (IPC IA) e `8000` (HTTP/WS Central).
 2. **Verifica os 5 modelos `.onnx`** em `edge-ai/models/` (`posture_cls.onnx`, `exercise_cadence.onnx`, `vitals_reg.onnx`, `baseline_ae_default.onnx`, `isolation_forest.onnx`). Se faltar algum, roda `edge-ai/training/build_all_models.py`.
-3. **Compila a Central Go** atualizada em `build/edgespace-central(.exe)` (`CGO_ENABLED=0`).
-4. **Cria `var/`** e sobe o worker Python `edgespace_ai` em background (`127.0.0.1:5006`), aguardando o socket TCP abrir antes de prosseguir.
-5. **Sobe a Central Go** conectada ao worker real (`-ipc-addr=127.0.0.1:5006 -db=var/edgespace.db -migrations=database/migrations`, **sem** `--mock-ai`) com logs formatados no console.
-6. **Encerramento limpo (`Ctrl+C`)**: `try/finally` (Windows) e `trap EXIT INT TERM` (Linux) encerram tanto a Central Go quanto toda a árvore de processos do worker Python, liberando as portas `5006` e `8000`.
+3. **Prepara o SLM conversacional (1ª execução após `git clone`)**: instala `llama-cpp-python` se ausente e baixa automaticamente `qwen2.5-1.5b-instruct-q4_k_m.gguf` (~1.1 GB, fora do Git pelo limite de 100 MB do GitHub) do Hugging Face para `edge-ai/models/slm/`, com retomada (`Range` sobre `.part`), verificação SHA-256 e rename atômico. Se a rede cair, basta rodar de novo que o download continua de onde parou; se estiver sem internet, a stack sobe normalmente usando o template determinístico.
+4. **Compila a Central Go** atualizada em `build/edgespace-central(.exe)` (`CGO_ENABLED=0`).
+5. **Cria `var/`** e sobe o worker Python `edgespace_ai` em background (`127.0.0.1:5006`), aguardando o socket TCP abrir antes de prosseguir.
+6. **Sobe a Central Go** conectada ao worker real (`-ipc-addr=127.0.0.1:5006 -db=var/edgespace.db -migrations=database/migrations`, **sem** `--mock-ai`) com logs formatados no console.
+7. **Encerramento limpo (`Ctrl+C`)**: `try/finally` (Windows) e `trap EXIT INT TERM` (Linux) encerram tanto a Central Go quanto toda a árvore de processos do worker Python, liberando as portas `5006` e `8000`.
 
 ---
 
@@ -54,6 +55,11 @@ make run ARGS="--real-cluster --http-addr :8000"
 Para pular a recompilação Go em reinícios rápidos:
 - Windows: `-NoBuild`
 - Linux: `--no-build`
+
+Para pular o download/uso do modelo SLM (~1.1 GB) e responder pelo template determinístico:
+- Windows: `-NoSlm`
+- Linux: `--no-slm`
+- Ou baixar/verificar apenas o modelo antes: `PYTHONPATH=edge-ai/src python -m edgespace_ai.utils.model_fetch` (`--check` para só verificar, `--force` para rebaixar).
 
 ---
 

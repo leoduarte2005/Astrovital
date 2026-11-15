@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from pathlib import Path
 from typing import Any, Optional, Sequence
 
@@ -25,6 +26,97 @@ CLINICAL_DISCLAIMER = (
     "Apoio à decisão clínica a bordo; não substitui avaliação do Flight Surgeon."
 )
 
+_STOP_WORDS_FACT = frozenset({"e", "and", "mas", "but", "porque", "because", "com", "with", "que", "that", "agua", "water", "banho", "cuidado", "care"})
+
+
+def _slug_fact_key(text: str) -> str:
+    cleaned = re.sub(r"[^a-z0-9]+", "_", _normalize_text(text)).strip("_")
+    return cleaned[:48] or "unspecified"
+
+
+def _trim_entity(raw: str) -> str:
+    head = re.split(r"[,.;!?\n]|(?:\s+(?:e|and|mas|but|porque|because|com|with)\s+)", raw.strip(), maxsplit=1)[0]
+    words = [w for w in head.strip().split() if w]
+    return " ".join(words[:4]).strip()
+
+
+def extract_permanent_facts(text: str) -> list[dict[str, Any]]:
+    """Deterministically extract PT/EN permanent clinical facts for crew_clinical_memory."""
+    norm = _normalize_text(text)
+    if not norm:
+        return []
+    updates: list[dict[str, Any]] = []
+    seen: set[tuple[str, str]] = set()
+
+    def _add(fact_type: str, fact_key: str, fact_value: str, confidence: float) -> None:
+        sig = (fact_type, fact_key)
+        if not fact_key or sig in seen:
+            return
+        seen.add(sig)
+        updates.append({
+            "fact_type": fact_type,
+            "fact_key": fact_key,
+            "fact_value": fact_value,
+            "confidence": confidence,
+            "source_role": "user",
+        })
+
+    # ALLERGY (PT/EN)
+    for pat in (
+        r"\b(?:sou|tenho|estou)\s+alergic[oa]\s+a(?:o|s)?\s+([a-z0-9\- ]{2,45})",
+        r"\balergia\s+a(?:o|s)?\s+([a-z0-9\- ]{2,45})",
+        r"\b(?:i\s+am|i'm|im)\s+allergic\s+to\s+([a-z0-9\- ]{2,45})",
+        r"\ballerg(?:y|ic)\s+to\s+([a-z0-9\- ]{2,45})",
+    ):
+        for m in re.finditer(pat, norm):
+            ent = _trim_entity(m.group(1))
+            if ent and _slug_fact_key(ent) not in _STOP_WORDS_FACT:
+                _add("ALLERGY", _slug_fact_key(ent), ent, 0.95)
+
+    # MEDICATION (PT/EN)
+    for pat in (
+        r"\b(?:tomo|estou\s+tomando|uso\s+continuo\s+de|faco\s+uso\s+de|uso)\s+([a-z0-9\- ]{2,45})",
+        r"\b(?:i\s+take|i\s+am\s+taking|i'm\s+taking|currently\s+taking|on\s+medication)\s+([a-z0-9\- ]{2,45})",
+    ):
+        for m in re.finditer(pat, norm):
+            ent = _trim_entity(m.group(1))
+            slug = _slug_fact_key(ent)
+            if ent and slug not in _STOP_WORDS_FACT and not slug.startswith(("agua", "banho", "cuidado", "care", "a_look", "a_breath")):
+                _add("MEDICATION", slug, ent, 0.90)
+
+    # CONDITION_HISTORY (PT/EN)
+    if any(p in norm for p in ("enjoo espacial", "space motion sickness", "motion sickness")):
+        if any(c in norm for c in ("ja tive", "historico", "history", "previously", "had ")):
+            _add("CONDITION_HISTORY", "space_motion_sickness", "1", 0.85)
+    for pat in (
+        r"\b(?:ja\s+tive|tenho\s+historico\s+de|historico\s+previo\s+de|i\s+have\s+a\s+history\s+of|history\s+of|previously\s+had)\s+([a-z0-9\- ]{3,45})",
+    ):
+        for m in re.finditer(pat, norm):
+            ent = _trim_entity(m.group(1))
+            slug = _slug_fact_key(ent)
+            if ent and slug not in _STOP_WORDS_FACT and "motion_sickness" not in slug and "enjoo_espacial" not in slug:
+                _add("CONDITION_HISTORY", slug, "1", 0.85)
+
+    # SENSITIVITY (PT/EN)
+    if re.search(r"\bco2\b.*(?:dor\s+de\s+cabeca|headache|sensivel|sensibilidade|sensitive|mal)", norm) or any(
+        p in norm for p in ("sensivel a co2", "sensibilidade a co2", "sensitive to co2", "co2 sensitivity")
+    ):
+        _add("SENSITIVITY", "co2_sensitivity", "1", 0.85)
+    for pat in (
+        r"\b(?:sensivel\s+a|sensibilidade\s+a|sensitive\s+to)\s+([a-z0-9\- ]{2,35})",
+    ):
+        for m in re.finditer(pat, norm):
+            ent = _trim_entity(m.group(1))
+            slug = _slug_fact_key(ent)
+            if ent and slug != "co2":
+                _add("SENSITIVITY", f"{slug}_sensitivity", "1", 0.85)
+
+    # SLEEP_NOTE (PT/EN)
+    if any(p in norm for p in ("dormi mal", "nao dormi", "pouco sono", "insonia", "acordei varias vezes", "slept poorly", "bad sleep", "poor sleep", "insomnia", "didn't sleep", "didnt sleep")):
+        _add("SLEEP_NOTE", "poor_sleep", text.strip()[:120], 0.80)
+
+    return updates
+
 
 class ClinicalCorrelator:
     """Cross-correlates chat symptoms, sensor snapshots, history, and crew baseline."""
@@ -34,14 +126,19 @@ class ClinicalCorrelator:
         *,
         db_path: Optional[Path | str] = None,
         knowledge_base_path: Optional[Path | str] = None,
+        allow_yaml_for_tests: bool = False,
     ) -> None:
         default_kb = Path(__file__).resolve().parents[3] / "knowledge-base" / "nasa_causal_graph.yaml"
         kb_path = Path(knowledge_base_path) if knowledge_base_path else default_kb
 
         self.symptom_extractor = SymptomExtractor()
         self.clinical_store = ClinicalStore(db_path=db_path, knowledge_base_path=kb_path)
-        self.db_path=Path(db_path) if db_path is not None else None
-        self.causal_graph = CausalGraph(knowledge_base_path=kb_path,db_path=db_path)
+        self.db_path = Path(db_path) if db_path is not None else None
+        self.causal_graph = CausalGraph(
+            knowledge_base_path=kb_path,
+            db_path=db_path,
+            allow_yaml_for_tests=allow_yaml_for_tests,
+        )
         self.disambiguator = Disambiguator()
 
     def correlate(
@@ -56,12 +153,13 @@ class ClinicalCorrelator:
         """Run end-to-end clinical causal correlation and build ``CHAT_CORRELATE_RESP``."""
         objective=None
         memory=[]
-        memory_updates=[]
+        memory_updates = extract_permanent_facts(req.text)
         if self.db_path is not None and req.crew_id:
             with ClinicalRepository(self.db_path) as repo:
                 crew=repo.crew(req.crew_id)
                 memory=repo.memory(req.crew_id)
-            req=req.model_copy(update={"profile":CrewProfile(crew_id=crew["crew_id"],name=crew["name"],role=crew["role"],mission_day=crew["mission_day"],age=crew["age"])})
+            profile_kwargs = {k: crew[k] for k in CrewProfile.model_fields if k in crew}
+            req=req.model_copy(update={"profile":CrewProfile(**profile_kwargs)})
             last=next((m["fact_value"] for m in memory if m["fact_key"]=="last_question_id" and m["fact_type"]=="PREFERENCE"),None)
             answer=_normalize_text(req.text).strip(".! ")
             if last and answer in ("sim","yes","nao","no"):
@@ -109,12 +207,20 @@ class ClinicalCorrelator:
             for doc in store_docs[:2]:
                 evidence_nominal.append(f"Base clínica ({doc.source}): {doc.doc_id} - {doc.title}")
 
+            if self.db_path is not None and req.crew_id:
+                with ClinicalRepository(self.db_path) as repo:
+                    objective = repo.assess_fixture(req.crew_id, assessment.metrics, allow_engineering=True)
+
             clarification_prompt = (
                 "Não identifiquei sintomas específicos no seu relato e os sensores estão nominais. "
                 "Pode detalhar o que está sentindo (localização da dor, duração, náusea, tontura, "
                 "alteração visual ou falta de ar)?"
             )
             return ChatCorrelateRespPayload(
+                matched_condition_ids=[m["condition_id"] for m in objective["matches"]] if objective else None,
+                max_severity=objective["max_severity"] if objective else None,
+                blocked_actions=objective["blocked_actions"] if objective else None,
+                memory_updates=memory_updates or None,
                 text=(
                     "Nenhum sintoma específico foi reconhecido na mensagem e a telemetria atual está nominal. "
                     "Por favor, detalhe os sintomas (localização, intensidade e duração) para correlação clínica."
@@ -179,15 +285,75 @@ class ClinicalCorrelator:
         ]
         actions = list(top.condition.actions) if top else []
 
+        blocked_by_memory: list[str] = []
+        active_mem = [*memory, *memory_updates]
+        allergy_med_facts = [
+            m for m in active_mem
+            if m.get("fact_type") in ("ALLERGY", "MEDICATION")
+        ]
+        contra_metrics = dict(assessment.metrics)
+        for m in allergy_med_facts:
+            ftype = str(m.get("fact_type", "")).lower()
+            fkey = str(m.get("fact_key", "")).lower()
+            fval = str(m.get("fact_value", "")).lower()
+            if fkey:
+                contra_metrics[f"{ftype}_{fkey}"] = 1
+            if fval:
+                contra_metrics.setdefault(ftype, fval)
+
         if self.db_path is not None:
             with ClinicalRepository(self.db_path) as repo:
-                if req.crew_id:objective=repo.assess_fixture(req.crew_id,assessment.metrics,allow_engineering=True)
+                long_row = repo.longitudinal(req.crew_id) if req.crew_id else {}
+                if req.crew_id:
+                    objective = repo.assess_fixture(req.crew_id, contra_metrics, allow_engineering=True)
                 for row in repo.connection.execute('SELECT * FROM causal_contraindications'):
-                    if repo.compare(assessment.metrics.get(row['guard_metric']),row['guard_op'],row['guard_value']):
-                        actions=[a for a in actions if a!=row['blocked_action']]
-                        evidence.append('Ação bloqueada: '+row['blocked_action']+' — '+row['rationale'])
+                    guard_val = contra_metrics.get(row['guard_metric'])
+                    triggered = repo.compare(
+                        guard_val, row['guard_op'], row['guard_value'],
+                        rule_scope=row['rule_scope'] if 'rule_scope' in row.keys() else None,
+                        metric=row['guard_metric'],
+                        longitudinal=long_row,
+                    )
+                    if not triggered and allergy_med_facts:
+                        hay = f"{row['guard_metric']} {row['blocked_action']} {row['rationale']}".lower()
+                        for m in allergy_med_facts:
+                            token = _normalize_text(str(m.get("fact_value") or m.get("fact_key") or ""))
+                            if token and len(token) >= 3 and (token in hay or token[:5] in hay):
+                                triggered = True
+                                break
+                    if triggered:
+                        b_act = row['blocked_action']
+                        if b_act not in blocked_by_memory:
+                            blocked_by_memory.append(b_act)
+                        actions = [a for a in actions if a != b_act]
+                        evidence.append('Ação bloqueada: ' + b_act + ' — ' + row['rationale'])
             if disambig:
                 memory_updates.append(dict(fact_type='PREFERENCE',fact_key='last_question_id',fact_value=disambig.question.id,confidence=1.0,source_role='assistant'))
+
+        for m in allergy_med_facts:
+            token = _normalize_text(str(m.get("fact_value") or m.get("fact_key") or ""))
+            if not token or len(token) < 3:
+                continue
+            stem = token[:5] if len(token) >= 5 else token
+            for act in list(actions):
+                if stem in _normalize_text(act):
+                    actions.remove(act)
+                    if act not in blocked_by_memory:
+                        blocked_by_memory.append(act)
+                    evidence.append(f"Ação bloqueada ({m.get('fact_type')}): {act} — conflito com {m.get('fact_value')}")
+            if m.get("fact_type") == "ALLERGY":
+                filtered_cm = []
+                for cm in countermeasures:
+                    if stem in _normalize_text(cm):
+                        evidence.append(f"Contramedida omitida por alergia ({m.get('fact_value')}): {cm}")
+                    else:
+                        filtered_cm.append(cm)
+                countermeasures = filtered_cm or countermeasures
+
+        merged_blocked = list(objective["blocked_actions"]) if objective else []
+        for b in blocked_by_memory:
+            if b not in merged_blocked:
+                merged_blocked.append(b)
         source_ids: list[str] = []
         for h in top_hypotheses[:2]:
             if h.posterior >= 0.15 and h.condition.source_id not in source_ids:
@@ -212,7 +378,7 @@ class ClinicalCorrelator:
         return ChatCorrelateRespPayload(
             matched_condition_ids=[m["condition_id"] for m in objective["matches"]] if objective else None,
             max_severity=objective["max_severity"] if objective else None,
-            blocked_actions=objective["blocked_actions"] if objective else None,
+            blocked_actions=merged_blocked or None,
             memory_updates=memory_updates or None,
             model_status="ENGINEERING_TEST_ONLY",
             text=summary_text,

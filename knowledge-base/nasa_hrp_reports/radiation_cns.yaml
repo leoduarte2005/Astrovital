@@ -29,7 +29,7 @@
     "Entrevista contextual e registros de qualidade.",
     "MISSION_CONTEXT quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "RADIATION_CNS",
@@ -76,10 +76,13 @@
           "threshold_value": 1,
           "source_sensor": "MISSION_CONTEXT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 4.8,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "CONTEXT_WINDOW",
+          "window_hours": 72,
+          "baseline_field": null
         },
         {
           "metric": "cognitive_change",
@@ -87,10 +90,13 @@
           "threshold_value": 1,
           "source_sensor": "SELF_REPORT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 3.2,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -101,7 +107,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "cognitive_check"
+          "linked_protocol_id": "cognitive_check",
+          "target_differential_ids": [
+            "RADIATION_ACUTE",
+            "COGNITIVE_FATIGUE",
+            "SLEEP_CIRCADIAN"
+          ]
         }
       ],
       "contraindications": [
@@ -110,9 +121,41 @@
           "guard_metric": "radiation_event",
           "guard_op": "EQ",
           "guard_value": 1,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: n?o abandonar ?rea abrigada durante evento radiativo ativo (radiation_event == 1) at? libera??o operacional e m?dica."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "slowed_cognition": 0.85,
+        "attention_lapse": 0.85,
+        "headache": 0.65,
+        "fatigue": 0.7,
+        "dizziness": 0.6
+      },
+      "differential_ids": [
+        "RADIATION_ACUTE",
+        "RADIATION_CANCER_RISK",
+        "COGNITIVE_FATIGUE",
+        "SLEEP_CIRCADIAN"
+      ],
+      "expected_biomarkers": {
+        "MISSION_CONTEXT": {
+          "radiation_event": "spe_or_elevated_dose_within_72h"
+        },
+        "SELF_EXAM": {
+          "pvt_lapses": "cognitive_performance_shift_check"
+        },
+        "LONGITUDINAL": {
+          "radiation_dose_msv": "30d_cumulative_dose_trend"
+        }
+      },
+      "severity_thresholds": {
+        "radiation_event": {
+          "yellow_high": 1
+        },
+        "cognitive_change": {
+          "yellow_high": 1
+        }
+      }
     }
   ],
   "supporting_source_ids": [

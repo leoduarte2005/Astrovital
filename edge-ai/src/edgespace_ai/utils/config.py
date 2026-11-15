@@ -26,6 +26,10 @@ class Settings(BaseSettings):
     db_path: Path = Field(default=Path(__file__).resolve().parents[4] / "var/edgespace.db", description="SQLite database path")
     ort_threads: int = Field(default=2, ge=1, le=64, description="ONNX Runtime intra-op thread count")
     disable_slm: bool = Field(default=False, description="Disable local GGUF SLM conversational synthesizer")
+    slm_auto_download: bool = Field(
+        default=True,
+        description="Download the default GGUF model into <models_dir>/slm on first run if missing",
+    )
 
     log_level: str = Field(default="INFO", description="Structured log level")
     ipc_hi_pri_cap: int = Field(default=64, ge=1, description="High-priority queue capacity")

@@ -21,7 +21,7 @@ AS_OF = date(2026, 11, 14)
 START_US = int(datetime(2026, 10, 4, tzinfo=timezone.utc).timestamp() * 1_000_000)
 NOW_US = int(datetime(2026, 11, 14, tzinfo=timezone.utc).timestamp() * 1_000_000)
 POSTURES = ("sitting", "standing", "supine", "deep_breathing", "exercise", "apnea_desat")
-SQL_PATH = Path("database/migrations/0004_intelligence_seeds.sql")
+SQL_PATH = Path("database/migrations/0006_clinical_seeds_v2.sql")
 
 
 def load(path):
@@ -57,20 +57,72 @@ def upsert(table, row, key):
 
 def profiles():
     rows = []
-    for i, (sex, hr, hrv, weight, height) in enumerate([
-        ("M", 64.0, 52.0, 78.0, 178.0),
-        ("F", 78.0, 43.0, 62.0, 166.0),
-        ("M", 58.0, 61.0, 72.0, 174.0),
+    for i, (sex, hr, hrv, weight, height, ms_hist, bmd_z, sleep_h, deep_h, kcal, water, prot, rad_lim, btype) in enumerate([
+        ("M", 64.0, 52.0, 78.0, 178.0, "HIGH", 0.2, 7.4, 1.4, 2600.0, 2500.0, 95.0, 600.0, "O+"),
+        ("F", 78.0, 43.0, 62.0, 166.0, "MODERATE", -0.3, 7.6, 1.5, 2200.0, 2200.0, 80.0, 600.0, "A+"),
+        ("M", 58.0, 61.0, 72.0, 174.0, "LOW", 0.4, 7.8, 1.6, 2500.0, 2400.0, 90.0, 600.0, "B+"),
     ], 1):
         rows.append(dict(crew_id=f"crew_{i:03d}", biological_sex=sex, height_cm=height,
                          preflight_weight_kg=weight, vo2max_baseline=42.0+i,
                          preflight_hr_bpm=hr, preflight_hrv_ms=hrv, preflight_spo2_pct=98.0,
                          preflight_sbp_mmhg=112.0+2*i, preflight_dbp_mmhg=72.0+i,
                          preflight_ferritin_ug_l=90.0+20*i, preflight_hemoglobin_g_dl=13.5+0.3*i,
-                         preflight_onsd_mm=4.6+0.05*i, sans_susceptibility="HIGH" if i==1 else "MODERATE",
+                         preflight_onsd_mm=round(4.6+0.05*i,2), sans_susceptibility="HIGH" if i==1 else "MODERATE",
                          sas_susceptibility="MODERATE", co2_sensitivity="HIGH" if i==1 else "NORMAL",
+                         blood_type=btype, motion_sickness_history=ms_hist,
+                         preflight_bmd_zscore=bmd_z, preflight_sleep_h=sleep_h,
+                         preflight_deep_sleep_h=deep_h, target_kcal_day=kcal,
+                         target_water_ml_day=water, target_protein_g_day=prot,
+                         radiation_career_limit_msv=rad_lim,
                          mission_start_us=START_US, data_class="SYNTHETIC"))
     return rows
+
+
+def daily_trend(profile, offset, rng):
+    """Deterministic 30-day synthetic trend; offset 0 is the oldest day, 29 is AS_OF.
+
+    crew_001: deep sleep and HRV fall. crew_002: calorie deficit and mass loss.
+    crew_003: stable control. Slopes are engineering fixtures, not physiology.
+    """
+    crew_id = profile['crew_id']
+    jitter = lambda amp: rng.uniform(-amp, amp)
+    d = dict(hr=0.0, hrv=0.0, sleep_h=7.5, deep_h=1.4, energy=2400.0, water=2300.0,
+             mass=profile['preflight_weight_kg'], eva_min=0.0, rad_msv=0.15, anom=0.12, yellow=0)
+    if crew_id == 'crew_001':
+        d['hr'] = round(profile['preflight_hr_bpm'] + offset*0.18 + jitter(0.3), 2)
+        d['hrv'] = round(max(24.0, profile['preflight_hrv_ms'] - offset*0.72 + jitter(0.4)), 2)
+        d['sleep_h'] = round(max(4.3, 7.4 - offset*0.1 + jitter(0.06)), 2)
+        d['deep_h'] = round(min(d['sleep_h'] - 0.5, max(0.45, 1.45 - offset*0.032 + jitter(0.02))), 2)
+        d['energy'] = round(profile['target_kcal_day'] - 50.0 + jitter(50.0), 1)
+        d['water'] = round(profile['target_water_ml_day'] - 50.0 + jitter(60.0), 1)
+        d['mass'] = round(profile['preflight_weight_kg'] - 0.1 + jitter(0.08), 2)
+        d['eva_min'] = 240.0 if offset in (14, 28) else 0.0
+        d['rad_msv'] = 0.55 if offset in (24, 25, 26) else 0.16
+        d['anom'] = round(0.14 + offset*0.015, 3)
+        d['yellow'] = 1 if offset >= 22 else 0
+    elif crew_id == 'crew_002':
+        d['hr'] = round(profile['preflight_hr_bpm'] + 1.0 + jitter(0.4), 2)
+        d['hrv'] = round(profile['preflight_hrv_ms'] - 0.5 + jitter(0.6), 2)
+        d['sleep_h'] = round(7.3 + jitter(0.1), 2)
+        d['deep_h'] = round(min(d['sleep_h'] - 0.5, 1.35 + jitter(0.04)), 2)
+        d['energy'] = round(max(1450.0, profile['target_kcal_day'] - 80.0 - offset*20.5 + jitter(20.0)), 1)
+        d['water'] = round(profile['target_water_ml_day'] - 150.0 - offset*5.0 + jitter(25.0), 1)
+        d['mass'] = round(profile['preflight_weight_kg'] - offset*0.095 + jitter(0.03), 2)
+        d['eva_min'] = 180.0 if offset == 12 else 0.0
+        d['rad_msv'] = 0.12
+        d['anom'] = round(0.16 + offset*0.008, 3)
+        d['yellow'] = 1 if d['energy'] < 1680.0 else 0
+    else:
+        d['hr'] = round(profile['preflight_hr_bpm'] + 0.5 + jitter(0.4), 2)
+        d['hrv'] = round(profile['preflight_hrv_ms'] + jitter(0.6), 2)
+        d['sleep_h'] = round(7.7 + jitter(0.08), 2)
+        d['deep_h'] = round(min(d['sleep_h'] - 0.5, 1.52 + jitter(0.03)), 2)
+        d['energy'] = round(profile['target_kcal_day'] - 20.0 + jitter(35.0), 1)
+        d['water'] = round(profile['target_water_ml_day'] + jitter(45.0), 1)
+        d['mass'] = round(profile['preflight_weight_kg'] + jitter(0.06), 2)
+        d['rad_msv'] = 0.11
+        d['anom'] = round(0.11 + jitter(0.01), 3)
+    return d
 
 
 def synthetic_data():
@@ -85,6 +137,7 @@ def synthetic_data():
     rng = random.Random(SEED)
     for crew_index, profile in enumerate(profiles()):
         clean, candidates = [], 0
+        posture_acc = {p: {"hr": [], "hrv": [], "resp": [], "spo2": []} for p in ("sitting", "standing", "supine", "exercise")}
         for pose_index, posture in enumerate(POSTURES):
             window=[]
             for j in range(60):
@@ -115,19 +168,47 @@ def synthetic_data():
                         clean.append(features)
                 hr = profile['preflight_hr_bpm'] + (65 if posture == "exercise" else 8 if posture == "standing" else -3 if posture == "supine" else 0) + rng.gauss(0,1)
                 spo2 = 86.0 + rng.random() if posture == "apnea_desat" and j >= 30 else 98.0+rng.uniform(-0.4,0.4)
+                hrv_val = round(profile['preflight_hrv_ms']/(1.6 if posture=='exercise' else 1),3)
+                resp_val = 6.0 if posture=='deep_breathing' else 27.0 if posture=='exercise' else None if posture=='apnea_desat' else 14.0
+                spo2_val = None if drop else round(spo2,3)
+                hr_val = round(hr,3)
+                if posture in posture_acc:
+                    posture_acc[posture]["hr"].append(hr_val)
+                    posture_acc[posture]["hrv"].append(hrv_val)
+                    if resp_val is not None:
+                        posture_acc[posture]["resp"].append(resp_val)
+                    if spo2_val is not None:
+                        posture_acc[posture]["spo2"].append(spo2_val)
                 peripheral_rows.append(dict(crew_id=profile['crew_id'],ts_us=ts,posture=posture,
-                    heart_rate_bpm=round(hr,3),hrv_ms=round(profile['preflight_hrv_ms']/(1.6 if posture=='exercise' else 1),3),
-                    resp_rate_bpm=6.0 if posture=='deep_breathing' else 27.0 if posture=='exercise' else None if posture=='apnea_desat' else 14.0,
-                    spo2_pct=None if drop else round(spo2,3),co2_ppm=round(600+rng.uniform(-20,20),3),
+                    heart_rate_bpm=hr_val,hrv_ms=hrv_val,
+                    resp_rate_bpm=resp_val,
+                    spo2_pct=spo2_val,co2_ppm=round(600+rng.uniform(-20,20),3),
                     temp_c=22.0,humidity_pct=45.0,pressure_hpa=1013.0,
                     data_class="SYNTHETIC",missing_reason="SYNTHETIC_DROPOUT" if drop or posture=='apnea_desat' else None))
         mean = [round(statistics.mean(v[k] for v in clean),8) for k in range(64)]
         std = [round(max(statistics.pstdev(v[k] for v in clean),0.000001),8) for k in range(64)]
+        per_posture_stats = {}
+        for p_name in ("sitting", "standing", "supine", "exercise"):
+            b = posture_acc[p_name]
+            per_posture_stats[p_name] = {
+                "sample_count": len(b["hr"]),
+                "hr_mean": round(statistics.mean(b["hr"]), 3),
+                "hr_std": round(statistics.pstdev(b["hr"]), 3),
+                "hrv_mean": round(statistics.mean(b["hrv"]), 3),
+                "resp_mean": round(statistics.mean(b["resp"]), 3),
+                "spo2_mean": round(statistics.mean(b["spo2"]), 3),
+            }
+        resting_hrs = posture_acc["sitting"]["hr"] + posture_acc["supine"]["hr"]
+        resting_hrvs = posture_acc["sitting"]["hrv"] + posture_acc["supine"]["hrv"]
         baselines.append(dict(baseline_id=f"seed-{profile['crew_id']}-v1",crew_id=profile['crew_id'],version=1,
             onnx_model_path=None,feature_dim=64,feature_schema_id="EDGESPACE_DSP64_V1",mean_json=mean,std_json=std,anomaly_threshold=0.75,
             sample_count=len(clean),clean_window_ratio=len(clean)/candidates,
             covered_postures_json=list(POSTURES[:4]),calibration_status="SYNTHETIC_SEED",drift_score=0.0,
-            is_active=1,updated_at_us=NOW_US,data_class="SYNTHETIC"))
+            is_active=1,updated_at_us=NOW_US,data_class="SYNTHETIC",
+            per_posture_stats_json=per_posture_stats,
+            resting_hr_mean=round(statistics.mean(resting_hrs), 3),
+            resting_hrv_mean=round(statistics.mean(resting_hrvs), 3),
+            calib_window_start_us=NOW_US,calib_window_end_us=NOW_US+24_000_000))
     return csi_rows, peripheral_rows, baselines
 
 
@@ -157,15 +238,18 @@ def build_outputs():
         sql.append(upsert('protocols',row,'protocol_id'))
     for report in reports:
         measures = list(dict.fromkeys(m for c in report['conditions'] for m in c['countermeasures']))
+        report_subsystem = report.get('subsystem') or report['conditions'][0]['subsystem']
         sql.append(upsert('clinical_reports',dict(report_id=report['report_id'],source_id=report['source_id'],
-            hazard_id=report['hazard_id'],category=report['category'],title=report['title'],problem=report['problem'],
+            hazard_id=report['hazard_id'],category=report['category'],subsystem=report_subsystem,
+            title=report['title'],problem=report['problem'],
             content_text=report['scientific_scope']+' '+' '.join(report['detection'])+' '+' '.join(report.get('search_aliases',[])),
             symptoms_text=' '.join(report['primary_symptoms']+report['secondary_symptoms']),
             countermeasures_text=' '.join(measures),payload_json=report),'report_id'))
         for condition in report['conditions']:
             row = {k:condition[k] for k in ('condition_id','name','source_id','subsystem','prior','default_escalation','recommended_mission_mode','match_policy','model_status')}
             row['report_id'] = report['report_id']
-            for key in ('symptoms','countermeasures','actions','linked_protocols'):
+            for key in ('symptoms','countermeasures','actions','linked_protocols','symptom_weights',
+                        'differential_ids','expected_biomarkers','severity_thresholds'):
                 row[key+'_json'] = condition[key]
             sql.append(upsert('causal_conditions',row,'condition_id'))
             for i, rule in enumerate(condition['sensor_rules'],1):
@@ -173,6 +257,7 @@ def build_outputs():
             for i, question in enumerate(condition['questions'],1):
                 row = dict(question)
                 row['positive_concepts_json'] = row.pop('positive_concepts')
+                row['target_differential_ids_json'] = row.pop('target_differential_ids')
                 sql.append(upsert('causal_disambiguation_questions',dict(question_id=f"{condition['condition_id']}-Q{i}",condition_id=condition['condition_id'],**row),'question_id'))
             for i, contra in enumerate(condition['contraindications'],1):
                 sql.append(upsert('causal_contraindications',dict(contra_id=f"{condition['condition_id']}-C{i}",condition_id=condition['condition_id'],**contra),'contra_id'))
@@ -182,22 +267,29 @@ def build_outputs():
             started_us=NOW_US,ended_us=NOW_US+24_000_000,status='SYNTHETIC_SEED',sample_count=b['sample_count'],
             clean_window_ratio=b['clean_window_ratio'],covered_postures_json=b['covered_postures_json'],
             notes='Fixtures sintéticas; nenhum modelo ONNX treinado foi fornecido.'),'session_id'))
+    rollup_rng=random.Random(SEED+30)
     for index, profile in enumerate(profiles()):
         crew_id=profile['crew_id']
         for fact_type,key,value in [('PREFERENCE','preferred_language','pt-BR'),('SLEEP_NOTE','sleep_window','22:00–06:00 UTC (fixture)'),('ANSWERED_TOPIC','baseline_context','Linha de base fictícia explicada ao usuário de teste.')]:
             sql.append(upsert('crew_clinical_memory',dict(memory_id=f'seed-{crew_id}-{key}',crew_id=crew_id,fact_type=fact_type,
                 fact_key=key,fact_value=value,confidence=1.0,source_role='SEED',active=1,created_us=NOW_US,updated_us=NOW_US,data_class='SYNTHETIC'),'memory_id'))
-        for offset in range(7):
-            day=AS_OF-timedelta(days=6-offset)
+        for offset in range(30):
+            day=AS_OF-timedelta(days=29-offset)
             ts=int(datetime.combine(day,datetime.min.time(),tzinfo=timezone.utc).timestamp()*1_000_000)
-            hr=profile['preflight_hr_bpm']+offset*0.3
-            sql.append(upsert('telemetry_daily_rollups',dict(crew_id=crew_id,day_utc=str(day),mission_day=36+offset,sample_count=86400,
-                hr_mean=hr,hr_min=hr-8,hr_max=hr+60,hrv_mean=profile['preflight_hrv_ms']-offset*0.2,hrv_p10=profile['preflight_hrv_ms']-8,
+            d=daily_trend(profile,offset,rollup_rng)
+            hr=d['hr']
+            sql.append(upsert('telemetry_daily_rollups',dict(crew_id=crew_id,day_utc=str(day),mission_day=13+offset,sample_count=86400,
+                hr_mean=hr,hr_min=round(hr-8.0,2),hr_max=round(hr+60.0,2),hrv_mean=d['hrv'],hrv_p10=round(max(5.0,d['hrv']-8.0),2),
                 resp_mean=14.0,spo2_mean=98.0,spo2_min=96.0,co2_mean=600.0,co2_max=850.0,temp_mean=22.0,
-                sleep_duration_h=7.5,deep_sleep_h=1.3,exercise_minutes=90.0,radiation_dose_msv=0.15,data_class='SYNTHETIC'),('crew_id','day_utc')))
+                sleep_duration_h=d['sleep_h'],deep_sleep_h=d['deep_h'],exercise_minutes=90.0,radiation_dose_msv=d['rad_msv'],
+                body_mass_kg=d['mass'],energy_kcal_total=d['energy'],water_ml_total=d['water'],eva_minutes=d['eva_min'],
+                anomaly_score_mean=d['anom'],anomaly_score_p95=round(d['anom']+0.15,3),
+                alerts_yellow_count=d['yellow'],alerts_red_count=0,data_class='SYNTHETIC'),('crew_id','day_utc')))
             sql.append(upsert('nutrition_hydration_logs',dict(log_id=f'seed-{crew_id}-{day}',crew_id=crew_id,ts_us=ts+12*3600_000_000,
-                water_ml=2300.0,energy_kcal=2400.0+100*index,protein_g=90.0,calcium_mg=1000.0,iron_mg=8.0,vitamin_d_ug=20.0,
-                potassium_citrate_mg=None,body_mass_kg=profile['preflight_weight_kg'],
+                water_ml=d['water'],energy_kcal=d['energy'],
+                protein_g=round(profile['target_protein_g_day']*d['energy']/profile['target_kcal_day'],1),
+                calcium_mg=1000.0,iron_mg=8.0,vitamin_d_ug=20.0,
+                potassium_citrate_mg=None,body_mass_kg=d['mass'],
                 source_note='Diário fictício com as oito categorias do roteiro; valores não são metas prescritas. Citrato não administrado/não informado.',data_class='SYNTHETIC'),'log_id'))
             sql.append(upsert('crew_circadian_schedule',dict(schedule_id=f'seed-{crew_id}-{day}',crew_id=crew_id,day_utc=str(day),
                 sleep_start_us=ts+22*3600_000_000,sleep_end_us=ts+30*3600_000_000,

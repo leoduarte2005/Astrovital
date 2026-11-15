@@ -1,14 +1,13 @@
-"""Thread-safe LRU registry for per-crew baseline statistics and atomic crew switching."""
+"""Thread-safe LRU registry for per-crew baselines backed by SQLite."""
 
 from __future__ import annotations
 
-import json
 import threading
 import time
 from collections import OrderedDict
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 
@@ -32,14 +31,51 @@ class CrewBaseline:
     sample_count: int = 0
     updated_at_us: int = 0
     model_path: Optional[str] = None
+    per_posture_stats: dict[str, dict[str, Any]] = field(default_factory=dict)
 
-    def normalize(self, features: np.ndarray) -> np.ndarray:
-        """Z-score normalize a 1D (64,) or 2D (N, 64) feature vector using baseline stats."""
-        safe_std = np.where(self.std > 1e-4, self.std, 1.0).astype(np.float32)
-        return ((np.asarray(features, dtype=np.float32) - self.mean) / safe_std).astype(np.float32)
+    def normalize(self, features: np.ndarray, posture: Optional[str] = None) -> np.ndarray:
+        """Z-score normalize a 1D (64,) or 2D (N, 64) feature vector, using posture stats if present."""
+        mean_vec = self.mean
+        std_vec = self.std
+        if posture and posture in self.per_posture_stats:
+            pstats = self.per_posture_stats[posture]
+            if isinstance(pstats, dict) and "mean" in pstats and "std" in pstats:
+                p_mean = np.asarray(pstats["mean"], dtype=np.float32)
+                p_std = np.asarray(pstats["std"], dtype=np.float32)
+                if p_mean.shape == (FEATURE_DIM,) and p_std.shape == (FEATURE_DIM,):
+                    mean_vec = p_mean
+                    std_vec = p_std
+        safe_std = np.where(std_vec > 1e-4, std_vec, 1.0).astype(np.float32)
+        return ((np.asarray(features, dtype=np.float32) - mean_vec) / safe_std).astype(np.float32)
+
+    def normalize_vital(self, metric: str, value: float, posture: Optional[str] = None) -> Optional[float]:
+        """Z-score normalize a scalar vital reading against per_posture_stats_json."""
+        if not posture or posture not in self.per_posture_stats:
+            return None
+        pstats = self.per_posture_stats[posture]
+        if not isinstance(pstats, dict):
+            return None
+        prefix_map = {
+            "heart_rate_bpm": "hr",
+            "hr": "hr",
+            "hrv_ms": "hrv",
+            "hrv": "hrv",
+            "resp_rate_bpm": "resp",
+            "respiration_hz": "resp",
+            "resp": "resp",
+            "spo2_pct": "spo2",
+            "spo2": "spo2",
+        }
+        prefix = prefix_map.get(metric, metric)
+        m = pstats.get(f"{prefix}_mean")
+        if m is None:
+            return None
+        s = pstats.get(f"{prefix}_std")
+        denom = float(s) if (s is not None and float(s) > 1e-4) else 1.0
+        return (float(value) - float(m)) / denom
 
     def to_dict(self) -> dict[str, object]:
-        return {
+        out: dict[str, object] = {
             "crew_id": self.crew_id,
             "mean": [float(v) for v in self.mean.tolist()],
             "std": [float(v) for v in self.std.tolist()],
@@ -48,6 +84,9 @@ class CrewBaseline:
             "updated_at_us": int(self.updated_at_us),
             "model_path": self.model_path,
         }
+        if self.per_posture_stats:
+            out["per_posture_stats"] = self.per_posture_stats
+        return out
 
     @classmethod
     def from_dict(cls, data: dict[str, object], fallback_crew_id: str = "default") -> "CrewBaseline":
@@ -60,6 +99,9 @@ class CrewBaseline:
         if not np.all(np.isfinite(mean_raw)) or not np.all(np.isfinite(std_raw)) or np.any(std_raw<=0):
             raise ValueError("Baseline must be finite with positive std")
 
+        pps_raw = data.get("per_posture_stats")
+        pps = dict(pps_raw) if isinstance(pps_raw, dict) else {}
+
         return cls(
             crew_id=str(data.get("crew_id") or fallback_crew_id),
             mean=mean_raw,
@@ -68,6 +110,7 @@ class CrewBaseline:
             sample_count=int(data.get("sample_count", 0)),
             updated_at_us=int(data.get("updated_at_us", 0)),
             model_path=str(data["model_path"]) if data.get("model_path") else None,
+            per_posture_stats=pps,
         )
 
 
@@ -84,7 +127,7 @@ def make_default_baseline(crew_id: str = "default") -> CrewBaseline:
 
 
 class BaselineRegistry:
-    """Thread-safe LRU cache of per-crew baselines with sub-300 ms atomic switching."""
+    """Thread-safe LRU cache of per-crew baselines backed by SQLite."""
 
     def __init__(
         self,
@@ -93,21 +136,18 @@ class BaselineRegistry:
         max_entries: int = 16,
         db_path: Optional[Path | str] = None,
     ) -> None:
-        self.db_path=Path(db_path) if db_path is not None else None
-        self._readiness: dict[str,bool]={}
+        if db_path is None:
+            raise ValueError("db_path is required for BaselineRegistry")
+        self.db_path = Path(db_path)
+        self._readiness: dict[str, bool] = {}
         self.models_dir = Path(models_dir)
-        self.profiles_dir = self.models_dir / "profiles"
         self.max_entries = max(1, max_entries)
 
         self._lock = threading.RLock()
         self._cache: OrderedDict[str, CrewBaseline] = OrderedDict()
         self._active_crew_id: Optional[str] = None
-        self._active_baseline: CrewBaseline = make_default_baseline("uncalibrated") if self.db_path else self._load_initial_default()
+        self._active_baseline: CrewBaseline = make_default_baseline("uncalibrated")
         self.last_switch_ms: float = 0.0
-
-    def profile_path(self, crew_id: str) -> Path:
-        safe_id = "".join(ch if (ch.isalnum() or ch in ("-", "_")) else "_" for ch in crew_id)
-        return self.profiles_dir / f"baseline_{safe_id}.json"
 
     def active_crew_id(self) -> Optional[str]:
         with self._lock:
@@ -118,13 +158,13 @@ class BaselineRegistry:
             return self._active_baseline
 
     def get(self, crew_id: str) -> Optional[CrewBaseline]:
-        """Return cached baseline or load from disk if present."""
+        """Return cached baseline or load from SQLite if present."""
         with self._lock:
             if crew_id in self._cache:
                 self._cache.move_to_end(crew_id)
                 return self._cache[crew_id]
 
-        loaded = self._load_from_database(crew_id) if self.db_path else self._load_from_disk(crew_id)
+        loaded = self._load_from_database(crew_id)
         if loaded is not None:
             with self._lock:
                 self._put_lru(crew_id, loaded)
@@ -135,19 +175,18 @@ class BaselineRegistry:
         crew_id: str,
         baseline_path: Optional[str] = None,
     ) -> tuple[CrewBaseline, bool]:
-        """Atomically switch active crew baseline (< 300 ms target).
-
-        Returns ``(baseline, baseline_found)``.
-        """
+        """Atomically switch active crew baseline (< 300 ms target)."""
         t0 = time.perf_counter()
-        if self.db_path is not None:
-            loaded=self._load_from_database(crew_id)
-            with self._lock:
-                self._put_lru(crew_id,loaded)
-                self._active_crew_id=crew_id
-                self._active_baseline=loaded
-                self.last_switch_ms=(time.perf_counter()-t0)*1000
-            return loaded,self._readiness.get(crew_id,False)
+        loaded = self._load_from_database(crew_id)
+        if loaded is None:
+            loaded = make_default_baseline(crew_id)
+            self._readiness[crew_id] = False
+        with self._lock:
+            self._put_lru(crew_id, loaded)
+            self._active_crew_id = crew_id
+            self._active_baseline = loaded
+            self.last_switch_ms = (time.perf_counter() - t0) * 1000.0
+        return loaded, self._readiness.get(crew_id, False)
         baseline: Optional[CrewBaseline] = None
         baseline_found = False
 
@@ -211,44 +250,27 @@ class BaselineRegistry:
         while len(self._cache) > self.max_entries:
             self._cache.popitem(last=False)
 
-    def _load_from_database(self, crew_id: str) -> CrewBaseline:
+    def _load_from_database(self, crew_id: str) -> Optional[CrewBaseline]:
+        if not self.db_path.is_file():
+            raise FileNotFoundError(f"SQLite baseline database not found: {self.db_path}")
         with ClinicalRepository(self.db_path) as repo:
-            row=repo.baseline(crew_id)
-        if row.get('feature_schema_id')!='EDGESPACE_DSP64_V1':
-            raise ValueError('Unsupported baseline feature schema; calibration required')
-        self._readiness[crew_id]=row['calibration_status']=='READY' and row['sample_count']>0
-        return CrewBaseline.from_dict(dict(crew_id=crew_id,mean=row['mean'],std=row['std'],threshold=row['anomaly_threshold'],sample_count=row['sample_count'] if row['calibration_status'] in ('READY','CALIBRATING') else 0,updated_at_us=row['updated_at_us'],model_path=row['onnx_model_path']))
-
-    def _load_initial_default(self) -> CrewBaseline:
-        default_json = self.profiles_dir / "baseline_default.json"
-        if default_json.is_file():
             try:
-                data = json.loads(default_json.read_text(encoding="utf-8"))
-                return CrewBaseline.from_dict(data, fallback_crew_id="default")
-            except Exception as exc:
-                logger.warning("failed loading default baseline json", extra={"err": str(exc)})
-        return make_default_baseline("default")
-
-    def _load_from_disk(
-        self,
-        crew_id: str,
-        explicit_path: Optional[str] = None,
-    ) -> Optional[CrewBaseline]:
-        candidates: list[Path] = []
-        if explicit_path:
-            p = Path(explicit_path)
-            if p.suffix.lower() == ".json":
-                candidates.append(p)
-        candidates.append(self.profile_path(crew_id))
-
-        for path in candidates:
-            if path.is_file():
-                try:
-                    data = json.loads(path.read_text(encoding="utf-8"))
-                    return CrewBaseline.from_dict(data, fallback_crew_id=crew_id)
-                except Exception as exc:
-                    logger.warning(
-                        "failed parsing baseline json",
-                        extra={"crew_id": crew_id, "path": str(path), "err": str(exc)},
-                    )
-        return None
+                row = repo.baseline(crew_id)
+            except KeyError:
+                self._readiness[crew_id] = False
+                return None
+        if row.get("feature_schema_id") != "EDGESPACE_DSP64_V1":
+            raise ValueError("Unsupported baseline feature schema; calibration required")
+        self._readiness[crew_id] = row["calibration_status"] == "READY" and row["sample_count"] > 0
+        return CrewBaseline.from_dict(
+            dict(
+                crew_id=crew_id,
+                mean=row["mean"],
+                std=row["std"],
+                threshold=row["anomaly_threshold"],
+                sample_count=row["sample_count"] if row["calibration_status"] in ("READY", "CALIBRATING") else 0,
+                updated_at_us=row["updated_at_us"],
+                model_path=row["onnx_model_path"],
+                per_posture_stats=row.get("per_posture_stats") or {},
+            )
+        )

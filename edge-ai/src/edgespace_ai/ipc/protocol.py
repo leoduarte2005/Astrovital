@@ -134,6 +134,7 @@ class Threshold(IPCModel):
 
 class SetActiveCrewPayload(IPCModel):
     crew_id: str
+    profile: Optional[CrewProfile] = None
     baseline_path: Optional[str] = None
     thresholds: Optional[dict[str, Threshold]] = None
 
@@ -160,6 +161,25 @@ class CrewProfile(IPCModel):
     role: Optional[str] = None
     mission_day: Optional[int] = None
     age: Optional[int] = None
+    biological_sex: Optional[str] = None
+    height_cm: Optional[float] = None
+    preflight_weight_kg: Optional[float] = None
+    vo2max_baseline: Optional[float] = None
+    preflight_hr_bpm: Optional[float] = None
+    preflight_hrv_ms: Optional[float] = None
+    preflight_spo2_pct: Optional[float] = None
+    preflight_sbp_mmhg: Optional[float] = None
+    preflight_dbp_mmhg: Optional[float] = None
+    preflight_ferritin_ug_l: Optional[float] = None
+    preflight_hemoglobin_g_dl: Optional[float] = None
+    preflight_onsd_mm: Optional[float] = None
+    sans_susceptibility: Optional[str] = None
+    co2_sensitivity: Optional[str] = None
+    motion_sickness_history: Optional[str] = None
+    target_kcal_day: Optional[float] = None
+    target_water_ml_day: Optional[float] = None
+    radiation_career_limit_msv: Optional[float] = None
+    mission_start_us: Optional[int] = None
 
 
 class ChatMessage(IPCModel):

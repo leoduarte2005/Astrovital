@@ -5,6 +5,7 @@
 .DESCRIPTION
   1. Limpa processos orfaos nas portas 5006 e 8000.
   2. Gera modelos .onnx se faltar algum (edge-ai/training/build_all_models.py).
+     Instala llama-cpp-python e baixa o modelo SLM GGUF (edge-ai/models/slm/) na 1a execucao.
   3. Compila build/edgespace-central.exe (go build dentro de central/).
   4. Sobe o worker Python edgespace_ai em background e espera a porta 5006.
   5. Sobe a Central Go (sem --mock-ai) com logs legiveis no console.
@@ -27,6 +28,8 @@ param(
     [ValidateSet('debug', 'info', 'warn', 'error')]
     [string]$LogLevel = 'info',
     [switch]$RawLogs,
+    # Pula instalacao/download do SLM (GGUF) e usa template deterministico.
+    [switch]$NoSlm,
     # >0: modo de teste. Sobe tudo, valida /healthz + ai_ready, espera N segundos e encerra.
     [int]$SmokeSeconds = 0
 )
@@ -163,7 +166,7 @@ try {
     Clear-Port $IpcPort
     Clear-Port $HttpPort
 
-    # 2. modelos
+    # 2. modelos .onnx
     $missing = @($Models | Where-Object { -not (Test-Path (Join-Path $ModelsDir $_)) })
     if ($missing.Count -gt 0) {
         Write-Warn "modelos ausentes: $($missing -join ', ') - executando build_all_models.py"
@@ -171,6 +174,35 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "build_all_models.py falhou (exit $LASTEXITCODE)" }
     } else {
         Write-Step "modelos .onnx OK ($($Models.Count)/$($Models.Count))"
+    }
+
+    # 2b. SLM conversacional: runtime llama-cpp-python + modelo GGUF (~1.1 GB, fora do Git)
+    if ($NoSlm) {
+        Write-Warn '-NoSlm: SLM desativado (respostas por template deterministico)'
+        $env:EDGESPACE_DISABLE_SLM = '1'
+    } else {
+        $prevEapSlm = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+        try {
+            & $PythonExe -c 'import llama_cpp' 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warn 'llama-cpp-python ausente - instalando (wheel CPU pre-compilada)'
+                & $PythonExe -m pip install --disable-pip-version-check --prefer-binary `
+                    --extra-index-url 'https://abetlen.github.io/llama-cpp-python/whl/cpu' 'llama-cpp-python>=0.3.0'
+                if ($LASTEXITCODE -ne 0) { Write-Warn 'falha ao instalar llama-cpp-python; edge-ai seguira com template deterministico' }
+            }
+
+            $env:PYTHONPATH = Join-Path $EdgeAiDir 'src'
+            & $PythonExe -m edgespace_ai.utils.model_fetch --models-dir $ModelsDir --check | Out-Null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Warn 'modelo SLM ausente - baixando automaticamente do Hugging Face (~1.1 GB, so na 1a execucao)'
+                & $PythonExe -m edgespace_ai.utils.model_fetch --models-dir $ModelsDir
+                if ($LASTEXITCODE -ne 0) { Write-Warn 'download do modelo SLM falhou; edge-ai seguira com template deterministico (rode de novo para retomar)' }
+            } else {
+                Write-Step "modelo SLM OK ($(Join-Path $ModelsDir 'slm'))"
+            }
+        } finally {
+            $ErrorActionPreference = $prevEapSlm
+        }
     }
 
     # 3. build Go

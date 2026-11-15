@@ -1,4 +1,5 @@
 """Behavioral checks for operational migrations, clinical fixtures and read-only access."""
+from contextlib import closing
 import csv
 import json
 from pathlib import Path
@@ -29,24 +30,27 @@ class OperationalTests(unittest.TestCase):
         self.assertTrue(result['passed'],result)
         self.assertEqual(result['counts']['clinical_reports'],28)
         self.assertEqual(result['counts']['causal_conditions'],26)
-        self.assertEqual(result['golden_cases']['passed'],25)
+        self.assertEqual(result['counts']['telemetry_daily_rollups'],90)
+        self.assertGreaterEqual(result['golden_cases']['passed'],33)
+        self.assertEqual(result['golden_cases']['passed'],36)
+        self.assertTrue(result['checks']['conditions_complete'])
         self.assertEqual(self.writer.execute('PRAGMA journal_mode').fetchone()[0],'wal')
 
     def test_migrations_run_once_without_changing_existing_records(self):
         self.writer.execute("UPDATE crew_profiles SET name='User edited name' WHERE crew_id='crew_001'")
         self.writer.commit()
         self.assertEqual(operational.migrate(self.path),[])
-        self.assertEqual(self.writer.execute('SELECT COUNT(*) FROM schema_version').fetchone()[0],4)
+        self.assertEqual(self.writer.execute('SELECT COUNT(*) FROM schema_version').fetchone()[0],6)
         self.assertEqual(self.writer.execute("SELECT name FROM crew_profiles WHERE crew_id='crew_001'").fetchone()[0],'User edited name')
 
     def test_failed_migration_rolls_back_ddl_and_ledger(self):
         folder=self.directory/'invalid'
         folder.mkdir()
-        (folder/'0005_invalid.sql').write_text('CREATE TABLE must_rollback(value);\nINSERT INTO unknown_table VALUES (1);\n')
+        (folder/'0007_invalid.sql').write_text('CREATE TABLE must_rollback(value);\nINSERT INTO unknown_table VALUES (1);\n')
         with self.assertRaises(sqlite3.OperationalError):
             operational.migrate(self.path,folder)
         self.assertIsNone(self.writer.execute("SELECT name FROM sqlite_master WHERE name='must_rollback'").fetchone())
-        self.assertEqual(self.writer.execute('SELECT COUNT(*) FROM schema_version').fetchone()[0],4)
+        self.assertEqual(self.writer.execute('SELECT COUNT(*) FROM schema_version').fetchone()[0],6)
 
     def test_fts_insert_update_delete_and_ranked_search(self):
         with ClinicalRepository(self.path) as repo:
@@ -65,7 +69,7 @@ class OperationalTests(unittest.TestCase):
         self.assertEqual(self.writer.execute("SELECT count(*) FROM protocols_fts WHERE protocols_fts MATCH 'uniquefourthtoken'").fetchone()[0],0)
 
     def test_upgrade_rebuilds_fts_for_existing_rows(self):
-        with sqlite3.connect(self.directory/'upgrade.db') as c:
+        with closing(sqlite3.connect(self.directory/'upgrade.db')) as c:
             c.execute('PRAGMA foreign_keys=ON')
             for name in ('0001_operational_schema.sql','0002_operational_seeds.sql'):
                 c.executescript((operational.MIGRATIONS/name).read_text())
@@ -91,7 +95,7 @@ class OperationalTests(unittest.TestCase):
 
     def test_memory_uniqueness_and_foreign_keys(self):
         with self.assertRaises(sqlite3.IntegrityError):
-            self.writer.execute("INSERT INTO crew_clinical_memory VALUES ('duplicate','crew_001','PREFERENCE','preferred_language','en',1,'user',1,1,1,'REAL')")
+            self.writer.execute("INSERT INTO crew_clinical_memory(memory_id,crew_id,fact_type,fact_key,fact_value,confidence,source_role,active,created_us,updated_us,data_class) VALUES ('duplicate','crew_001','PREFERENCE','preferred_language','en',1,'user',1,1,1,'REAL')")
         self.writer.rollback()
         with self.assertRaises(sqlite3.IntegrityError):
             self.writer.execute("INSERT INTO audit_log(ts_us,crew_id,event_type,details) VALUES (1,'unknown','event','{}')")
@@ -100,8 +104,25 @@ class OperationalTests(unittest.TestCase):
         with ClinicalRepository(self.path) as repo:
             with self.assertRaises(sqlite3.OperationalError):
                 repo.connection.execute("UPDATE crew_profiles SET name='not allowed'")
-            for days,count in [(3,3),(7,7),(30,7)]:
+            for days,count in [(3,3),(7,7),(30,30)]:
                 self.assertEqual(len(repo.rollups('crew_001',days)),count)
+            r1=repo.rollups('crew_001',30)
+            r2=repo.rollups('crew_002',30)
+            r3=repo.rollups('crew_003',30)
+            self.assertGreater(r1[0]['deep_sleep_h'],r1[-1]['deep_sleep_h'])
+            self.assertGreater(r1[0]['hrv_mean'],r1[-1]['hrv_mean'])
+            self.assertLess(r2[-1]['body_mass_kg'],r2[0]['body_mass_kg']-2.0)
+            self.assertLess(sum(x['energy_kcal_total'] for x in r2[-7:])/7,repo.crew('crew_002')['target_kcal_day'])
+            self.assertLess(abs(r3[-1]['body_mass_kg']-r3[0]['body_mass_kg']),0.3)
+            self.assertTrue(all(x['alerts_yellow_count']==0 for x in r3))
+            p1=repo.crew('crew_001')
+            self.assertIsNotNone(p1['target_kcal_day'])
+            self.assertIsNotNone(p1['radiation_career_limit_msv'])
+            self.assertIsNotNone(p1['motion_sickness_history'])
+            b1=self.writer.execute("SELECT per_posture_stats_json,resting_hr_mean,resting_hrv_mean,calib_window_start_us,calib_window_end_us FROM individual_baselines WHERE crew_id='crew_001'").fetchone()
+            posture_stats=json.loads(b1[0])
+            self.assertEqual(set(posture_stats),{'sitting','standing','supine','exercise'})
+            self.assertTrue(all(v is not None for v in b1[1:]))
             self.assertEqual(len(repo.protocol('amsler_grid')['rich_steps']),3)
             with self.assertRaises(ValueError):
                 repo.assess_fixture('crew_001',{})
@@ -118,14 +139,17 @@ class OperationalTests(unittest.TestCase):
             self.assertEqual(missing['matches'],[])
 
     def test_answered_questions_survive_reopening(self):
-        self.writer.execute("INSERT INTO crew_clinical_memory VALUES ('answered','crew_001','ANSWERED_TOPIC','SANS-Q1','yes',1,'user',1,1,1,'REAL')")
+        self.writer.execute("INSERT INTO crew_clinical_memory(memory_id,crew_id,fact_type,fact_key,fact_value,confidence,source_role,active,created_us,updated_us,data_class) VALUES ('answered','crew_001','ANSWERED_TOPIC','SANS-Q1','yes',1,'user',1,1,1,'REAL')")
         self.writer.commit()
         with ClinicalRepository(self.path) as repo:
             result=repo.assess_fixture('crew_001',{'amsler_abnormal':1},allow_engineering=True)
             self.assertEqual(result['matches'][0]['questions'],[])
 
     def test_dataset_synchronization_missingness_and_reproducibility(self):
-        for path,content in generator.build_outputs().items():
+        first=generator.build_outputs()
+        second=generator.build_outputs()
+        self.assertEqual(first,second)
+        for path,content in first.items():
             self.assertEqual((ROOT/path).read_bytes(),content.encode('utf-8'),path)
         csi=[json.loads(line) for line in (ROOT/'knowledge-base/datasets/synthetic_csi/samples.jsonl').read_text().splitlines()]
         with (ROOT/'knowledge-base/datasets/synthetic_peripherals/samples.csv').open() as stream:

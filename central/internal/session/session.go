@@ -69,9 +69,10 @@ type Manager struct {
 	loopCtx    context.Context
 	loopCancel context.CancelFunc
 
-	state            Snapshot
-	nextReqID        uint64
-	pendingSwapReply chan cmdReply
+	state               Snapshot
+	nextReqID           uint64
+	pendingSwapReply    chan cmdReply
+	activeChatSessionID string
 
 	swapsRequested atomic.Uint64
 	swapsCompleted atomic.Uint64
@@ -350,6 +351,25 @@ func (m *Manager) execSetCrew(cmd sessionCmd) {
 	m.state.CalibStepID = ""
 	m.publishSnapshot()
 
+	if csPort, ok := m.deps.Store.(interface {
+		StartChatSession(context.Context, string, string, int64) error
+		EndChatSession(context.Context, string, int64) error
+	}); ok {
+		nowUs := m.cfg.Now().UnixMicro()
+		if m.activeChatSessionID != "" {
+			if err := csPort.EndChatSession(cmd.ctx, m.activeChatSessionID, nowUs); err != nil {
+				slog.Warn("session: failed to end chat session", "session_id", m.activeChatSessionID, "err", err)
+			}
+			m.activeChatSessionID = ""
+		}
+		sessID := fmt.Sprintf("sess-%s-%d-%d", cmd.crewID, seq, nowUs)
+		if err := csPort.StartChatSession(cmd.ctx, sessID, cmd.crewID, nowUs); err != nil {
+			slog.Warn("session: failed to start chat session", "session_id", sessID, "crew_id", cmd.crewID, "err", err)
+		} else {
+			m.activeChatSessionID = sessID
+		}
+	}
+
 	if m.deps.IPC == nil {
 		st := m.crewStatePayload()
 		m.emitCrewState(st)
@@ -359,8 +379,10 @@ func (m *Manager) execSetCrew(cmd sessionCmd) {
 	}
 
 	m.pendingSwapReply = cmd.replyCh
+	profCopy := data.Profile
 	payload := contracts.SetActiveCrewPayload{
 		CrewID:       cmd.crewID,
+		Profile:      &profCopy,
 		BaselinePath: data.BaselinePath,
 		Thresholds:   cloneThresholds(data.Thresholds),
 	}
@@ -435,8 +457,10 @@ func (m *Manager) execReconnect() {
 		return
 	}
 	seq := m.state.SwapSeq
+	profCopy := m.state.Profile
 	payload := contracts.SetActiveCrewPayload{
 		CrewID:       m.state.ActiveCrewID,
+		Profile:      &profCopy,
 		BaselinePath: m.state.BaselinePath,
 		Thresholds:   cloneThresholds(m.state.Thresholds),
 	}

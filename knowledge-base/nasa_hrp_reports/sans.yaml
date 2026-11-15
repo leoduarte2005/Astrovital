@@ -33,7 +33,7 @@
     "Entrevista contextual e registros de qualidade.",
     "SELF_REPORT quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "SANS",
@@ -74,7 +74,7 @@
         "amsler_grid",
         "ultrasound_onsd"
       ],
-      "match_policy": "ALL",
+      "match_policy": "ANY",
       "model_status": "ENGINEERING_TEST_ONLY",
       "sensor_rules": [
         {
@@ -83,10 +83,29 @@
           "threshold_value": 1,
           "source_sensor": "SELF_REPORT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 4.8,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": "preflight_onsd_mm"
+        },
+        {
+          "metric": "onsd_mm",
+          "op": "DELTA_GT",
+          "threshold_value": 0.42,
+          "source_sensor": "SELF_EXAM",
+          "values_json": {
+            "baseline_field": "preflight_onsd_mm"
+          },
+          "likelihood_ratio": 4.2,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Aumento de ONSD sobre a linha de base individual (limiar 0.42 mm e LR 4.2 s?o fixtures de engenharia, sem valida??o cl?nica).",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": "preflight_onsd_mm"
         }
       ],
       "questions": [
@@ -99,7 +118,12 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "amsler_grid"
+          "linked_protocol_id": "amsler_grid",
+          "target_differential_ids": [
+            "HYPERCAPNIA",
+            "ONE_CARBON_METABOLISM",
+            "SLEEP_CIRCADIAN"
+          ]
         }
       ],
       "contraindications": [
@@ -108,9 +132,49 @@
           "guard_metric": "clinical_authorization",
           "guard_op": "EQ",
           "guard_value": 0,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: n?o iniciar suplementa??o direcionada sem autoriza??o cl?nica (clinical_authorization == 0) ap?s avalia??o ocular e de CO2."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "headache": 0.75,
+        "blurred_vision": 0.95,
+        "eye_pressure": 0.85,
+        "fluid_shift": 0.9,
+        "nasal_congestion": 0.65,
+        "facial_puffiness": 0.7,
+        "papilledema": 0.9
+      },
+      "differential_ids": [
+        "HYPERCAPNIA",
+        "ONE_CARBON_METABOLISM",
+        "SLEEP_CIRCADIAN",
+        "RADIATION_ACUTE"
+      ],
+      "expected_biomarkers": {
+        "SELF_EXAM": {
+          "amsler_abnormal": "metamorphopsia_or_scotoma_fixture",
+          "onsd_mm": "elevated_sheath_diameter_fixture"
+        },
+        "SCD40": {
+          "co2_ppm": "nominal_co2_helps_exclude_primary_hypercapnia"
+        },
+        "ESP32_CSI": {
+          "posture": "supine_or_prone_fluid_shift_context",
+          "anomaly_score": "elevated_vs_baseline_fixture"
+        },
+        "LONGITUDINAL": {
+          "mission_day": "prolonged_microgravity_exposure"
+        }
+      },
+      "severity_thresholds": {
+        "amsler_abnormal": {
+          "yellow_high": 1
+        },
+        "onsd_mm": {
+          "yellow_high": 5.0,
+          "red_high": 5.8
+        }
+      }
     }
   ],
   "research_countermeasures": [

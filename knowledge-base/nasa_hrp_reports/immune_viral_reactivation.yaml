@@ -28,7 +28,7 @@
     "Entrevista contextual e registros de qualidade.",
     "SELF_REPORT quando disponível; ausência permanece NULL."
   ],
-  "scientific_scope": "Referência de pesquisa/risco; não protocolo diagnóstico validado. Regras numéricas, priors e LRs são fixtures de engenharia.",
+  "scientific_scope": "Refer?ncia de pesquisa/risco; n?o protocolo diagn?stico validado. Regras num?ricas, priors, LRs, symptom_weights e severity_thresholds s?o fixtures de engenharia, n?o valida??o cl?nica.",
   "conditions": [
     {
       "condition_id": "IMMUNE_VIRAL_REACTIVATION",
@@ -72,10 +72,13 @@
           "threshold_value": 1,
           "source_sensor": "SELF_REPORT",
           "values_json": {},
-          "likelihood_ratio": 3.0,
+          "likelihood_ratio": 2.8,
           "severity_tier": "YELLOW",
           "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
-          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório."
+          "description": "Regra sintética de integração; requer validação clínica antes de uso decisório.",
+          "rule_scope": "INSTANT",
+          "window_hours": null,
+          "baseline_field": null
         }
       ],
       "questions": [
@@ -87,7 +90,11 @@
           ],
           "yes_likelihood": 0.85,
           "no_likelihood": 0.15,
-          "linked_protocol_id": "temperature"
+          "linked_protocol_id": "temperature",
+          "target_differential_ids": [
+            "SLEEP_CIRCADIAN",
+            "MICROBIOME_GI"
+          ]
         }
       ],
       "contraindications": [
@@ -96,9 +103,41 @@
           "guard_metric": "rash",
           "guard_op": "EQ",
           "guard_value": 1,
-          "rationale": "Guarda de segurança do protótipo; revisão clínica e autorização da missão são necessárias. O limiar 500 de ferritina é um requisito de teste, não diagnóstico ou recomendação de dose."
+          "rationale": "Guarda de seguran?a de engenharia: evitar compartilhamento de equipamento sem higieniza??o diante de erup??o cut?nea ativa (rash == 1) at? revis?o cl?nica."
         }
-      ]
+      ],
+      "symptom_weights": {
+        "rash_infection": 0.85,
+        "fever": 0.85,
+        "fatigue": 0.75,
+        "malaise": 0.75
+      },
+      "differential_ids": [
+        "SLEEP_CIRCADIAN",
+        "MICROBIOME_GI",
+        "RADIATION_ACUTE"
+      ],
+      "expected_biomarkers": {
+        "SELF_EXAM": {
+          "temp_c": "febrile_elevation_fixture",
+          "skin_lesion": "new_rash_or_vesicular_check"
+        },
+        "MAX30102": {
+          "hrv_ms": "reduced_autonomic_stress_fixture"
+        },
+        "LAB": {
+          "immune_markers": "latent_virus_or_inflammatory_panel"
+        },
+        "LONGITUDINAL": {
+          "sleep_duration_h": "prior_sleep_deprivation_context"
+        }
+      },
+      "severity_thresholds": {
+        "temp_c": {
+          "yellow_high": 37.5,
+          "red_high": 38.5
+        }
+      }
     }
   ],
   "legacy_reference": {

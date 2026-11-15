@@ -19,7 +19,7 @@ RESEARCH_DEMO_PATH ?= ./var/space_health_demo.db
 .PHONY: help contracts-validate firmware-build firmware-flash \
         db-migrate db-operational-validate db-operational-test db-intelligence-generate db-intelligence-check \
         frontend-build central-build central-run-mock edge-ai-setup edge-ai-run \
-        test-e2e-ai run run-win db-research-inventory db-research-queries db-research-validate \
+        test-e2e-ai slm-model run run-win db-research-inventory db-research-queries db-research-validate \
         db-research-demo db-research-import-physiology db-research-missingness db-research-test all clean
 
 help:
@@ -125,6 +125,12 @@ edge-ai-run:
 	@if [ -d edge-ai/src/edgespace_ai ] && [ -f edge-ai/requirements.txt ]; then cd edge-ai && \
 	PYTHONPATH=src ./.venv/bin/python -m edgespace_ai --listen 127.0.0.1:5006 --db ../$(DB_PATH); \
 	else echo "[pendente] worker edge-ai ainda não implementado"; fi
+
+slm-model:
+	@PY=edge-ai/.venv/bin/python; \
+	if [ ! -x "$$PY" ] && [ -x edge-ai/.venv/Scripts/python.exe ]; then PY=edge-ai/.venv/Scripts/python.exe; fi; \
+	if [ ! -x "$$PY" ]; then PY=$(PYTHON); fi; \
+	PYTHONPATH=edge-ai/src "$$PY" -m edgespace_ai.utils.model_fetch --models-dir edge-ai/models
 
 test-e2e-ai:
 	@PY=edge-ai/.venv/bin/python; \
