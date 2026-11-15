@@ -6,6 +6,7 @@ import { pickMockReply } from './chatReplies'
 import type { BaselineMetricId, BaselineProfile, HistorySeries, HistoryWindow } from '@/lib/model/baseline'
 import { baselineProfile, historySeries } from './baseline'
 import { suggestBooks, type Book } from './bookCatalog'
+import { CREW_LORE, type CrewLore } from './crewLore'
 import { MOCK_CREW } from './crew'
 import { simulateFrame } from './telemetry'
 
@@ -110,6 +111,10 @@ export class MockSource implements DataSource {
         CHAT_DELAY_MS,
       )
     })
+  }
+
+  listCrewLore(): Promise<CrewLore[]> {
+    return Promise.resolve(Object.values(CREW_LORE))
   }
 
   listBookSuggestions(crewId: string): Promise<Book[]> {

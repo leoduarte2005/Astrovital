@@ -1,0 +1,65 @@
+/* Fixed over the scene, bottom centre. The strip lets pointer events through; only the panel takes them. */
+.root {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: var(--space-5);
+  z-index: var(--z-drawer);
+  display: flex;
+  justify-content: center;
+  padding: 0 var(--space-4);
+  pointer-events: none;
+}
+
+/* A card of the kit: --bg surface, 1 px --ink border, --radius-md. */
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-width: min(100%, 28rem);
+  padding: var(--space-3) var(--space-5);
+  border: var(--border-thin) solid var(--ink);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  pointer-events: auto;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.month {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+}
+
+.number {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  color: var(--ink);
+}
+
+.period {
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+/* Tabular figures so the clock does not shift as it ticks. */
+.clock {
+  min-width: 9ch;
+  font-size: var(--text-sm);
+  font-variant-numeric: tabular-nums;
+  text-align: end;
+  color: var(--ink);
+}
+
+.slider {
+  width: 100%;
+  margin: 0;
+  cursor: pointer;
+}

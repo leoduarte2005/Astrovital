@@ -2,6 +2,7 @@ import type { CrewMember } from '@/lib/model/crew'
 import type { ChatReplyPayload, Envelope } from '@/lib/model/live'
 import type { BaselineMetricId, BaselineProfile, HistorySeries, HistoryWindow } from '@/lib/model/baseline'
 import type { Book } from './mock/bookCatalog'
+import type { CrewLore } from './mock/crewLore'
 
 /** The only way the UI reads data. MockSource (default) and LiveSource (WebSocket, then HTTP) share this shape. */
 export interface DataSource {
@@ -19,6 +20,11 @@ export interface DataSource {
   close(): void
   /** Asks the central to switch to this crew member (`SET_CREW`). The result arrives in `crewStateStore`. */
   setCrew(crewId: string): void
+  /**
+   * Lore of every crew member (fictional), for the training hangar simulation: behaviour, month by month, of the
+   * 24 months before the mission. Mock until the central provides it. Private fields stay inside; see crewLore.
+   */
+  listCrewLore(): Promise<CrewLore[]>
   /** Books suggested for the crew member (leisure). The central does not provide them yet: mock data for now. */
   listBookSuggestions(crewId: string): Promise<Book[]>
   /** The crew member's baseline, learned from the 24 months before the mission. Mock until the central provides it (Leva 2). */

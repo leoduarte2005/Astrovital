@@ -83,5 +83,7 @@ export function pickZone(crewId: CrewId, month: TrainingMonth, rand: () => numbe
     r -= w
     if (r <= 0) return zone
   }
-  return zones[zones.length - 1][0]
+  const last = zones[zones.length - 1]
+  if (!last) throw new Error(`Mês ${month} sem zonas na lore de ${crewId}`)
+  return last[0]
 }

@@ -1,0 +1,1 @@
+export { TrainingScene } from './TrainingScene'
