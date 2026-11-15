@@ -1,255 +1,255 @@
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": ["eye_pressure"], "split": "eval", "text": "bom dia, i feel colica na barriga e abdome dolorido, nao tenho eye pressure. sou alergico a dipirona"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou sentindo cramps in lower belly e colica na barriga"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "i have colica na barriga e abdome dolorido"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou sentindo cramps in lower belly"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, i have abdome dolorido e colica na barriga. sou alergico a dipirona"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": ["muscle_pain"], "split": "eval", "text": "hello, tenho cramps in lower belly, nao estou com leg pain"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, sinto abdome dolorido"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "sinto cramps in lower belly"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "i have cramps in lower belly. ja tive enjoo espacial"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, sinto cramps in lower belly e abdome dolorido"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": ["headache"], "split": "eval", "text": "oi, tenho colica na barriga, no cefaleia"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, tenho cramps in lower belly e abdome dolorido"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou sentindo abdome dolorido. tomo melatonina"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "i have abdome dolorido"}
-{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou com colica na barriga e cramps in lower belly"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": ["nausea"], "split": "eval", "text": "boa noite, estou com my vision feels blurry e enxergando tudo embacado, sem nausea. sou alergico a sulfa"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou sentindo vista meio fora de foco"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou com vista meio fora de foco e enxergando tudo embacado"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, tenho enxergando tudo embacado e my vision feels blurry"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "oi, tenho vista meio fora de foco e my vision feels blurry. ja tive enjoo espacial"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": ["dyspnea"], "split": "eval", "text": "hello, tenho enxergando tudo embacado, no ofegante"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "hello, sinto enxergando tudo embacado"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "oi, tenho enxergando tudo embacado"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou com vista meio fora de foco. tomo melatonina"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou sentindo vista meio fora de foco e enxergando tudo embacado"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "estou com my vision feels blurry e vista meio fora de foco, no constipation"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "ola, sinto enxergando tudo embacado"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "sinto my vision feels blurry. i am allergic to penicillin"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "ola, sinto enxergando tudo embacado"}
-{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "sinto my vision feels blurry"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "hello, i feel deep bone ache, nao tenho dor no ombro pos eva. sou alergico a sulfa"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel deep bone ache e dor profunda no quadril"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, tenho osso doendo"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "tenho deep bone ache"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel dor profunda no quadril. i am allergic to penicillin"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "oi, i have dor profunda no quadril e osso doendo, no estufamento"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, i feel deep bone ache"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, tenho dor profunda no quadril"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have osso doendo e dor profunda no quadril. ja tive enjoo espacial"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "oi, i feel deep bone ache e osso doendo"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": ["flank_pain"], "split": "eval", "text": "bom dia, sinto deep bone ache, no kidney pain"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, tenho deep bone ache"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou sentindo dor profunda no quadril e osso doendo. tomo melatonina"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "tenho dor profunda no quadril"}
-{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, tenho deep bone ache e dor profunda no quadril"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": ["photophobia"], "split": "eval", "text": "oi, sinto cabeca girando, no sensibilidade a luz. ja tive enjoo espacial"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "oi, i feel fiquei meio tonto"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "hello, sinto cabeca girando"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "i have feeling lightheaded e fiquei meio tonto"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel fiquei meio tonto. i am allergic to penicillin"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": ["bone_pain"], "split": "eval", "text": "hello, estou sentindo fiquei meio tonto, nao estou com dor ossea"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou com feeling lightheaded"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "i have sensacao de desequilibrio"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "sinto feeling lightheaded. ja tive enjoo espacial"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "ola, sinto cabeca girando"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": ["insomnia"], "split": "eval", "text": "bom dia, i feel cabeca girando, sem insomnia"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou sentindo feeling lightheaded"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "sinto cabeca girando. tomo melatonina"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "ola, tenho cabeca girando"}
-{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "ola, i feel fiquei meio tonto"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": ["rash_infection"], "split": "eval", "text": "ola, tenho ar nao entra direito e hard to catch my breath, sem lesao na pele. i am allergic to penicillin"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "ola, tenho respiracao curta e hard to catch my breath"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou sentindo ar nao entra direito e respiracao curta"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "i have respiracao curta e ar nao entra direito"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou sentindo ar nao entra direito e hard to catch my breath. sou alergico a sulfa"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "hello, i feel hard to catch my breath, nao tenho constipation"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have hard to catch my breath e ar nao entra direito"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i have respiracao curta e ar nao entra direito"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou com respiracao curta. ja tive enjoo espacial"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "ola, sinto hard to catch my breath"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "bom dia, i feel ar nao entra direito, sem dor nas articulacoes"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "i have respiracao curta"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "tenho ar nao entra direito e respiracao curta. sou alergico a dipirona"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, tenho respiracao curta e ar nao entra direito"}
-{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "sinto hard to catch my breath"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "boa noite, sinto eyes hurt behind sockets e olhos pesados e pressionados, sem constipacao. i am allergic to penicillin"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou sentindo eyes hurt behind sockets e fundo do olho doendo"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou sentindo eyes hurt behind sockets"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou com olhos pesados e pressionados"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou com fundo do olho doendo. sou alergico a sulfa"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "boa noite, estou sentindo fundo do olho doendo e eyes hurt behind sockets, nao estou com constipation"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, sinto fundo do olho doendo e olhos pesados e pressionados"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "i feel fundo do olho doendo"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou com fundo do olho doendo. sou alergico a dipirona"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "i have eyes hurt behind sockets"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": ["insomnia"], "split": "eval", "text": "ola, tenho olhos pesados e pressionados e fundo do olho doendo, nao tenho cant sleep"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have fundo do olho doendo"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "estou com fundo do olho doendo e olhos pesados e pressionados. tomo melatonina"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "tenho fundo do olho doendo"}
-{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "ola, i feel eyes hurt behind sockets e fundo do olho doendo"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "oi, estou sentindo corpo esgotado e cansado demais, nao estou com constipation. sou alergico a sulfa"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "tenho cansado demais"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou sentindo worn out and tired"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou com worn out and tired e corpo esgotado"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "oi, tenho cansado demais e worn out and tired. i am allergic to penicillin"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": ["flank_pain"], "split": "eval", "text": "oi, estou com worn out and tired, nao tenho flank pain"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i have corpo esgotado e worn out and tired"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hello, tenho worn out and tired"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "oi, sinto worn out and tired. ja tive enjoo espacial"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hello, sinto worn out and tired"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": ["abdominal_pain"], "split": "eval", "text": "estou com cansado demais, no stomach pain"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, tenho worn out and tired e corpo esgotado"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou sentindo corpo esgotado e cansado demais. i am allergic to penicillin"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i feel worn out and tired"}
-{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, tenho corpo esgotado e cansado demais"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "bom dia, tenho fisgada na lateral lombar, nao estou com palpitacao. tomo melatonina"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, sinto sharp side lower back pain"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou sentindo dor nas costas do lado direito perto do rim"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou com sharp side lower back pain"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou com dor nas costas do lado direito perto do rim e fisgada na lateral lombar. sou alergico a sulfa"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": ["dizziness"], "split": "eval", "text": "oi, estou com fisgada na lateral lombar, nao tenho vertigem"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i have sharp side lower back pain"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "i feel sharp side lower back pain e dor nas costas do lado direito perto do rim"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "oi, tenho sharp side lower back pain e dor nas costas do lado direito perto do rim. ja tive enjoo espacial"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel dor nas costas do lado direito perto do rim"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": ["headache"], "split": "eval", "text": "boa noite, estou com sharp side lower back pain, nao estou com dor de cabeca"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou com sharp side lower back pain e fisgada na lateral lombar"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "i have fisgada na lateral lombar. ja tive enjoo espacial"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have fisgada na lateral lombar"}
-{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, i have dor nas costas do lado direito perto do rim"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": ["fatigue"], "split": "eval", "text": "estou sentindo barriga estufada, nao tenho exhaustion. ja tive enjoo espacial"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "estou com intestino preso"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "sinto digestion slowed down"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "estou sentindo intestino preso"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "oi, i have digestion slowed down e barriga estufada. ja tive enjoo espacial"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": ["photophobia"], "split": "eval", "text": "bom dia, sinto digestion slowed down, no photophobia"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "ola, i have barriga estufada"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "hello, sinto intestino preso e barriga estufada"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "sinto digestion slowed down. sou alergico a dipirona"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "sinto digestion slowed down"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": ["bone_pain"], "split": "eval", "text": "hello, sinto digestion slowed down e barriga estufada, nao estou com dor ossea"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "i feel barriga estufada"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "hello, tenho barriga estufada e intestino preso. i am allergic to penicillin"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, i have barriga estufada"}
-{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, tenho barriga estufada"}
-{"expected_concepts": ["headache"], "forbidden_concepts": ["muscle_pain"], "split": "eval", "text": "oi, tenho enxaqueca forte, no dor nas pernas. sou alergico a dipirona"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "estou sentindo enxaqueca forte e cabeca latejando"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou com cabeca pulsando de dor"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, tenho cabeca pulsando de dor e pounding headache"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, tenho cabeca latejando e enxaqueca forte. sou alergico a sulfa"}
-{"expected_concepts": ["headache"], "forbidden_concepts": ["dyspnea"], "split": "eval", "text": "ola, i have cabeca pulsando de dor, nao tenho ofegante"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou sentindo pounding headache"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel cabeca latejando"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "i have enxaqueca forte. tomo melatonina"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "ola, i feel pounding headache e cabeca pulsando de dor"}
-{"expected_concepts": ["headache"], "forbidden_concepts": ["rash_infection"], "split": "eval", "text": "boa noite, tenho cabeca latejando, nao estou com erupcao na pele"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou com enxaqueca forte"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "oi, i have cabeca pulsando de dor e enxaqueca forte. i am allergic to penicillin"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou com cabeca latejando"}
-{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "oi, sinto cabeca latejando e enxaqueca forte"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "boa noite, estou com sono picado e trouble falling asleep, nao tenho tontura ao levantar. sou alergico a sulfa"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "estou com dormi pouco"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou sentindo trouble falling asleep e sono picado"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "hello, tenho sono picado"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "i have acordando varias vezes. sou alergico a dipirona"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": ["dyspnea"], "split": "eval", "text": "sinto trouble falling asleep e acordando varias vezes, no shortness of breath"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel acordando varias vezes"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou com acordando varias vezes"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "oi, i have trouble falling asleep. sou alergico a sulfa"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou com acordando varias vezes"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": ["fatigue"], "split": "eval", "text": "hello, sinto acordando varias vezes e dormi pouco, no exaustao"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "oi, tenho dormi pouco"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, i feel trouble falling asleep e acordando varias vezes. sou alergico a dipirona"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou sentindo acordando varias vezes"}
-{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou sentindo trouble falling asleep e acordando varias vezes"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": ["dizziness"], "split": "eval", "text": "ola, i have junta doendo, sem vertigem. i am allergic to penicillin"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, tenho joint ache in shoulder"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou sentindo junta doendo"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "oi, tenho joint ache in shoulder"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i have junta doendo. ja tive enjoo espacial"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": ["bone_pain"], "split": "eval", "text": "hello, i have joint ache in shoulder, nao tenho dor ossea"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "sinto joint ache in shoulder"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, i feel knee joint soreness"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, tenho knee joint soreness. ja tive enjoo espacial"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, sinto junta doendo"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": ["blurred_vision"], "split": "eval", "text": "hello, estou sentindo joint ache in shoulder e junta doendo, nao estou com blurred vision"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel knee joint soreness e junta doendo"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have knee joint soreness e junta doendo. sou alergico a sulfa"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou com knee joint soreness"}
-{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou sentindo joint ache in shoulder"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": ["fatigue"], "split": "eval", "text": "bom dia, sinto coxa doendo apos treino e musculo travado e dolorido, nao estou com fatigue. sou alergico a dipirona"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou sentindo coxa doendo apos treino e musculo travado e dolorido"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, i have sore calf muscles"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou com musculo travado e dolorido"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel coxa doendo apos treino. sou alergico a sulfa"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": ["bone_pain"], "split": "eval", "text": "oi, i have coxa doendo apos treino, nao estou com dor nos ossos"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou sentindo coxa doendo apos treino"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "ola, i feel coxa doendo apos treino e sore calf muscles"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, tenho musculo travado e dolorido. sou alergico a sulfa"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i have sore calf muscles"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": ["fatigue"], "split": "eval", "text": "ola, tenho sore calf muscles e coxa doendo apos treino, sem exhaustion"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, sinto musculo travado e dolorido"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, sinto sore calf muscles. i am allergic to penicillin"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "tenho musculo travado e dolorido e sore calf muscles"}
-{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i feel sore calf muscles"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": ["fatigue"], "split": "eval", "text": "tenho ansia de vomito, nao estou com exhaustion. ja tive enjoo espacial"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "oi, i have ansia de vomito"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou sentindo feeling nauseous e ansia de vomito"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "ola, i feel ansia de vomito e enjoado no modulo"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, sinto ansia de vomito. i am allergic to penicillin"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": ["eye_pressure"], "split": "eval", "text": "ola, sinto enjoado no modulo, sem pressao ocular"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "oi, sinto enjoado no modulo e feeling nauseous"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou com estomago embrulhado"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "i feel ansia de vomito. ja tive enjoo espacial"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, i feel estomago embrulhado e ansia de vomito"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "ola, estou com estomago embrulhado, nao estou com bloating"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou com ansia de vomito"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou sentindo estomago embrulhado e enjoado no modulo. tomo melatonina"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "oi, i have feeling nauseous e ansia de vomito"}
-{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel estomago embrulhado"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": ["dizziness"], "split": "eval", "text": "ola, sinto orthostatic lightheadedness, sem dizziness. tomo melatonina"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, sinto vista escurece quando fico de pe"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "oi, tenho orthostatic lightheadedness"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "oi, sinto orthostatic lightheadedness e vista escurece quando fico de pe"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "ola, tenho dizzy when standing up. sou alergico a sulfa"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": ["insomnia"], "split": "eval", "text": "oi, estou com vista escurece quando fico de pe, sem insonia"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, i feel dizzy when standing up e vista escurece quando fico de pe"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i have orthostatic lightheadedness e dizzy when standing up"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, i feel dizzy when standing up. sou alergico a dipirona"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "estou sentindo vista escurece quando fico de pe e orthostatic lightheadedness"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": ["dyspnea"], "split": "eval", "text": "ola, sinto dizzy when standing up, no ofegante"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou sentindo dizzy when standing up e orthostatic lightheadedness"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, tenho dizzy when standing up. sou alergico a sulfa"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, i feel dizzy when standing up"}
-{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou sentindo orthostatic lightheadedness"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": ["insomnia"], "split": "eval", "text": "bom dia, estou sentindo olhos doem com a luz da cabine e bright cabin light hurts my eyes, nao tenho cant sleep. sou alergico a dipirona"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou com claridade incomoda muito"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "i have olhos doem com a luz da cabine e bright cabin light hurts my eyes"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "oi, estou com claridade incomoda muito"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou sentindo olhos doem com a luz da cabine. ja tive enjoo espacial"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": ["fatigue"], "split": "eval", "text": "ola, tenho claridade incomoda muito, nao estou com exaustao"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou sentindo claridade incomoda muito e olhos doem com a luz da cabine"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, estou com bright cabin light hurts my eyes"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "ola, estou sentindo bright cabin light hurts my eyes. i am allergic to penicillin"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "i have bright cabin light hurts my eyes e claridade incomoda muito"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": ["nausea"], "split": "eval", "text": "oi, tenho olhos doem com a luz da cabine, sem queasy"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou com olhos doem com a luz da cabine"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou sentindo olhos doem com a luz da cabine. sou alergico a dipirona"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "ola, i have olhos doem com a luz da cabine e claridade incomoda muito"}
-{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "ola, i have bright cabin light hurts my eyes"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": ["fatigue"], "split": "eval", "text": "ola, i have irritacao cutanea e skin irritation and hives, sem exhaustion. ja tive enjoo espacial"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "ola, sinto skin irritation and hives"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "ola, tenho skin irritation and hives"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou com manchas vermelhas na pele"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "boa noite, tenho irritacao cutanea. sou alergico a dipirona"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "hello, estou com irritacao cutanea, sem dor articular"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "hello, estou com skin irritation and hives"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "ola, i feel irritacao cutanea e skin irritation and hives"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, estou sentindo irritacao cutanea. tomo melatonina"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "i have manchas vermelhas na pele"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": ["insomnia"], "split": "eval", "text": "bom dia, estou com irritacao cutanea, nao estou com insonia"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel skin irritation and hives"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "tenho manchas vermelhas na pele. i am allergic to penicillin"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "hello, sinto manchas vermelhas na pele"}
-{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "bom dia, sinto irritacao cutanea e skin irritation and hives"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": ["muscle_pain"], "split": "eval", "text": "hello, experiencing abdominal discomfort and cramps in lower belly, without muscle pain. i am allergic to penicillin"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing stomach cramps"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "i'm having stomach cramps"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having abdominal discomfort"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel abdominal discomfort. i am allergic to dipyrone"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": ["nausea"], "split": "eval", "text": "good evening, i'm having abdominal discomfort, no queasy"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having abdominal discomfort"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, i have cramps in lower belly and stomach cramps"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing cramps in lower belly and abdominal discomfort. i have a history of space motion sickness"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel abdominal discomfort"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "experiencing stomach cramps and abdominal discomfort, not having constipated"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having stomach cramps"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel abdominal discomfort. i take melatonin"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel cramps in lower belly"}
+{"expected_concepts": ["abdominal_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having abdominal discomfort and stomach cramps"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": ["nausea"], "split": "eval", "text": "i have my vision feels blurry, without nausea. i have a history of space motion sickness"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having my vision feels blurry and vision feels out of focus"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "i feel my vision feels blurry"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing my vision feels blurry and everything looks out of focus"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing my vision feels blurry and everything looks out of focus. i have a history of space motion sickness"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "hello, i have everything looks out of focus, not having sore joints"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel my vision feels blurry"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel my vision feels blurry"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing vision feels out of focus. i am allergic to dipyrone"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "hi, i'm having vision feels out of focus and my vision feels blurry"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": ["photophobia"], "split": "eval", "text": "i'm having my vision feels blurry, without photophobia"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i have vision feels out of focus"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having everything looks out of focus. i have a history of space motion sickness"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "experiencing everything looks out of focus and my vision feels blurry"}
+{"expected_concepts": ["blurred_vision"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel vision feels out of focus"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": ["gi_slowdown"], "split": "eval", "text": "hello, i feel aching bones, no bloating. i am allergic to penicillin"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing aching bones"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel aching bones"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel aching bones"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "i feel deep bone ache and aching bones. i take melatonin"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": ["blurred_vision"], "split": "eval", "text": "good evening, i have deep bone ache, without blurry vision"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i have deep hip bone ache and deep bone ache"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "experiencing deep hip bone ache"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel deep hip bone ache and aching bones. i am allergic to sulfa"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing aching bones"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": ["fatigue"], "split": "eval", "text": "i feel deep hip bone ache and aching bones, no fatigue"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having aching bones"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing deep bone ache. i am allergic to dipyrone"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing deep hip bone ache"}
+{"expected_concepts": ["bone_pain"], "forbidden_concepts": [], "split": "eval", "text": "i'm having deep hip bone ache"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": ["rash_infection"], "split": "eval", "text": "hello, experiencing feeling unsteady, not having itchy rash. i am allergic to sulfa"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel spinning sensation"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing spinning sensation and feeling lightheaded"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "i have feeling lightheaded"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "hi, i'm having room spinning. i am allergic to sulfa"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": ["insomnia"], "split": "eval", "text": "hello, i have spinning sensation, not having can't sleep"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have feeling unsteady and spinning sensation"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel room spinning"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have feeling unsteady. i have a history of space motion sickness"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "i'm having feeling lightheaded"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "i feel feeling lightheaded and room spinning, no orthostatic dizziness"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel feeling unsteady and spinning sensation"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "hi, i have feeling unsteady and spinning sensation. i take melatonin"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel feeling unsteady"}
+{"expected_concepts": ["dizziness"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel feeling unsteady"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": ["rash_infection"], "split": "eval", "text": "good evening, i feel winded and breathless, without skin lesion. i take melatonin"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i have winded and breathless"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel labored breathing"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i have hard to catch my breath"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "experiencing hard to catch my breath. i am allergic to penicillin"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "good evening, i'm having air hunger and winded and breathless, no palpitations"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing air hunger and hard to catch my breath"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel air hunger"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "i feel winded and breathless and hard to catch my breath. i am allergic to dipyrone"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have hard to catch my breath"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": ["nausea"], "split": "eval", "text": "experiencing labored breathing, no upset stomach"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel winded and breathless"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i'm having hard to catch my breath and air hunger. i am allergic to dipyrone"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing winded and breathless"}
+{"expected_concepts": ["dyspnea"], "forbidden_concepts": [], "split": "eval", "text": "i feel winded and breathless"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": ["dizziness"], "split": "eval", "text": "good morning, i feel retro orbital pain, no vertigo. i have a history of space motion sickness"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "i'm having eyes hurt behind sockets"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "i'm having retro orbital pain"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hi, i'm having eyes feel heavy and pressured"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "i feel eyes feel heavy and pressured. i am allergic to penicillin"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": ["abdominal_pain"], "split": "eval", "text": "good evening, i feel retro orbital pain, not having abdominal pain"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing retro orbital pain"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having eyes hurt behind sockets"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "i'm having eyes feel heavy and pressured. i am allergic to dipyrone"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing eyes feel heavy and pressured and eyes hurt behind sockets"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": ["photophobia"], "split": "eval", "text": "hello, i have eyes hurt behind sockets, without looking at the light"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have retro orbital pain and eyes feel heavy and pressured"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "i'm having eyes hurt behind sockets. i am allergic to penicillin"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing eyes hurt behind sockets"}
+{"expected_concepts": ["eye_pressure"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel eyes feel heavy and pressured"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": ["insomnia"], "split": "eval", "text": "good morning, experiencing low stamina and worn out and tired, without sleep deprivation. i have a history of space motion sickness"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having low stamina"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i'm having low stamina and feeling drained"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having feeling drained and low stamina"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hi, i'm having low stamina and worn out and tired. i take melatonin"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "good evening, i feel low stamina, not having palpitations"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have extreme tiredness"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i'm having extreme tiredness and low stamina"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having low stamina. i am allergic to dipyrone"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing feeling drained and low stamina"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "hello, i have worn out and tired, no joint pain"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing low stamina"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing worn out and tired. i am allergic to dipyrone"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing extreme tiredness"}
+{"expected_concepts": ["fatigue"], "forbidden_concepts": [], "split": "eval", "text": "hi, i have worn out and tired and low stamina"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "good morning, i have sharp side lower back pain, not having dizzy when standing. i take melatonin"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "i feel side flank ache and sharp side lower back pain"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have pain radiating to groin"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having pain radiating to groin"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing pain radiating to groin and side flank ache. i am allergic to sulfa"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": ["eye_pressure"], "split": "eval", "text": "hello, i have side flank ache and sharp side lower back pain, no ocular pressure"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing sharp side lower back pain and pain radiating to groin"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel side flank ache"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having sharp side lower back pain. i take melatonin"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having sharp side lower back pain"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": ["nausea"], "split": "eval", "text": "good morning, i feel sharp side lower back pain and pain radiating to groin, without upset stomach"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel sharp side lower back pain"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing side flank ache and pain radiating to groin. i have a history of space motion sickness"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, i have pain radiating to groin and side flank ache"}
+{"expected_concepts": ["flank_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel sharp side lower back pain"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "good evening, i feel stomach bloating and digestion slowed down, not having orthostatic dizziness. i am allergic to sulfa"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing sluggish digestion and stomach bloating"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "i have digestion slowed down"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing stomach bloating and digestion slowed down"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel digestion slowed down. i am allergic to dipyrone"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": ["rash_infection"], "split": "eval", "text": "good morning, i have stomach bloating, no skin rash"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having sluggish digestion"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "i have digestion slowed down"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have sluggish digestion. i am allergic to sulfa"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing sluggish digestion and stomach bloating"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "hi, i feel sluggish digestion, no sore joints"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel sluggish digestion"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing digestion slowed down. i am allergic to penicillin"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing sluggish digestion and digestion slowed down"}
+{"expected_concepts": ["gi_slowdown"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel stomach bloating"}
+{"expected_concepts": ["headache"], "forbidden_concepts": ["rash_infection"], "split": "eval", "text": "experiencing pressure in my head, no skin lesion. i am allergic to sulfa"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "i feel pressure in my head and throbbing headache"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "experiencing throbbing head pain"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having throbbing head pain and throbbing headache"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having throbbing headache. i am allergic to penicillin"}
+{"expected_concepts": ["headache"], "forbidden_concepts": ["abdominal_pain"], "split": "eval", "text": "good morning, experiencing pounding headache, without stomach ache"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel pounding headache"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have throbbing head pain and pressure in my head"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "i have throbbing headache. i am allergic to dipyrone"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "experiencing pressure in my head"}
+{"expected_concepts": ["headache"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "good evening, i have pressure in my head, without presyncope"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing pounding headache"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "i feel throbbing head pain. i take melatonin"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel pressure in my head"}
+{"expected_concepts": ["headache"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having throbbing headache and pressure in my head"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": ["eye_pressure"], "split": "eval", "text": "hello, i'm having trouble falling asleep, without ocular pressure. i am allergic to penicillin"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing fragmented sleep"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "hi, i'm having trouble falling asleep"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing trouble falling asleep and fragmented sleep"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "i have trouble falling asleep and waking up often. i am allergic to penicillin"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": ["dizziness"], "split": "eval", "text": "good morning, i'm having trouble falling asleep and barely slept, no dizzy"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "hi, i have barely slept and waking up often"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "hi, i have fragmented sleep"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing fragmented sleep. i have a history of space motion sickness"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having fragmented sleep and trouble falling asleep"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "hi, experiencing fragmented sleep and trouble falling asleep, no presyncope"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "experiencing barely slept"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "i have fragmented sleep. i am allergic to dipyrone"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i'm having waking up often"}
+{"expected_concepts": ["insomnia"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing trouble falling asleep"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": ["rash_infection"], "split": "eval", "text": "good evening, experiencing knee joint soreness and decompression joint pain, not having rash. i am allergic to sulfa"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "i'm having decompression joint pain"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "i'm having knee joint soreness and decompression joint pain"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel decompression joint pain and joint ache in shoulder"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel knee joint soreness. i have a history of space motion sickness"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": ["orthostatic_intolerance"], "split": "eval", "text": "hello, i'm having joint ache in shoulder and knee joint soreness, not having palpitations"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "experiencing knee joint soreness"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have decompression joint pain"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing knee joint soreness. i have a history of space motion sickness"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i'm having knee joint soreness"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": ["abdominal_pain"], "split": "eval", "text": "hello, i'm having joint ache in shoulder, not having stomach pain"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i have knee joint soreness"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having joint ache in shoulder. i am allergic to dipyrone"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having joint ache in shoulder"}
+{"expected_concepts": ["joint_pain"], "forbidden_concepts": [], "split": "eval", "text": "i feel decompression joint pain and knee joint soreness"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": ["flank_pain"], "split": "eval", "text": "good morning, experiencing sore calf muscles and muscle ache, no renal colic. i have a history of space motion sickness"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i'm having muscle ache and sore calf muscles"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel muscle ache and thigh ache after exercise"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have thigh ache after exercise"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "i have muscle ache and sore calf muscles. i take melatonin"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "hello, i have thigh ache after exercise, without sore joints"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having thigh ache after exercise"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have muscle ache and sore calf muscles"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel thigh ache after exercise. i am allergic to penicillin"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing muscle ache"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": ["headache"], "split": "eval", "text": "i'm having muscle ache and sore calf muscles, without headaches"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing muscle ache"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "hi, i'm having thigh ache after exercise and sore calf muscles. i take melatonin"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel sore calf muscles and muscle ache"}
+{"expected_concepts": ["muscle_pain"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel muscle ache"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": ["eye_pressure"], "split": "eval", "text": "good morning, i feel sick to my stomach and persistent nausea, not having ocular pressure. i am allergic to sulfa"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel motion queasiness"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have motion queasiness"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "i have sick to my stomach"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing feeling nauseous and motion queasiness. i am allergic to dipyrone"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": ["dizziness"], "split": "eval", "text": "good morning, i feel feeling nauseous and sick to my stomach, no dizziness"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "i have feeling nauseous and sick to my stomach"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i feel feeling nauseous and sick to my stomach"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing persistent nausea. i am allergic to sulfa"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have persistent nausea"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": ["blurred_vision"], "split": "eval", "text": "hello, experiencing persistent nausea and feeling nauseous, no blurred vision"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing motion queasiness"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing persistent nausea and feeling nauseous. i take melatonin"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "hello, i feel feeling nauseous"}
+{"expected_concepts": ["nausea"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having feeling nauseous"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": ["nausea"], "split": "eval", "text": "good evening, i have vision darkens when standing, not having upset stomach. i take melatonin"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i'm having vision darkens when standing"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "i have dizzy when standing up"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i'm having orthostatic lightheadedness and vision darkens when standing"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing orthostatic lightheadedness. i am allergic to dipyrone"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "hi, i'm having dizzy when standing up, without sore joints"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "hello, i'm having dizzy when standing up"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "hi, i'm having orthostatic lightheadedness"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "i feel vision darkens when standing. i have a history of space motion sickness"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "i'm having vision darkens when standing"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": ["bone_pain"], "split": "eval", "text": "hi, i'm having orthostatic lightheadedness and vision darkens when standing, without bone ache"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing orthostatic lightheadedness"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "hi, experiencing dizzy when standing up. i have a history of space motion sickness"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i have orthostatic lightheadedness and dizzy when standing up"}
+{"expected_concepts": ["orthostatic_intolerance"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing vision darkens when standing and dizzy when standing up"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": ["eye_pressure"], "split": "eval", "text": "i'm having eyes hurt with light and bright cabin light hurts my eyes, without pain behind eyes. i am allergic to dipyrone"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing eyes hurt with light and bright cabin light hurts my eyes"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "good morning, experiencing bright light discomfort"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel bright cabin light hurts my eyes"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "i have bright light discomfort. i am allergic to dipyrone"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": ["blurred_vision"], "split": "eval", "text": "good evening, i have bright light discomfort, not having visual distortion"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have eyes hurt with light"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel eyes hurt with light"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hello, i have bright cabin light hurts my eyes. i have a history of space motion sickness"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing eyes hurt with light"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": ["rash_infection"], "split": "eval", "text": "good evening, i feel bright light discomfort, without rash"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "i have bright light discomfort"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing bright light discomfort. i take melatonin"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hi, i have bright cabin light hurts my eyes"}
+{"expected_concepts": ["photophobia"], "forbidden_concepts": [], "split": "eval", "text": "hi, i have eyes hurt with light and bright cabin light hurts my eyes"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": ["photophobia"], "split": "eval", "text": "hello, i'm having skin irritation, no sensitive to light. i have a history of space motion sickness"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i have skin irritation and red spots on skin"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "hi, i'm having red spots on skin and skin irritation"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "experiencing skin irritation"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have skin irritation. i am allergic to dipyrone"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": ["dyspnea"], "split": "eval", "text": "hi, i have skin irritation, no shortness of breath"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "good evening, experiencing skin irritation and hives"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "i feel skin irritation and red spots on skin"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "good evening, i have red spots on skin. i have a history of space motion sickness"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "i'm having skin irritation and red spots on skin"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": ["joint_pain"], "split": "eval", "text": "good morning, i feel red spots on skin, not having sore joints"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i feel red spots on skin"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "good morning, i have skin irritation and red spots on skin. i am allergic to sulfa"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "hello, experiencing skin irritation and hives"}
+{"expected_concepts": ["rash_infection"], "forbidden_concepts": [], "split": "eval", "text": "hi, i feel skin irritation"}

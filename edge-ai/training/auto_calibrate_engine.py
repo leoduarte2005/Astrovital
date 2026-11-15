@@ -41,24 +41,19 @@ from edgespace_ai.ipc.protocol import (
 from eval_clinical import apply_real_migrations, eval_golden_cases
 
 _NON_CLINICAL_PROBES = (
-    "ola",
-    "bom dia",
-    "estou com dor",
-    "preciso de ajuda",
-    "nao estou me sentindo muito bem",
-    "tudo bem por aqui",
+    "hello",
+    "good morning",
+    "i am in pain",
+    "i need help",
+    "i am not feeling very well",
+    "all good here",
 )
 
 
 def mine_synonyms(existing_path: Path, nlu_train_path: Path | None) -> dict[str, Any]:
-    """Audit and expand clinical_synonyms.json from NASA reports + nlu_train without collisions."""
+    """Audit and expand English clinical_synonyms.json from NASA reports + nlu_train without collisions."""
     synonyms: dict[str, list[str]] = {}
-    if existing_path.is_file():
-        raw = json.loads(existing_path.read_text(encoding="utf-8"))
-        for k, v in (raw.get("synonyms") or {}).items():
-            synonyms[str(k)] = list(dict.fromkeys(_normalize_text(str(x)) for x in v if str(x).strip()))
-
-    # Pull clean report symptom phrases whose concept is uniquely identifiable
+    # Start from clean English additions; rebuild without legacy non-English clutter.
     base_phrases = {c: set(p) for c, p in SYMPTOM_LEXICON.items()}
     ext = SymptomExtractor()
     rejected: list[dict[str, str]] = []
@@ -69,7 +64,6 @@ def mine_synonyms(existing_path: Path, nlu_train_path: Path | None) -> dict[str,
             return
         if norm in base_phrases[concept] or norm in synonyms.get(concept, []):
             return
-        # Reject if phrase fires a non-clinical probe or maps to a conflicting concept
         for probe in _NON_CLINICAL_PROBES:
             if norm == probe or norm in probe:
                 rejected.append({"concept": concept, "phrase": norm, "reason": "non_clinical_probe"})
@@ -80,7 +74,6 @@ def mine_synonyms(existing_path: Path, nlu_train_path: Path | None) -> dict[str,
             return
         synonyms.setdefault(concept, []).append(norm)
 
-    # Also mine missed concepts from nlu_train.jsonl if present
     if nlu_train_path is not None and nlu_train_path.is_file():
         for line in nlu_train_path.read_text(encoding="utf-8").splitlines():
             if not line.strip():
@@ -90,25 +83,31 @@ def mine_synonyms(existing_path: Path, nlu_train_path: Path | None) -> dict[str,
             if len(exp) == 1:
                 got = set(ext.extract(row["text"]).concepts)
                 if exp[0] not in got:
-                    # Extract stripped phrase candidate after common leads
                     cleaned = _normalize_text(row["text"])
-                    for lead in ("estou com ", "estou sentindo ", "tenho ", "sinto ", "i have ", "i feel "):
+                    for lead in ("i have ", "i feel ", "i'm having ", "experiencing "):
                         if lead in cleaned:
                             cand = cleaned.split(lead, 1)[1].split(",")[0].split(".")[0].strip()
                             _try_add(exp[0], cand)
 
-    # Curated NASA HRP/CSA synonyms not yet in SYMPTOM_LEXICON
+    # Curated English NASA HRP/CSA synonyms
     nasa_additions = {
-        "headache": ("pressao intracraniana", "frontal headache", "throbbing head"),
-        "photophobia": ("sensibilidade ocular a luz", "bright light discomfort"),
-        "dizziness": ("vertigem postural", "sensacao de desmaio"),
-        "dyspnea": ("fome de ar", "air hunger", "labored breathing"),
-        "nausea": ("enjoo vestibular", "nausea persistente"),
-        "insomnia": ("sono fragmentado", "fragmented sleep"),
-        "flank_pain": ("dor lombar lateral", "renal colic pain"),
-        "joint_pain": ("dor articular pos eva", "decompression joint pain"),
-        "orthostatic_intolerance": ("pre sincope ortostatica", "intolerancia ao ortostatismo"),
-        "eye_pressure": ("tensao ocular", "retro orbital pain"),
+        "abdominal_pain": ("abdominal discomfort", "cramps in lower belly", "epigastric discomfort"),
+        "blurred_vision": ("vision feels blurry", "everything looks out of focus", "unfocused vision"),
+        "bone_pain": ("deep bone ache", "deep hip ache"),
+        "dizziness": ("room spinning", "feeling lightheaded", "postural vertigo", "unsteady balance"),
+        "dyspnea": ("air hunger", "hard to catch my breath", "labored breathing", "winded and breathless"),
+        "eye_pressure": ("eyes hurt behind sockets", "ocular tightness", "retro orbital pain", "heavy eye strain"),
+        "fatigue": ("low stamina", "worn out and tired", "extreme weariness"),
+        "flank_pain": ("renal colic pain", "sharp side lower back pain", "kidney flank ache"),
+        "gi_slowdown": ("digestion slowed down", "sluggish bowel motility"),
+        "headache": ("frontal headache", "pounding headache", "throbbing head", "throbbing headache", "pressure behind forehead"),
+        "insomnia": ("fragmented sleep", "poor sleep duration", "trouble falling asleep", "broken sleep"),
+        "joint_pain": ("decompression joint pain", "joint ache", "joint soreness", "post eva joint ache"),
+        "muscle_pain": ("muscle soreness", "sore calf muscles", "thigh muscle soreness"),
+        "nausea": ("feeling nauseous", "motion queasiness", "persistent nausea", "stomach queasiness"),
+        "orthostatic_intolerance": ("dizzy when standing up", "orthostatic lightheadedness", "orthostatic presyncope"),
+        "photophobia": ("bright cabin light hurts", "bright light discomfort", "sensitive to bright light"),
+        "rash_infection": ("skin irritation", "skin irritation and hives", "cutaneous rash"),
     }
     for concept, phrases in nasa_additions.items():
         for ph in phrases:

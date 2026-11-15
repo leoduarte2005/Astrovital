@@ -47,14 +47,14 @@ def _default_n_threads() -> int:
 
 
 SLM_SYSTEM_PROMPT = (
-    "Você é o médico de bordo da NASA (Flight Surgeon) no sistema EdgeSpace. "
-    "Responda diretamente ao astronauta em português natural, empático e objetivo, em no máximo 4 a 5 frases curtas (sem listas numeradas e sem repetir rótulos). "
-    "REGRAS ESTRITAS: "
-    "1) PROIBIDO responder apenas com saudação genérica (como 'Olá, como está se sentindo?') quando houver sintomas, alertas de sensores ou hipótese diagnóstica no contexto. "
-    "2) Frase 1: reconheça explicitamente todos os sintomas relatados pelo astronauta. "
-    "3) Frase 2: cite os dados reais dos sensores recebidos no instante atual (ex.: CO2 do SCD40, SpO2/FC do MAX30102, postura e dia de missão), mostrando como cruzou a queixa com a telemetria. "
-    "4) Frase 3-4: apresente a hipótese principal da base NASA HRP/CSA (nunca altere diagnóstico, escalonamento ou contramedidas), cite fatos da memória/contraindicações se houver e indique a contramedida imediata. "
-    "5) Frase final: finalize com a pergunta de desambiguação ou chamada para autoexame (ex.: Grade de Amsler), se fornecida."
+    "You are the NASA onboard Flight Surgeon in the EdgeSpace clinical system. "
+    "Respond exclusively in clear, empathetic, natural English without numbered lists or repetitive technical labels. "
+    "STRICT RULES: "
+    "1) FORBIDDEN to use robotic or repetitive openings such as 'Understood, ...' or 'At this instant telemetry...'. Vary your opening naturally based on conversation intent. "
+    "2) Maintain 100% fidelity to real sensor numbers, NASA HRP/CSA hypotheses, countermeasures, and crew memory constraints provided in context; never invent values or alter the diagnosis. "
+    "3) If intent is GREETING: reply warmly and briefly (1 to 3 sentences). If there is an active sensor alert, mention it gently and ask if the astronaut feels any discomfort, without dumping a technical report. "
+    "4) If intent is HEALTH_CHECKUP: deliver a clear, supportive daily clinical briefing (vital signs and cabin environment); if an alert is active, explain the probable cause and recommended action without starting with 'Understood'. "
+    "5) If intent is SYMPTOM_OR_FOLLOWUP: act as an investigative Flight Surgeon in 3 to 5 sentences — acknowledge symptoms, cross-reference live sensors, present the primary hypothesis plus differential, state the immediate countermeasure, and finish with the disambiguation question or self-exam prompt (e.g., Amsler Grid) if provided."
 )
 
 
@@ -107,7 +107,7 @@ def _format_memory_facts(memory_facts: Sequence[Any]) -> list[str]:
         if fact is None:
             continue
         if isinstance(fact, dict):
-            fact_type = str(fact.get("type") or fact.get("fact_type") or fact.get("category") or "fato").strip()
+            fact_type = str(fact.get("type") or fact.get("fact_type") or fact.get("category") or "fact").strip()
             content = str(
                 fact.get("content") or fact.get("fact") or fact.get("fact_value") or fact.get("value") or ""
             ).strip()
@@ -136,7 +136,7 @@ class LocalSLMSynthesizer:
         n_batch: int = DEFAULT_N_BATCH,
         timeout_s: Optional[float] = None,
         max_tokens: int = DEFAULT_MAX_TOKENS,
-        temperature: float = 0.1,
+        temperature: float = 0.35,
         min_free_ram_mb: float = DEFAULT_MIN_FREE_RAM_MB,
         disabled: bool = False,
         auto_download: Optional[bool] = None,
@@ -263,46 +263,109 @@ class LocalSLMSynthesizer:
             self._llm = None
             return False
 
+    @staticmethod
+    def _infer_intent(correlate_resp: ChatCorrelateRespPayload, intent: Optional[str] = None) -> str:
+        if intent in ("GREETING", "HEALTH_CHECKUP", "SYMPTOM_OR_FOLLOWUP"):
+            return intent
+        txt = (correlate_resp.text or "").strip().lower()
+        has_symptoms = any(
+            e.startswith(("Detected symptoms:", "Sintomas detectados:"))
+            for e in (correlate_resp.evidence or [])
+        )
+        if "health briefing" in txt or "vital signs briefing" in txt or "health check" in txt:
+            return "HEALTH_CHECKUP"
+        if (
+            not has_symptoms
+            and not correlate_resp.disambiguation_question
+            and txt.startswith(("hello,", "hi,", "good morning", "good afternoon", "good evening"))
+            and ("everything looks steady" in txt or "good to hear from you" in txt)
+        ):
+            return "GREETING"
+        return "SYMPTOM_OR_FOLLOWUP"
+
     def build_messages(
         self,
         correlate_resp: ChatCorrelateRespPayload,
         memory_facts: Sequence[Any],
         sensor_snapshot: dict[str, Any],
+        *,
+        intent: Optional[str] = None,
+        user_text: Optional[str] = None,
     ) -> list[dict[str, str]]:
-        """Assemble chat messages injecting causal JSON, ESP32-S3 sensors, and crew memory."""
+        """Assemble chat messages injecting intent, causal context, sensors, and crew memory."""
+        resolved_intent = self._infer_intent(correlate_resp, intent)
         facts_list = _format_memory_facts(memory_facts)
         countermeasures = [c.strip() for c in (correlate_resp.countermeasures or [])[:2] if c.strip()]
         sensor_str = json.dumps(sensor_snapshot or {}, ensure_ascii=False, separators=(",", ":"))
-        symptom_evidence = [e for e in (correlate_resp.evidence or []) if e.startswith("Sintomas detectados:")]
+        symptom_evidence = [
+            e
+            for e in (correlate_resp.evidence or [])
+            if e.startswith(("Detected symptoms:", "Sintomas detectados:"))
+        ]
+        breach_evidence = [
+            e
+            for e in (correlate_resp.evidence or [])
+            if e.startswith(("Threshold exceeded:", "Limite ultrapassado:"))
+        ]
         sensor_evidence = [
             e
             for e in (correlate_resp.evidence or [])
-            if e.startswith(("Sensor ", "CSI vitals:", "Limite ultrapassado:"))
+            if e.startswith(("Sensor ", "CSI vitals:", "Threshold exceeded:", "Limite ultrapassado:"))
         ]
 
-        parts = [
-            f"Resumo clínico: {correlate_resp.text.strip()} (escalonamento: {correlate_resp.escalation.value}).",
-        ]
-        if symptom_evidence:
-            parts.append("Queixas/sintomas detectados: " + "; ".join(symptom_evidence))
-        if correlate_resp.differentials:
-            parts.append("Hipóteses ranqueadas: " + "; ".join(correlate_resp.differentials[:3]))
-        if correlate_resp.source_ids:
-            parts.append("Fontes NASA/CSA: " + ", ".join(correlate_resp.source_ids[:3]))
+        parts: list[str] = [f"Conversation intent: {resolved_intent}."]
+        if user_text:
+            parts.append(f"Astronaut message: {user_text.strip()}")
+
+        if resolved_intent == "GREETING":
+            parts.append(f"Current readings summary: {sensor_str}")
+            if breach_evidence:
+                parts.append("Active sensor alerts: " + "; ".join(breach_evidence))
+            else:
+                parts.append("Active sensor alerts: none (all parameters nominal).")
+            parts.append(
+                "Instruction: reply in English with a warm, natural greeting (1 to 3 sentences). "
+                "If there is an active sensor alert, mention it briefly and ask if the crew member feels any discomfort, without dumping a technical report."
+            )
+            return [
+                {"role": "system", "content": SLM_SYSTEM_PROMPT},
+                {"role": "user", "content": "\n".join(parts)},
+            ]
+
         parts.append(
-            f"Leituras de sensores em tempo real: {sensor_str}"
-            + (f" | Evidências: {'; '.join(sensor_evidence)}" if sensor_evidence else ".")
+            f"Clinical escalation: {correlate_resp.escalation.value} | "
+            f"Reference draft (DO NOT copy the opening verbatim): {correlate_resp.text.strip()}"
         )
-        parts.append("Memória do tripulante: " + ("; ".join(facts_list) if facts_list else "sem alertas adicionais."))
+        if symptom_evidence:
+            parts.append("Reported complaints/symptoms: " + "; ".join(symptom_evidence))
+        if correlate_resp.differentials:
+            parts.append("Ranked hypotheses: " + "; ".join(correlate_resp.differentials[:3]))
+        if correlate_resp.source_ids:
+            parts.append("NASA/CSA sources: " + ", ".join(correlate_resp.source_ids[:3]))
+        parts.append(
+            f"Live sensor readings: {sensor_str}"
+            + (f" | Evidence: {'; '.join(sensor_evidence)}" if sensor_evidence else ".")
+        )
+        parts.append("Crew memory: " + ("; ".join(facts_list) if facts_list else "no additional alerts."))
         if countermeasures:
-            parts.append("Contramedidas imediatas aprovadas: " + " ".join(countermeasures))
+            parts.append("Approved immediate countermeasures: " + " ".join(countermeasures))
         if correlate_resp.actions:
-            parts.append("Ações recomendadas: " + ", ".join(correlate_resp.actions))
+            parts.append("Recommended actions: " + ", ".join(correlate_resp.actions))
         if correlate_resp.blocked_actions:
-            parts.append("Ações bloqueadas por segurança: " + ", ".join(correlate_resp.blocked_actions))
+            parts.append("Safety-blocked actions: " + ", ".join(correlate_resp.blocked_actions))
         if correlate_resp.disambiguation_question:
-            parts.append(f"Pergunta de desambiguação / autoexame: {correlate_resp.disambiguation_question.strip()}")
-        parts.append("Gere a resposta em 4 a 5 frases seguindo exatamente a estrutura clínica obrigatória:")
+            parts.append(f"Disambiguation / self-exam question: {correlate_resp.disambiguation_question.strip()}")
+
+        if resolved_intent == "HEALTH_CHECKUP":
+            parts.append(
+                "Instruction: respond in English with a clear, supportive daily clinical briefing (vital signs and cabin environment). "
+                "If there is an active alert, explain the probable cause and recommended action. Do not start with 'Understood'."
+            )
+        else:
+            parts.append(
+                "Instruction: respond in English as an investigative Flight Surgeon in 3 to 5 varied, natural sentences "
+                "(no repetitive openings), keeping all numbers and countermeasures exact."
+            )
 
         return [
             {"role": "system", "content": SLM_SYSTEM_PROMPT},
@@ -314,8 +377,12 @@ class LocalSLMSynthesizer:
         correlate_resp: ChatCorrelateRespPayload,
         memory_facts: list[Any],
         sensor_snapshot: dict[str, Any],
+        *,
+        intent: Optional[str] = None,
+        user_text: Optional[str] = None,
     ) -> str:
         """Generate natural onboard response or degrade gracefully to deterministic text."""
+        resolved_intent = self._infer_intent(correlate_resp, intent)
         fallback_text = correlate_resp.text
         if not self.is_ready:
             return fallback_text
@@ -328,7 +395,13 @@ class LocalSLMSynthesizer:
             )
             return fallback_text
 
-        messages = self.build_messages(correlate_resp, memory_facts, sensor_snapshot)
+        messages = self.build_messages(
+            correlate_resp,
+            memory_facts,
+            sensor_snapshot,
+            intent=resolved_intent,
+            user_text=user_text,
+        )
         started = time.perf_counter()
 
         future = self._executor.submit(self._run_inference, messages)
@@ -353,7 +426,7 @@ class LocalSLMSynthesizer:
         if not cleaned:
             logger.warning("SLM produced empty output; deterministic fallback used")
             return fallback_text
-        if self._looks_like_empty_greeting(cleaned, correlate_resp):
+        if self._looks_like_empty_greeting(cleaned, correlate_resp, intent=resolved_intent):
             logger.warning("SLM produced generic greeting despite clinical context; deterministic fallback used")
             return fallback_text
 
@@ -371,7 +444,7 @@ class LocalSLMSynthesizer:
                 max_tokens=self.max_tokens,
                 temperature=self.temperature,
                 top_p=0.9,
-                repeat_penalty=1.1,
+                repeat_penalty=1.15,
             )
             if isinstance(result, dict):
                 choices = result.get("choices") or []
@@ -398,15 +471,35 @@ class LocalSLMSynthesizer:
         return ""
 
     @staticmethod
-    def _looks_like_empty_greeting(text: str, correlate_resp: ChatCorrelateRespPayload) -> bool:
-        has_clinical_ctx = bool(correlate_resp.differentials) or any(
-            e.startswith(("Sintomas detectados:", "Limite ultrapassado:"))
+    def _looks_like_empty_greeting(
+        text: str,
+        correlate_resp: ChatCorrelateRespPayload,
+        *,
+        intent: Optional[str] = None,
+    ) -> bool:
+        has_breach = any(
+            e.startswith(("Threshold exceeded:", "Limite ultrapassado:"))
             for e in (correlate_resp.evidence or [])
         )
+        has_symptoms = any(
+            e.startswith(("Detected symptoms:", "Sintomas detectados:"))
+            for e in (correlate_resp.evidence or [])
+        )
+        low = text.lower()
+        if intent == "GREETING":
+            if not has_breach:
+                return False
+            alert_cues = ("co2", "spo2", "alert", "elevated", "ppm", "low", "reduced", "cabin", "discomfort")
+            return not any(cue in low for cue in alert_cues) and len(low) < 160
+
+        has_clinical_ctx = bool(correlate_resp.differentials) or has_symptoms or has_breach
         if not has_clinical_ctx:
             return False
-        low = text.lower()
         generic_cues = (
+            "how are you feeling",
+            "how are you doing",
+            "how can i help",
+            "what can i help",
             "como está se sentindo",
             "como esta se sentindo",
             "como você está",

@@ -19,7 +19,7 @@ if str(_SRC_DIR) not in sys.path:
     sys.path.insert(0, str(_SRC_DIR))
 
 from edgespace_ai.correlation.clinical_store import load_yaml_file
-from edgespace_ai.correlation.correlator import ClinicalCorrelator, _format_symptoms_pt
+from edgespace_ai.correlation.correlator import ClinicalCorrelator, _format_symptoms_en
 from edgespace_ai.correlation.synthesizer import LocalSLMSynthesizer
 from edgespace_ai.ipc.handlers import _build_sensor_snapshot, _collect_memory_facts
 from edgespace_ai.ipc.protocol import (
@@ -45,84 +45,84 @@ def _apply_migrations(db_file: Path) -> None:
 
 CONCEPT_PHRASE_BANK: dict[str, tuple[list[str], list[str]]] = {
     "headache": (
-        ["dor de cabeca", "dores de cabeca", "cefaleia", "pressao na cabeca", "headache", "headaches"],
-        ["cabeca latejando", "cabeca pulsando de dor", "enxaqueca forte", "pounding headache"],
+        ["headache", "headaches", "migraine", "head pressure", "frontal headache"],
+        ["pounding headache", "throbbing headache", "throbbing head pain", "pressure in my head"],
     ),
     "photophobia": (
-        ["ao olhar para a luz", "sensibilidade a luz", "fotofobia", "light sensitivity", "photophobia"],
-        ["claridade incomoda muito", "olhos doem com a luz da cabine", "bright cabin light hurts my eyes"],
+        ["photophobia", "light sensitivity", "sensitive to light", "looking at the light"],
+        ["bright cabin light hurts my eyes", "bright light discomfort", "eyes hurt with light"],
     ),
     "blurred_vision": (
-        ["visao embacada", "visao turva", "vista embacada", "blurred vision", "blurry vision"],
-        ["enxergando tudo embacado", "vista meio fora de foco", "my vision feels blurry"],
+        ["blurred vision", "blurry vision", "visual distortion", "blurry sight"],
+        ["everything looks out of focus", "my vision feels blurry", "vision feels out of focus"],
     ),
     "eye_pressure": (
-        ["pressao ocular", "pressao nos olhos", "dor atras dos olhos", "eye pressure", "pain behind eyes"],
-        ["olhos pesados e pressionados", "fundo do olho doendo", "eyes hurt behind sockets"],
+        ["eye pressure", "ocular pressure", "pain behind eyes", "pressure behind eyes"],
+        ["eyes feel heavy and pressured", "eyes hurt behind sockets", "retro orbital pain"],
     ),
     "dizziness": (
-        ["tontura", "tonturas", "vertigem", "zonzeira", "dizziness", "dizzy"],
-        ["cabeca girando", "sensacao de desequilibrio", "fiquei meio tonto", "feeling lightheaded"],
+        ["dizziness", "dizzy", "vertigo", "lightheaded", "lightheadedness"],
+        ["room spinning", "feeling lightheaded", "feeling unsteady", "spinning sensation"],
     ),
     "dyspnea": (
-        ["falta de ar", "dispneia", "ofegante", "dificuldade para respirar", "shortness of breath", "dyspnea"],
-        ["respiracao curta", "ar nao entra direito", "hard to catch my breath"],
+        ["shortness of breath", "dyspnea", "breathless", "difficulty breathing"],
+        ["hard to catch my breath", "air hunger", "labored breathing", "winded and breathless"],
     ),
     "nausea": (
-        ["nausea", "enjoo", "enjoos", "vontade de vomitar", "vomito", "queasy"],
-        ["estomago embrulhado", "ansia de vomito", "enjoado no modulo", "feeling nauseous"],
+        ["nausea", "nauseous", "queasy", "vomiting", "upset stomach"],
+        ["feeling nauseous", "motion queasiness", "persistent nausea", "sick to my stomach"],
     ),
     "insomnia": (
-        ["insonia", "nao consigo dormir", "privacao de sono", "insomnia", "cant sleep"],
-        ["dormi pouco", "acordando varias vezes", "sono picado", "trouble falling asleep"],
+        ["insomnia", "can't sleep", "sleep deprivation", "poor sleep"],
+        ["trouble falling asleep", "fragmented sleep", "waking up often", "barely slept"],
     ),
     "fatigue": (
-        ["fadiga", "cansaco", "exaustao", "fatigue", "exhaustion"],
-        ["corpo esgotado", "cansado demais", "worn out and tired"],
+        ["fatigue", "exhaustion", "tired", "worn out", "low energy"],
+        ["worn out and tired", "low stamina", "extreme tiredness", "feeling drained"],
     ),
     "flank_pain": (
-        ["dor no flanco", "colica renal", "dor ao urinar", "flank pain", "kidney pain"],
-        ["dor nas costas do lado direito perto do rim", "fisgada na lateral lombar", "sharp side lower back pain"],
+        ["flank pain", "kidney pain", "renal colic", "kidney stone pain"],
+        ["sharp side lower back pain", "side flank ache", "pain radiating to groin"],
     ),
     "joint_pain": (
-        ["dor articular", "dor nas articulacoes", "dor no ombro pos eva", "joint pain"],
-        ["junta doendo", "joint ache in shoulder", "knee joint soreness"],
+        ["joint pain", "sore joints", "shoulder pain", "knee pain"],
+        ["joint ache in shoulder", "knee joint soreness", "decompression joint pain"],
     ),
     "muscle_pain": (
-        ["dor muscular", "dor na perna", "dor nas pernas", "muscle pain", "leg pain"],
-        ["musculo travado e dolorido", "coxa doendo apos treino", "sore calf muscles"],
+        ["muscle pain", "leg pain", "calf pain", "muscle soreness"],
+        ["sore calf muscles", "thigh ache after exercise", "muscle ache"],
     ),
     "orthostatic_intolerance": (
-        ["tontura ao levantar", "pressao baixa", "palpitacao", "presyncope", "palpitations"],
-        ["vista escurece quando fico de pe", "dizzy when standing up", "orthostatic lightheadedness"],
+        ["dizzy when standing", "orthostatic dizziness", "presyncope", "palpitations"],
+        ["dizzy when standing up", "orthostatic lightheadedness", "vision darkens when standing"],
     ),
     "abdominal_pain": (
-        ["dor de barriga", "dor abdominal", "dor no estomago", "stomach pain"],
-        ["colica na barriga", "abdome dolorido", "cramps in lower belly"],
+        ["abdominal pain", "stomach pain", "stomach ache", "belly pain"],
+        ["cramps in lower belly", "abdominal discomfort", "stomach cramps"],
     ),
     "gi_slowdown": (
-        ["estufamento", "prisao de ventre", "constipacao", "bloating", "constipation"],
-        ["intestino preso", "barriga estufada", "digestion slowed down"],
+        ["bloating", "constipation", "constipated", "bloated"],
+        ["digestion slowed down", "sluggish digestion", "stomach bloating"],
     ),
     "rash_infection": (
-        ["erupcao na pele", "coceira", "lesao na pele", "skin rash", "itchy rash"],
-        ["manchas vermelhas na pele", "irritacao cutanea", "skin irritation and hives"],
+        ["rash", "skin rash", "itchy rash", "skin lesion"],
+        ["skin irritation and hives", "red spots on skin", "skin irritation"],
     ),
     "bone_pain": (
-        ["dor ossea", "dor nos ossos", "bone pain"],
-        ["osso doendo", "dor profunda no quadril", "deep bone ache"],
+        ["bone pain", "hip pain", "bone ache"],
+        ["deep bone ache", "deep hip bone ache", "aching bones"],
     ),
 }
 
 CREW_NAMES = {"crew_001": "Cmdr. Silva", "crew_002": "Dr. Costa", "crew_003": "Eng. Sato"}
-GREETINGS = ("ola, ", "oi, ", "bom dia, ", "boa noite, ", "hello, ", "")
-LEADS = ("estou com ", "estou sentindo ", "tenho ", "sinto ", "i have ", "i feel ")
-NEG_LEADS = ("nao estou com ", "sem ", "nao tenho ", "no ")
+GREETINGS = ("hello, ", "hi, ", "good morning, ", "good evening, ", "")
+LEADS = ("i have ", "i feel ", "i'm having ", "experiencing ")
+NEG_LEADS = ("no ", "without ", "not having ")
 MEMORY_SENTENCES = (
-    "sou alergico a dipirona",
-    "sou alergico a sulfa",
-    "tomo melatonina",
-    "ja tive enjoo espacial",
+    "i am allergic to dipyrone",
+    "i am allergic to sulfa",
+    "i take melatonin",
+    "i have a history of space motion sickness",
     "i am allergic to penicillin",
 )
 
@@ -151,9 +151,9 @@ def _telemetry_text(snapshot: dict[str, Any]) -> str:
     if "SpO2_pct" in snapshot:
         parts.append(f"SpO2 MAX30102={snapshot['SpO2_pct']:.1f}%")
     if "FC_oximetro_bpm" in snapshot:
-        parts.append(f"FC={snapshot['FC_oximetro_bpm']:.0f} bpm")
+        parts.append(f"HR={snapshot['FC_oximetro_bpm']:.0f} bpm")
     if "CSI_postura" in snapshot:
-        parts.append(f"postura={snapshot['CSI_postura']}")
+        parts.append(f"posture={snapshot['CSI_postura']}")
     return ", ".join(parts)
 
 
@@ -167,7 +167,7 @@ def compose_flight_surgeon_reply(
     top_condition_id: str | None,
     rng: random.Random,
 ) -> str | None:
-    """Deterministic, fully-grounded paraphrase. Returns None when context lacks a hypothesis."""
+    """Deterministic, fully-grounded English paraphrase. Returns None when context lacks a hypothesis."""
     if not resp.differentials or not resp.countermeasures:
         return None
     m = re.match(r"^(.*) \(P=([0-9.]+)\)$", resp.differentials[0])
@@ -176,45 +176,45 @@ def compose_flight_surgeon_reply(
     name, p_top = m.group(1), float(m.group(2))
     concepts: list[str] = []
     for ev in resp.evidence or []:
-        if ev.startswith("Sintomas detectados:"):
+        if ev.startswith(("Detected symptoms:", "Sintomas detectados:")):
             concepts = [c.strip() for c in ev.split(":", 1)[1].split(",") if c.strip()]
     sentences: list[str] = []
     if concepts:
-        sym = _format_symptoms_pt(concepts)
+        sym = _format_symptoms_en(concepts)
         sentences.append(_pick(rng, (
-            f"Entendido, {crew_name} — registrei {sym}.",
-            f"{crew_name}, anotei {sym} no seu relato.",
-            f"Recebi seu relato de {sym}, {crew_name}.",
+            f"{crew_name}, I logged your report of {sym}.",
+            f"Got it, {crew_name} — I noted {sym} in your check-in.",
+            f"Thank you for reporting {sym}, {crew_name}.",
         )))
     tele = _telemetry_text(snapshot)
     if tele:
         sentences.append(_pick(rng, (
-            f"Na telemetria deste instante ({tele}), cruzei os dados com a sua queixa.",
-            f"Os sensores marcam {tele}, e comparei esses valores com o que você descreveu.",
-            f"Pelos dados atuais ({tele}), avaliei o quadro junto com os sintomas.",
+            f"Live telemetry shows {tele}, which I cross-referenced with your symptoms.",
+            f"Current sensor readings ({tele}) were evaluated alongside your report.",
+            f"Looking at today's vitals and cabin data ({tele}), here is the clinical picture.",
         )))
     diff = ""
     if len(resp.differentials) > 1:
         m2 = re.match(r"^(.*) \(P=([0-9.]+)\)$", resp.differentials[1])
         if m2 and float(m2.group(2)) >= 0.08:
-            diff = f", mantendo {m2.group(1)} ({float(m2.group(2)):.0%}) como diferencial"
+            diff = f", keeping {m2.group(1)} ({float(m2.group(2)):.0%}) as a differential"
     src = (resp.source_ids or ["NASA HRP/CSA"])[0]
     sentences.append(_pick(rng, (
-        f"A hipótese principal pela base {src} é {name} ({p_top:.0%}){diff}.",
-        f"Pela base {src}, o quadro é mais compatível com {name} ({p_top:.0%}){diff}.",
+        f"The primary hypothesis per {src} is {name} ({p_top:.0%}){diff}.",
+        f"Based on {src}, this presentation aligns most closely with {name} ({p_top:.0%}){diff}.",
     )))
     cm = re.sub(r"^\d+\.\s*", "", resp.countermeasures[0]).strip()
-    sentences.append(_pick(rng, (f"Conduta imediata: {cm}", f"Recomendo agora: {cm}")))
+    sentences.append(_pick(rng, (f"Immediate action: {cm}", f"Recommended next step: {cm}")))
     blocked = list(resp.blocked_actions or [])
     if blocked:
-        sentences.append(f"Por segurança, estão bloqueadas as ações: {', '.join(blocked)}.")
+        sentences.append(f"For safety, these actions are blocked: {', '.join(blocked)}.")
     elif memory_texts:
-        sentences.append(f"Considerei também o que está registrado no seu histórico: {memory_texts[0]}.")
+        sentences.append(f"I also accounted for your crew clinical history: {memory_texts[0]}.")
     proto = protocols.get(top_condition_id or "")
     if resp.disambiguation_question:
         sentences.append(resp.disambiguation_question.strip())
     elif proto:
-        sentences.append(f"Protocolo de apoio: {proto.get('name')}.")
+        sentences.append(f"Supporting protocol: {proto.get('name')}.")
     return " ".join(sentences)
 
 
@@ -262,7 +262,7 @@ def _inference(profile: dict[str, Any]) -> AIInferencePayload:
 
 def _build_text(rng: random.Random, phrases: list[str], *, negated: str | None, memory: str | None) -> str:
     chosen = rng.sample(phrases, k=min(len(phrases), rng.choice((1, 1, 2))))
-    body = " e ".join(f"{_pick(rng, LEADS)}{p}" if i == 0 else p for i, p in enumerate(chosen))
+    body = " and ".join(f"{_pick(rng, LEADS)}{p}" if i == 0 else p for i, p in enumerate(chosen))
     if negated:
         body += f", {_pick(rng, NEG_LEADS)}{negated}"
     if memory:
@@ -350,7 +350,7 @@ def generate(*, seed: int, per_concept: int, out_dir: Path) -> dict[str, Any]:
             cond = (rep.get("conditions") or [{}])[0]
             cid = str(cond.get("condition_id", ""))
             for sym in (rep.get("primary_symptoms") or [])[:4]:
-                _emit(f"estou com {sym}", "crew_001", SENSOR_PROFILES[0], {"source": "report", "condition_id": cid})
+                _emit(f"i have {sym}", "crew_001", SENSOR_PROFILES[0], {"source": "report", "condition_id": cid})
         for case in golden.get("cases", []):
             m = case.get("metrics") or {}
             prof = {
@@ -361,7 +361,7 @@ def generate(*, seed: int, per_concept: int, out_dir: Path) -> dict[str, Any]:
                 "posture": "sitting",
                 "anom": 0.45,
             }
-            _emit(case.get("title", "Revisar sintomas"), case.get("crew_id", "crew_001"), prof, {"source": "golden", "case_id": case.get("case_id")})
+            _emit(case.get("title", "Review symptoms"), case.get("crew_id", "crew_001"), prof, {"source": "golden", "case_id": case.get("case_id")})
 
     golden_units = len(golden.get("cases", [])) + sum(len(c.get("crews") or {}) for c in golden.get("crew_cases", []))
     digest = _dump(out_dir / "nasa_medical_instruct.jsonl", chat_rows)

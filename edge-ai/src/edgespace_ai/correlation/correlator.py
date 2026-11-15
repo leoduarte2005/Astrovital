@@ -29,10 +29,10 @@ from .symptom_extractor import (
 from ..clinical import ClinicalRepository
 
 CLINICAL_DISCLAIMER = (
-    "Apoio à decisão clínica a bordo; não substitui avaliação do Flight Surgeon."
+    "Onboard clinical decision support; does not replace Flight Surgeon evaluation."
 )
 
-_STOP_WORDS_FACT = frozenset({"e", "and", "mas", "but", "porque", "because", "com", "with", "que", "that", "agua", "water", "banho", "cuidado", "care"})
+_STOP_WORDS_FACT = frozenset({"and", "but", "because", "with", "that", "water", "care", "e", "mas", "porque", "com", "que", "agua", "banho", "cuidado"})
 
 
 def _slug_fact_key(text: str) -> str:
@@ -41,13 +41,14 @@ def _slug_fact_key(text: str) -> str:
 
 
 def _trim_entity(raw: str) -> str:
-    head = re.split(r"[,.;!?\n]|(?:\s+(?:e|and|mas|but|porque|because|com|with)\s+)", raw.strip(), maxsplit=1)[0]
+    head = re.split(r"[,.;!?\n]|(?:\s+(?:and|but|because|with|e|mas|porque|com)\s+)", raw.strip(), maxsplit=1)[0]
     words = [w for w in head.strip().split() if w]
     return " ".join(words[:4]).strip()
 
 
 _NEGATED_FACT_RE = re.compile(
-    r"\b(?:nao|nunca|sem|not|never|no)\s+(?:sou|tenho|estou|uso|tomo|i\s+am|i'm|im|have|take|taking)\b"
+    r"\b(?:not|never|no|don'?t|do\s+not|nao|nunca|sem)\s+(?:allergic|taking|take|have|had|am|i'm|im|sou|tenho|estou|uso|tomo)\b|"
+    r"\b(?:i\s+am|i'm|im)\s+not\s+(?:allergic|taking|on)\b"
 )
 
 
@@ -95,7 +96,7 @@ def derive_prior_multipliers(
 
 
 def extract_permanent_facts(text: str) -> list[dict[str, Any]]:
-    """Deterministically extract PT/EN permanent clinical facts for crew_clinical_memory."""
+    """Deterministically extract English (and legacy PT) permanent clinical facts for crew_clinical_memory."""
     norm = _drop_negated_fact_clauses(_normalize_text(text))
     if not norm:
         return []
@@ -115,35 +116,36 @@ def extract_permanent_facts(text: str) -> list[dict[str, Any]]:
             "source_role": "user",
         })
 
-    # ALLERGY (PT/EN)
+    # ALLERGY (EN primary, PT fallback)
     for pat in (
-        r"\b(?:sou|tenho|estou)\s+alergic[oa]\s+a(?:o|s)?\s+([a-z0-9\- ]{2,45})",
-        r"\balergia\s+a(?:o|s)?\s+([a-z0-9\- ]{2,45})",
         r"\b(?:i\s+am|i'm|im)\s+allergic\s+to\s+([a-z0-9\- ]{2,45})",
         r"\ballerg(?:y|ic)\s+to\s+([a-z0-9\- ]{2,45})",
+        r"\b(?:sou|tenho|estou)\s+alergic[oa]\s+a(?:o|s)?\s+([a-z0-9\- ]{2,45})",
+        r"\balergia\s+a(?:o|s)?\s+([a-z0-9\- ]{2,45})",
     ):
         for m in re.finditer(pat, norm):
             ent = _trim_entity(m.group(1))
             if ent and _slug_fact_key(ent) not in _STOP_WORDS_FACT:
                 _add("ALLERGY", _slug_fact_key(ent), ent, 0.95)
 
-    # MEDICATION (PT/EN)
+    # MEDICATION (EN primary, PT fallback)
     for pat in (
-        r"\b(?:tomo|estou\s+tomando|uso\s+continuo\s+de|faco\s+uso\s+de|uso)\s+([a-z0-9\- ]{2,45})",
         r"\b(?:i\s+take|i\s+am\s+taking|i'm\s+taking|currently\s+taking|on\s+medication)\s+([a-z0-9\- ]{2,45})",
+        r"\b(?:tomo|estou\s+tomando|uso\s+continuo\s+de|faco\s+uso\s+de|uso)\s+([a-z0-9\- ]{2,45})",
     ):
         for m in re.finditer(pat, norm):
             ent = _trim_entity(m.group(1))
             slug = _slug_fact_key(ent)
-            if ent and slug not in _STOP_WORDS_FACT and not slug.startswith(("agua", "banho", "cuidado", "care", "a_look", "a_breath")):
+            if ent and slug not in _STOP_WORDS_FACT and not slug.startswith(("water", "care", "a_look", "a_breath", "agua", "banho", "cuidado")):
                 _add("MEDICATION", slug, ent, 0.90)
 
-    # CONDITION_HISTORY (PT/EN)
-    if any(p in norm for p in ("enjoo espacial", "space motion sickness", "motion sickness")):
-        if any(c in norm for c in ("ja tive", "historico", "history", "previously", "had ")):
+    # CONDITION_HISTORY (EN primary, PT fallback)
+    if any(p in norm for p in ("space motion sickness", "motion sickness", "enjoo espacial")):
+        if any(c in norm for c in ("history", "previously", "had ", "ja tive", "historico")):
             _add("CONDITION_HISTORY", "space_motion_sickness", "1", 0.85)
     for pat in (
-        r"\b(?:ja\s+tive|tenho\s+historico\s+de|historico\s+previo\s+de|i\s+have\s+a\s+history\s+of|history\s+of|previously\s+had)\s+([a-z0-9\- ]{3,45})",
+        r"\b(?:i\s+have\s+a\s+history\s+of|history\s+of|previously\s+had|i've\s+had)\s+([a-z0-9\- ]{3,45})",
+        r"\b(?:ja\s+tive|tenho\s+historico\s+de|historico\s+previo\s+de)\s+([a-z0-9\- ]{3,45})",
     ):
         for m in re.finditer(pat, norm):
             ent = _trim_entity(m.group(1))
@@ -151,13 +153,13 @@ def extract_permanent_facts(text: str) -> list[dict[str, Any]]:
             if ent and slug not in _STOP_WORDS_FACT and "motion_sickness" not in slug and "enjoo_espacial" not in slug:
                 _add("CONDITION_HISTORY", slug, "1", 0.85)
 
-    # SENSITIVITY (PT/EN)
-    if re.search(r"\bco2\b.*(?:dor\s+de\s+cabeca|headache|sensivel|sensibilidade|sensitive|mal)", norm) or any(
-        p in norm for p in ("sensivel a co2", "sensibilidade a co2", "sensitive to co2", "co2 sensitivity")
+    # SENSITIVITY (EN primary, PT fallback)
+    if re.search(r"\bco2\b.*(?:headache|headaches|sensitive|sensitivity|sick|unwell|dor\s+de\s+cabeca|sensivel|sensibilidade|mal)", norm) or any(
+        p in norm for p in ("sensitive to co2", "co2 sensitivity", "sensivel a co2", "sensibilidade a co2")
     ):
         _add("SENSITIVITY", "co2_sensitivity", "1", 0.85)
     for pat in (
-        r"\b(?:sensivel\s+a|sensibilidade\s+a|sensitive\s+to)\s+([a-z0-9\- ]{2,35})",
+        r"\b(?:sensitive\s+to|sensitivity\s+to|sensivel\s+a|sensibilidade\s+a)\s+([a-z0-9\- ]{2,35})",
     ):
         for m in re.finditer(pat, norm):
             ent = _trim_entity(m.group(1))
@@ -165,8 +167,8 @@ def extract_permanent_facts(text: str) -> list[dict[str, Any]]:
             if ent and slug != "co2":
                 _add("SENSITIVITY", f"{slug}_sensitivity", "1", 0.85)
 
-    # SLEEP_NOTE (PT/EN)
-    if any(p in norm for p in ("dormi mal", "nao dormi", "pouco sono", "insonia", "acordei varias vezes", "slept poorly", "bad sleep", "poor sleep", "insomnia", "didn't sleep", "didnt sleep")):
+    # SLEEP_NOTE (EN primary, PT fallback)
+    if any(p in norm for p in ("slept poorly", "bad sleep", "poor sleep", "insomnia", "didn't sleep", "didnt sleep", "barely slept", "dormi mal", "nao dormi", "pouco sono", "acordei varias vezes")):
         _add("SLEEP_NOTE", "poor_sleep", text.strip()[:120], 0.80)
 
     return updates
@@ -269,6 +271,12 @@ class ClinicalCorrelator:
             recent_history=req.recent_history,
             summary_24h=req.summary_24h,
         )
+        intent = classify_intent(
+            req.text,
+            extracted,
+            has_pending_question=bool(last),
+            polarity=polarity,
+        )
 
         assessment = self.causal_graph.evaluate(
             symptoms=extracted,
@@ -300,7 +308,7 @@ class ClinicalCorrelator:
             and not assessment.threshold_breaches
             and _sensors_are_nominal(assessment.metrics)
         )
-        if not extracted.concepts and sensors_nominal:
+        if intent == "SYMPTOM_OR_FOLLOWUP" and not extracted.concepts and sensors_nominal:
             evidence_nominal: list[str] = []
             for reading in peripherals:
                 evidence_nominal.append(f"Sensor {reading.type.value}: {reading.value:.2f} {reading.unit}")
@@ -311,47 +319,23 @@ class ClinicalCorrelator:
                     f"conf={inference.confidence:.2f}"
                 )
             for doc in store_docs[:2]:
-                evidence_nominal.append(f"Base clínica ({doc.source}): {doc.doc_id} - {doc.title}")
+                evidence_nominal.append(f"Clinical base ({doc.source}): {doc.doc_id} - {doc.title}")
 
             if self.db_path is not None and req.crew_id:
                 with ClinicalRepository(self.db_path) as repo:
                     objective = repo.assess_fixture(req.crew_id, assessment.metrics, allow_engineering=True)
 
-            crew_label = req.profile.name if (req.profile and req.profile.name) else "tripulante"
+            crew_label = req.profile.name if (req.profile and req.profile.name) else "crew member"
             telemetry_str = _format_telemetry_summary(assessment.metrics, req.profile)
-
-            if extracted.is_greeting and not extracted.fallback_docs:
-                greeting_text = (
-                    f"Olá, {crew_label}. Telemetria atual nominal ({telemetry_str}). "
-                    "Como está se sentindo e como posso ajudar hoje?"
-                )
-                return ChatCorrelateRespPayload(
-                    matched_condition_ids=[m["condition_id"] for m in objective["matches"]] if objective else None,
-                    max_severity=objective["max_severity"] if objective else None,
-                    blocked_actions=objective["blocked_actions"] if objective else None,
-                    memory_updates=memory_updates or None,
-                    text=greeting_text,
-                    differentials=None,
-                    evidence=evidence_nominal or None,
-                    countermeasures=[
-                        "Manter monitoramento contínuo de sinais vitais e ambiente da cabine.",
-                    ],
-                    source_ids=["EDGESPACE-AI-V1"],
-                    escalation=Escalation.LOCAL,
-                    disclaimer=CLINICAL_DISCLAIMER,
-                    disambiguation_question=None,
-                    actions=None,
-                )
-
             clarification_prompt = (
-                "Não identifiquei sintomas específicos no seu relato e os sensores estão nominais. "
-                "Pode detalhar o que está sentindo (localização da dor, duração, náusea, tontura, "
-                "alteração visual ou falta de ar)?"
+                "No specific symptoms were identified in your message and sensor readings are nominal. "
+                "Could you describe what you are feeling (pain location, duration, nausea, dizziness, "
+                "visual changes, or shortness of breath)?"
             )
             fts_note = ""
             if extracted.fallback_docs:
                 titles = "; ".join(d.title for d in extracted.fallback_docs[:2])
-                fts_note = f" Referências NASA próximas recuperadas via FTS5: {titles}."
+                fts_note = f" Related NASA references retrieved via FTS5: {titles}."
             source_ids_nom = [d.source_id or d.doc_id for d in store_docs[:2] if (d.source_id or d.doc_id)] or ["EDGESPACE-AI-V1"]
             return ChatCorrelateRespPayload(
                 matched_condition_ids=[m["condition_id"] for m in objective["matches"]] if objective else None,
@@ -359,15 +343,15 @@ class ClinicalCorrelator:
                 blocked_actions=objective["blocked_actions"] if objective else None,
                 memory_updates=memory_updates or None,
                 text=(
-                    f"Entendido, {crew_label} — nenhum sintoma específico foi reconhecido na mensagem, "
-                    f"e a telemetria atual ({telemetry_str}) está nominal.{fts_note} "
-                    "Por favor, detalhe os sintomas (localização, intensidade e duração) para correlação clínica."
+                    f"{crew_label}, no specific symptoms were recognized in your message and your current "
+                    f"sensors ({telemetry_str}) are within nominal limits.{fts_note} "
+                    "Please describe what you are feeling (location, intensity, and duration) so I can investigate further."
                 ),
                 differentials=None,
                 evidence=evidence_nominal or None,
                 countermeasures=[
-                    "Descrever localização, intensidade e duração dos sintomas para nova avaliação.",
-                    "Manter monitoramento contínuo de sinais vitais e ambiente da cabine.",
+                    "Describe symptom location, intensity, and duration for clinical re-evaluation.",
+                    "Maintain continuous monitoring of vital signs and cabin environment.",
                 ],
                 source_ids=source_ids_nom,
                 escalation=Escalation.LOCAL,
@@ -379,7 +363,7 @@ class ClinicalCorrelator:
         # Evidence list
         evidence: list[str] = []
         if extracted.concepts:
-            evidence.append(f"Sintomas detectados: {', '.join(extracted.concepts)}")
+            evidence.append(f"Detected symptoms: {', '.join(extracted.concepts)}")
         for reading in peripherals:
             evidence.append(f"Sensor {reading.type.value}: {reading.value:.2f} {reading.unit}")
         if inference is not None:
@@ -389,33 +373,38 @@ class ClinicalCorrelator:
                 f"conf={inference.confidence:.2f}"
             )
         for breach in assessment.threshold_breaches:
-            evidence.append(f"Limite ultrapassado: {breach}")
+            evidence.append(f"Threshold exceeded: {breach}")
         if top and top.matched_sensor_evidence:
             evidence.extend(top.matched_sensor_evidence)
         for doc in store_docs[:2]:
-            evidence.append(f"Base clínica ({doc.source}): {doc.doc_id} - {doc.title}")
+            evidence.append(f"Clinical base ({doc.source}): {doc.doc_id} - {doc.title}")
 
         # Differentials list
         differentials: list[str] = []
-        for h in top_hypotheses[:3]:
-            if h.posterior >= 0.08 or len(differentials) == 0:
-                differentials.append(f"{h.condition.name} (P={h.posterior:.2f})")
+        if not (intent in ("GREETING", "HEALTH_CHECKUP") and sensors_nominal):
+            for h in top_hypotheses[:3]:
+                if h.posterior >= 0.08 or len(differentials) == 0:
+                    differentials.append(f"{h.condition.name} (P={h.posterior:.2f})")
 
-        # Disambiguation question via information gain
-        disambig = self.disambiguator.select_question(
-            top_hypotheses,
-            answered_topics=(
-                set(extracted.answered_topics)
-                | set(answered_questions.keys())
-                | skip_questions_this_turn
-                | {m["fact_key"] for m in memory_updates if m.get("fact_type") == "ANSWERED_TOPIC"}
-            ),
-            observed_concepts=extracted.concepts,
-        )
+        # Disambiguation question via information gain (skipped for pure greetings or nominal check-ups)
+        disambig = None
+        if intent == "SYMPTOM_OR_FOLLOWUP" or (intent == "HEALTH_CHECKUP" and not sensors_nominal):
+            disambig = self.disambiguator.select_question(
+                top_hypotheses,
+                answered_topics=(
+                    set(extracted.answered_topics)
+                    | set(answered_questions.keys())
+                    | skip_questions_this_turn
+                    | {m["fact_key"] for m in memory_updates if m.get("fact_type") == "ANSWERED_TOPIC"}
+                ),
+                observed_concepts=extracted.concepts,
+            )
 
         # Escalation policy
         escalation = Escalation.LOCAL
-        if assessment.red_breach:
+        if intent in ("GREETING", "HEALTH_CHECKUP") and sensors_nominal:
+            escalation = Escalation.LOCAL
+        elif assessment.red_breach:
             escalation = Escalation.STORE_AND_FORWARD
         elif top and top.posterior >= 0.55 and top.condition.default_escalation == Escalation.STORE_AND_FORWARD:
             escalation = Escalation.STORE_AND_FORWARD
@@ -423,10 +412,14 @@ class ClinicalCorrelator:
             escalation = Escalation.CREW
 
         # Countermeasures, source IDs, and actions
-        countermeasures = list(top.condition.countermeasures) if top else [
-            "Manter monitoramento contínuo de sinais vitais e ambiente da cabine."
-        ]
-        actions = list(top.condition.actions) if top else []
+        if intent in ("GREETING", "HEALTH_CHECKUP") and sensors_nominal:
+            countermeasures = ["Maintain continuous monitoring of vital signs and cabin environment."]
+            actions = []
+        else:
+            countermeasures = list(top.condition.countermeasures) if top else [
+                "Maintain continuous monitoring of vital signs and cabin environment."
+            ]
+            actions = list(top.condition.actions) if top else []
 
         blocked_by_memory: list[str] = []
         active_mem = [*memory, *memory_updates]
@@ -469,7 +462,10 @@ class ClinicalCorrelator:
                         if b_act not in blocked_by_memory:
                             blocked_by_memory.append(b_act)
                         actions = [a for a in actions if a != b_act]
-                        evidence.append('Ação bloqueada: ' + b_act + ' — ' + row['rationale'])
+                        evidence.append(
+                            f"Blocked action: {b_act} — safety guard triggered "
+                            f"({row['guard_metric']} {row['guard_op']} {row['guard_value']})"
+                        )
             if disambig:
                 memory_updates.append(dict(fact_type='PREFERENCE',fact_key='last_question_id',fact_value=disambig.question.id,confidence=1.0,source_role='assistant'))
 
@@ -483,12 +479,12 @@ class ClinicalCorrelator:
                     actions.remove(act)
                     if act not in blocked_by_memory:
                         blocked_by_memory.append(act)
-                    evidence.append(f"Ação bloqueada ({m.get('fact_type')}): {act} — conflito com {m.get('fact_value')}")
+                    evidence.append(f"Blocked action ({m.get('fact_type')}): {act} — conflict with {m.get('fact_value')}")
             if m.get("fact_type") == "ALLERGY":
                 filtered_cm = []
                 for cm in countermeasures:
                     if stem in _normalize_text(cm):
-                        evidence.append(f"Contramedida omitida por alergia ({m.get('fact_value')}): {cm}")
+                        evidence.append(f"Countermeasure omitted due to allergy ({m.get('fact_value')}): {cm}")
                     else:
                         filtered_cm.append(cm)
                 countermeasures = filtered_cm or countermeasures
@@ -508,7 +504,23 @@ class ClinicalCorrelator:
         if not source_ids:
             source_ids.append("EDGESPACE-AI-V1")
 
-        if top is not None:
+        if intent == "GREETING":
+            summary_text = _build_greeting_text(
+                crew_profile=req.profile,
+                metrics=assessment.metrics,
+                breaches=assessment.threshold_breaches,
+                sensors_nominal=sensors_nominal,
+            )
+        elif intent == "HEALTH_CHECKUP":
+            summary_text = _build_health_checkup_text(
+                crew_profile=req.profile,
+                metrics=assessment.metrics,
+                top=top,
+                countermeasures=countermeasures,
+                breaches=assessment.threshold_breaches,
+                sensors_nominal=sensors_nominal,
+            )
+        elif top is not None:
             summary_text = _build_clinical_summary_text(
                 crew_profile=req.profile,
                 concepts=extracted.concepts,
@@ -519,13 +531,14 @@ class ClinicalCorrelator:
                 disambig_prompt=disambig.question.prompt if disambig else None,
                 actions=actions,
                 breaches=assessment.threshold_breaches,
+                is_followup=bool(last and polarity in ("yes", "no", "unsure")),
             )
         else:
-            crew_label = req.profile.name if (req.profile and req.profile.name) else "tripulante"
+            crew_label = req.profile.name if (req.profile and req.profile.name) else "crew member"
             telemetry_str = _format_telemetry_summary(assessment.metrics, req.profile)
             summary_text = (
-                f"Entendido, {crew_label} — avaliação inicial para '{req.text.strip()}' "
-                f"cruzada com a telemetria atual ({telemetry_str})."
+                f"{crew_label}, I reviewed your message '{req.text.strip()}' "
+                f"alongside current telemetry ({telemetry_str})."
             )
 
         return ChatCorrelateRespPayload(
@@ -544,6 +557,44 @@ class ClinicalCorrelator:
             disambiguation_question=disambig.question.prompt if disambig else None,
             actions=actions or None,
         )
+
+
+_HEALTH_CHECKUP_RE = re.compile(
+    r"\b(?:"
+    r"minha\s+saude|saude\s+hoje|como\s+esta\s+(?:a\s+)?minha\s+saude|"
+    r"como\s+estao\s+(?:os\s+)?(?:meus\s+)?sinais|sinais\s+vitais|"
+    r"status\s+(?:dos\s+)?(?:sinais|vitais|saude|hoje)|"
+    r"check\s*-?\s*up|boletim\s+(?:clinico|medico|de\s+saude)|"
+    r"resumo\s+(?:clinico|de\s+saude|dos\s+sinais)|"
+    r"telemetria\s+(?:atual|de\s+hoje)|"
+    r"como\s+estou(?:\s+hoje)?|como\s+eu\s+estou|"
+    r"tudo\s+bem\s+comigo|estou\s+bem|"
+    r"health\s+status|vital\s+signs|how\s+am\s+i|how\s+is\s+my\s+health|"
+    r"am\s+i\s+(?:ok|okay|alright|good|fine)|check\s+my\s+(?:health|vitals)|daily\s+health"
+    r")\b"
+)
+
+
+def classify_intent(
+    text: str,
+    extracted: Any,
+    *,
+    has_pending_question: bool = False,
+    polarity: Optional[str] = None,
+) -> str:
+    """Route astronaut message into GREETING, HEALTH_CHECKUP, or SYMPTOM_OR_FOLLOWUP."""
+    if getattr(extracted, "concepts", ()):
+        return "SYMPTOM_OR_FOLLOWUP"
+    if has_pending_question and polarity in ("yes", "no", "unsure"):
+        return "SYMPTOM_OR_FOLLOWUP"
+    norm = _normalize_text(text)
+    if _HEALTH_CHECKUP_RE.search(norm):
+        return "HEALTH_CHECKUP"
+    if is_pure_greeting(text) or (
+        getattr(extracted, "is_greeting", False) and not getattr(extracted, "fallback_docs", ())
+    ):
+        return "GREETING"
+    return "SYMPTOM_OR_FOLLOWUP"
 
 
 def _sensors_are_nominal(metrics: dict[str, Any]) -> bool:
@@ -577,58 +628,61 @@ def _sensors_are_nominal(metrics: dict[str, Any]) -> bool:
     return True
 
 
-_CONCEPT_PT_LABELS: dict[str, str] = {
-    "headache": "cefaleia (dor de cabeça)",
-    "photophobia": "fotofobia (sensibilidade à luz)",
-    "visual_disturbance": "distorção/alteração visual",
-    "blurred_vision": "visão turva/embaçada",
-    "eye_pressure": "pressão ocular",
-    "nasal_congestion": "congestão nasal",
-    "facial_puffiness": "edema facial",
-    "fluid_shift": "redistribuição cefálica de fluidos",
-    "papilledema": "papiledema",
-    "dizziness": "tontura",
-    "fatigue": "fadiga",
-    "dyspnea": "dispneia (falta de ar)",
-    "confusion": "confusão cognitiva",
-    "nausea": "náusea",
-    "flushed_skin": "rubor facial",
-    "cyanosis": "cianose",
-    "insomnia": "insônia",
-    "malaise": "mal-estar",
-    "rash_infection": "lesão/erupção cutânea",
-    "flank_pain": "dor em flanco",
-    "gi_slowdown": "lentidão gastrointestinal",
-    "back_pain": "dor lombar",
-    "hematuria": "hematúria",
-    "dysuria": "disúria",
-    "joint_pain": "dor articular",
-    "muscle_pain": "dor muscular",
-    "muscle_weakness": "fraqueza muscular",
-    "limb_swelling": "edema em membro",
-    "bone_pain": "dor óssea",
-    "orthostatic_intolerance": "intolerância ortostática",
-    "abdominal_pain": "dor abdominal",
-    "paresthesia": "parestesia (formigamento)",
-    "chest_pain": "dor torácica",
+_CONCEPT_EN_LABELS: dict[str, str] = {
+    "headache": "headache",
+    "photophobia": "photophobia (light sensitivity)",
+    "visual_disturbance": "visual distortion/disturbance",
+    "blurred_vision": "blurred vision",
+    "eye_pressure": "ocular pressure",
+    "nasal_congestion": "nasal congestion",
+    "facial_puffiness": "facial puffiness",
+    "fluid_shift": "cephalic fluid shift",
+    "papilledema": "papilledema",
+    "dizziness": "dizziness",
+    "fatigue": "fatigue",
+    "dyspnea": "shortness of breath (dyspnea)",
+    "confusion": "cognitive confusion",
+    "nausea": "nausea",
+    "flushed_skin": "facial flushing",
+    "cyanosis": "cyanosis",
+    "insomnia": "insomnia",
+    "malaise": "malaise",
+    "rash_infection": "skin rash/lesion",
+    "flank_pain": "flank pain",
+    "gi_slowdown": "gastrointestinal slowdown",
+    "back_pain": "lower back pain",
+    "hematuria": "hematuria",
+    "dysuria": "dysuria",
+    "joint_pain": "joint pain",
+    "muscle_pain": "muscle pain",
+    "muscle_weakness": "muscle weakness",
+    "limb_swelling": "limb swelling",
+    "bone_pain": "bone pain",
+    "orthostatic_intolerance": "orthostatic intolerance",
+    "abdominal_pain": "abdominal pain",
+    "paresthesia": "paresthesia (tingling)",
+    "chest_pain": "chest pain",
 }
 
 
-def _format_symptoms_pt(concepts: Sequence[str]) -> str:
+def _format_symptoms_en(concepts: Sequence[str]) -> str:
     labels: list[str] = []
     seen: set[str] = set()
     for c in concepts:
         if c == "blurred_vision" and "visual_disturbance" in concepts:
             continue
-        lbl = _CONCEPT_PT_LABELS.get(c, c.replace("_", " "))
+        lbl = _CONCEPT_EN_LABELS.get(c, c.replace("_", " "))
         if lbl not in seen:
             seen.add(lbl)
             labels.append(lbl)
     if not labels:
-        return "alterações clínicas relatadas"
+        return "reported clinical changes"
     if len(labels) == 1:
         return labels[0]
-    return ", ".join(labels[:-1]) + f" e {labels[-1]}"
+    return ", ".join(labels[:-1]) + f" and {labels[-1]}"
+
+
+_format_symptoms_pt = _format_symptoms_en
 
 
 def _format_telemetry_summary(metrics: dict[str, Any], profile: Optional[CrewProfile]) -> str:
@@ -638,15 +692,121 @@ def _format_telemetry_summary(metrics: dict[str, Any], profile: Optional[CrewPro
     if isinstance(metrics.get("spo2_pct"), (int, float)):
         parts.append(f"SpO2 MAX30102={metrics['spo2_pct']:.1f}%")
     if isinstance(metrics.get("heart_rate_bpm"), (int, float)):
-        parts.append(f"FC={metrics['heart_rate_bpm']:.0f} bpm")
+        parts.append(f"HR={metrics['heart_rate_bpm']:.0f} bpm")
     if isinstance(metrics.get("temp_c"), (int, float)):
         parts.append(f"Temp={metrics['temp_c']:.1f}°C")
     if metrics.get("posture"):
-        parts.append(f"postura={metrics['posture']}")
+        parts.append(f"posture={metrics['posture']}")
     day = metrics.get("mission_day") or (profile.mission_day if profile else None)
     if isinstance(day, (int, float)) and day > 0:
-        parts.append(f"dia {int(day)} de missão")
-    return ", ".join(parts) if parts else "leituras periféricas em monitoramento"
+        parts.append(f"mission day {int(day)}")
+    return ", ".join(parts) if parts else "peripheral readings under monitoring"
+
+
+def _build_greeting_text(
+    *,
+    crew_profile: Optional[CrewProfile],
+    metrics: dict[str, Any],
+    breaches: Sequence[str],
+    sensors_nominal: bool,
+) -> str:
+    crew_label = crew_profile.name if (crew_profile and crew_profile.name) else "crew member"
+    if sensors_nominal:
+        return (
+            f"Hello, {crew_label}! Everything looks steady here — your vital signs and cabin "
+            "environment are nominal. How are you feeling today?"
+        )
+
+    co2 = metrics.get("co2_ppm")
+    spo2 = metrics.get("spo2_pct")
+    if isinstance(co2, (int, float)) and co2 >= 1500.0:
+        alert_note = (
+            f"I noticed cabin CO2 is elevated ({co2:.0f} ppm) — "
+            "are you feeling any discomfort, fatigue, or headache?"
+        )
+    elif isinstance(spo2, (int, float)) and spo2 <= 94.0:
+        alert_note = (
+            f"I noticed your SpO2 saturation is low ({spo2:.1f}%) — "
+            "are you feeling short of breath or dizzy?"
+        )
+    elif breaches:
+        alert_note = (
+            f"I noticed an active sensor alert ({breaches[0]}) — "
+            "are you feeling any discomfort right now?"
+        )
+    else:
+        alert_note = (
+            "I noticed a slight shift in your current physiological readings — "
+            "are you feeling any discomfort right now?"
+        )
+    return f"Hello, {crew_label}! Good to hear from you. {alert_note}"
+
+
+def _build_health_checkup_text(
+    *,
+    crew_profile: Optional[CrewProfile],
+    metrics: dict[str, Any],
+    top: Any,
+    countermeasures: Sequence[str],
+    breaches: Sequence[str],
+    sensors_nominal: bool,
+) -> str:
+    crew_label = crew_profile.name if (crew_profile and crew_profile.name) else "crew member"
+
+    vital_parts: list[str] = []
+    if isinstance(metrics.get("heart_rate_bpm"), (int, float)):
+        vital_parts.append(f"HR {metrics['heart_rate_bpm']:.0f} bpm")
+    if isinstance(metrics.get("spo2_pct"), (int, float)):
+        vital_parts.append(f"SpO2 {metrics['spo2_pct']:.1f}%")
+    if isinstance(metrics.get("respiration_hz"), (int, float)):
+        vital_parts.append(f"respiration {metrics['respiration_hz'] * 60.0:.0f} bpm")
+    if metrics.get("posture"):
+        vital_parts.append(f"posture {metrics['posture']}")
+    vitals_str = ", ".join(vital_parts) if vital_parts else "vital signs under monitoring"
+
+    cabin_parts: list[str] = []
+    if isinstance(metrics.get("co2_ppm"), (int, float)):
+        cabin_parts.append(f"CO2 at {metrics['co2_ppm']:.0f} ppm")
+    if isinstance(metrics.get("temp_c"), (int, float)):
+        cabin_parts.append(f"temperature {metrics['temp_c']:.1f}°C")
+    cabin_str = ", ".join(cabin_parts) if cabin_parts else "cabin parameters under monitoring"
+
+    if sensors_nominal:
+        return (
+            f"Here is your daily health briefing, {crew_label}: "
+            f"your vital signs are within expected limits ({vitals_str}) and the cabin environment "
+            f"remains nominal ({cabin_str}). How are you feeling?"
+        )
+
+    cm_raw = countermeasures[0] if countermeasures else "Check ventilation and maintain continuous monitoring."
+    cm_clean = re.sub(r"^\d+\.\s*", "", cm_raw).strip()
+    co2 = metrics.get("co2_ppm")
+    spo2 = metrics.get("spo2_pct")
+
+    if isinstance(co2, (int, float)) and co2 >= 1500.0 and top is not None:
+        cause_note = (
+            f"In the cabin ({cabin_str}), elevated CO2 points to {top.condition.name} "
+            f"({top.posterior:.0%}) as the probable cause."
+        )
+    elif isinstance(spo2, (int, float)) and spo2 <= 94.0 and top is not None:
+        cause_note = (
+            f"There is reduced oxygenation ({cabin_str}), compatible with {top.condition.name} "
+            f"({top.posterior:.0%})."
+        )
+    elif top is not None:
+        alert_lbl = "; ".join(breaches[:2]) if breaches else cabin_str
+        cause_note = (
+            f"There is an active parameter alert ({alert_lbl}), suggesting attention to "
+            f"{top.condition.name} ({top.posterior:.0%})."
+        )
+    else:
+        cause_note = f"In the cabin environment ({cabin_str}), readings are outside the nominal range."
+
+    return (
+        f"Here is your clinical vital signs briefing today, {crew_label}: {vitals_str}. "
+        f"{cause_note} Recommended immediate action: {cm_clean} "
+        "Are you experiencing any discomfort, headache, or shortness of breath?"
+    )
 
 
 def _build_clinical_summary_text(
@@ -660,35 +820,38 @@ def _build_clinical_summary_text(
     disambig_prompt: Optional[str],
     actions: Sequence[str],
     breaches: Sequence[str],
+    is_followup: bool = False,
 ) -> str:
-    crew_label = crew_profile.name if (crew_profile and crew_profile.name) else "tripulante"
+    crew_label = crew_profile.name if (crew_profile and crew_profile.name) else "crew member"
     telemetry_str = _format_telemetry_summary(metrics, crew_profile)
 
     if concepts:
-        s1 = f"Entendido, {crew_label} — registrei {_format_symptoms_pt(concepts)}."
+        s1 = f"{crew_label}, I logged your report of {_format_symptoms_en(concepts)}."
+    elif is_followup:
+        s1 = f"{crew_label}, I updated the clinical workup with your follow-up response."
     else:
-        s1 = f"Entendido, {crew_label} — identifiquei desvios relevantes na telemetria atual."
+        s1 = f"{crew_label}, I noted relevant sensor deviations that merit investigation."
 
     if breaches:
-        sensor_note = f"com alertas ativos ({'; '.join(breaches[:2])})"
+        sensor_note = f"with active alerts ({'; '.join(breaches[:2])})"
     elif isinstance(metrics.get("co2_ppm"), (int, float)) and metrics["co2_ppm"] < 1500.0:
-        sensor_note = "com CO2 em faixa nominal, reduzindo a chance de hipercapnia primária"
+        sensor_note = "with cabin CO2 in nominal range, lowering the likelihood of primary hypercapnia"
     else:
-        sensor_note = "cruzados diretamente com sua queixa clínica"
-    s2 = f"Na telemetria deste instante ({telemetry_str}), os dados foram avaliados {sensor_note}."
+        sensor_note = "cross-referenced directly with your clinical presentation"
+    s2 = f"Current telemetry ({telemetry_str}) was evaluated {sensor_note}."
 
     diff_clause = ""
     if second is not None and second.posterior >= 0.08 and second.condition.id != top.condition.id:
-        diff_clause = f", mantendo {second.condition.name} ({second.posterior:.0%}) como diferencial"
+        diff_clause = f", keeping {second.condition.name} ({second.posterior:.0%}) as a differential"
     s3 = (
-        f"A hipótese principal pela base {top.condition.source_id} é "
+        f"The primary hypothesis per {top.condition.source_id} is "
         f"{top.condition.name} ({top.posterior:.0%}){diff_clause}."
     )
 
-    cm_raw = countermeasures[0] if countermeasures else "Manter monitoramento contínuo de sinais vitais."
+    cm_raw = countermeasures[0] if countermeasures else "Maintain continuous monitoring of vital signs."
     cm_clean = re.sub(r"^\d+\.\s*", "", cm_raw).strip()
-    amsler_hint = " (ação OPEN_AMSLER_GRID recomendada)" if "OPEN_AMSLER_GRID" in actions and "amsler" not in cm_clean.lower() else ""
-    s4 = f"Conduta imediata: {cm_clean}{amsler_hint}"
+    amsler_hint = " (OPEN_AMSLER_GRID action recommended)" if "OPEN_AMSLER_GRID" in actions and "amsler" not in cm_clean.lower() else ""
+    s4 = f"Immediate action: {cm_clean}{amsler_hint}"
 
     sentences = [s1, s2, s3, s4]
     if disambig_prompt:

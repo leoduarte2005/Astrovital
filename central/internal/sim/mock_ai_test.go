@@ -109,10 +109,10 @@ func TestMockAIChatAndCalibration(t *testing.T) {
 		query string
 		want  string
 	}{
-		{"Estou com cefaleia e o CO2 subiu", "hipercapnia"},
-		{"Alteracao no teste de Amsler", "sans"},
-		{"Pouco sono e desidratacao", "hrv"},
-		{"Alerta de tempestade solar SPE", "spe"},
+		{"I have a headache and CO2 is rising", "hypercapnia"},
+		{"Abnormal Amsler grid test", "sans"},
+		{"Poor sleep and dehydration", "hrv"},
+		{"Solar particle storm SPE alert", "spe"},
 	}
 	crew := "crew_001"
 	for _, tc := range cases {
@@ -195,7 +195,7 @@ func TestMockAISetScenarioChangesInferenceAndChat(t *testing.T) {
 		wantPosture string
 		wantChatSub string
 	}{
-		{ScenarioHypercapnia, "supine", "hipercapnia"},
+		{ScenarioHypercapnia, "supine", "hypercapnia"},
 		{ScenarioSANS, "upright", "sans"},
 		{ScenarioSolarStorm, "shelter_crouch", "spe"},
 		{ScenarioDehydrationSleep, "supine", "hrv"},

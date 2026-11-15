@@ -1,163 +1,99 @@
 {
   "schema_version": 1,
   "generated_by": "auto_calibrate_engine.py",
-  "total_phrases": 90,
+  "total_phrases": 36,
   "rejected_collisions": [
     {
-      "concept": "joint_pain",
-      "phrase": "erupcao na pele",
-      "reason": "collides:('rash_infection',)"
-    },
-    {
-      "concept": "rash_infection",
-      "phrase": "visao embacada",
-      "reason": "collides:('visual_disturbance', 'blurred_vision')"
-    },
-    {
-      "concept": "rash_infection",
-      "phrase": "dor atras dos olhos",
-      "reason": "collides:('eye_pressure',)"
-    },
-    {
-      "concept": "headache",
-      "phrase": "pressao intracraniana",
-      "reason": "collides:('fluid_shift',)"
-    },
-    {
-      "concept": "dizziness",
-      "phrase": "sensacao de desmaio",
-      "reason": "collides:('orthostatic_intolerance',)"
+      "concept": "abdominal_pain",
+      "phrase": "cramps in lower belly",
+      "reason": "collides:('muscle_pain', 'abdominal_pain')"
     },
     {
       "concept": "flank_pain",
-      "phrase": "dor lombar lateral",
-      "reason": "collides:('back_pain',)"
+      "phrase": "sharp side lower back pain",
+      "reason": "collides:('flank_pain', 'back_pain')"
+    },
+    {
+      "concept": "orthostatic_intolerance",
+      "phrase": "dizzy when standing up",
+      "reason": "collides:('dizziness', 'orthostatic_intolerance')"
+    },
+    {
+      "concept": "orthostatic_intolerance",
+      "phrase": "orthostatic lightheadedness",
+      "reason": "collides:('dizziness', 'orthostatic_intolerance')"
     }
   ],
   "synonyms": {
     "abdominal_pain": [
-      "abdome dolorido",
       "abdominal discomfort",
-      "colica na barriga",
-      "cramps in lower belly"
+      "epigastric discomfort"
     ],
     "blurred_vision": [
-      "enxergando tudo embacado",
-      "fora de foco",
-      "visao fora de foco",
+      "everything looks out of focus",
+      "unfocused vision",
       "vision feels blurry"
     ],
     "bone_pain": [
-      "deep bone ache",
-      "dor profunda no quadril",
-      "osso doendo"
+      "deep hip ache"
     ],
     "dizziness": [
-      "cabeca girando",
-      "meio tonto",
-      "room spinning",
-      "sensacao de desequilibrio",
-      "vertigem postural"
+      "feeling lightheaded",
+      "postural vertigo",
+      "unsteady balance"
     ],
     "dyspnea": [
-      "air hunger",
-      "ar nao entra direito",
-      "fome de ar",
-      "hard to catch my breath",
-      "labored breathing",
-      "puxar o ar",
-      "respiracao curta",
       "winded and breathless"
     ],
     "eye_pressure": [
       "eyes hurt behind sockets",
-      "fundo do olho doendo",
-      "ocular tightness",
-      "olhos pressionados",
-      "retro orbital pain",
-      "tensao ocular"
+      "heavy eye strain"
     ],
     "fatigue": [
-      "cansado demais",
-      "corpo esgotado",
+      "extreme weariness",
       "low stamina",
       "worn out and tired"
     ],
     "flank_pain": [
-      "fisgada no rim",
-      "lateral lombar",
-      "perto do rim",
-      "renal colic pain",
-      "sharp side lower back pain"
+      "kidney flank ache",
+      "renal colic pain"
     ],
     "gi_slowdown": [
-      "barriga estufada",
       "digestion slowed down",
-      "intestino preso"
+      "sluggish bowel motility"
     ],
     "headache": [
-      "cabeca latejando",
-      "cabeca pulsando",
-      "cabeca pulsando de dor",
-      "frontal headache",
-      "pounding headache",
-      "throbbing head",
-      "throbbing headache"
+      "pressure behind forehead"
     ],
     "insomnia": [
-      "dormi muito pouco",
-      "dormi pouco",
-      "fragmented sleep",
+      "broken sleep",
       "poor sleep duration",
-      "sono fragmentado",
-      "sono picado",
       "trouble falling asleep"
     ],
     "joint_pain": [
-      "articulacao do joelho doendo",
       "decompression joint pain",
-      "dor articular pos eva",
-      "dor nas articulacoes",
-      "joint ache",
-      "joint soreness",
-      "junta doendo"
+      "post eva joint ache"
     ],
     "muscle_pain": [
-      "coxa doendo",
-      "muscle soreness",
-      "musculo travado",
-      "sore calf muscles"
+      "sore calf muscles",
+      "thigh muscle soreness"
     ],
     "nausea": [
-      "ansia de vomito",
-      "enjoo vestibular",
-      "estomago embrulhado",
       "feeling nauseous",
       "motion queasiness",
-      "nausea persistente"
+      "persistent nausea",
+      "stomach queasiness"
     ],
     "orthostatic_intolerance": [
-      "dizzy when standing up",
-      "escurecimento visual ao levantar",
-      "intolerancia ao ortostatismo",
-      "orthostatic lightheadedness",
-      "pre sincope ortostatica",
-      "quando fico de pe",
-      "vista escurece"
+      "orthostatic presyncope"
     ],
     "photophobia": [
       "bright cabin light hurts",
-      "bright light discomfort",
-      "claridade incomoda",
-      "luz forte incomoda",
-      "sensibilidade ocular a luz",
       "sensitive to bright light"
     ],
     "rash_infection": [
-      "irritacao cutanea",
-      "lesao na pele",
-      "manchas vermelhas na pele",
-      "skin irritation"
+      "cutaneous rash",
+      "skin irritation and hives"
     ]
   }
 }

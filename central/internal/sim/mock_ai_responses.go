@@ -47,68 +47,68 @@ func chatFor(scenario, text string) contracts.ChatCorrelateRespPayload {
 		return false
 	}
 
-	if scenario == "solar_storm" || has("radiac", "radiation", "spe", "tempestade") {
+	if scenario == "solar_storm" || has("radiation", "spe", "solar storm", "radiac", "tempestade") {
 		return contracts.ChatCorrelateRespPayload{
-			Text:            "Evento de particulas solares (SPE) ativo. Mover para abrigo de radiacao imediatamente.",
-			Differentials:   []string{"Exposicao aguda SPE (CANS/ROS)", "Fadiga neurocomportamental"},
-			Evidence:        []string{"Modo MODE_RADIATION_ALERT ativo", "FC elevada: 86 bpm"},
-			Countermeasures: []string{"Abrigo central de alta blindagem", "Suplementacao Vitaminas C e E"},
+			Text:            "Active solar particle event (SPE) detected. Move to radiation shelter immediately.",
+			Differentials:   []string{"Acute SPE Exposure (CANS/ROS)", "Neurobehavioral Fatigue"},
+			Evidence:        []string{"MODE_RADIATION_ALERT active", "Elevated HR: 86 bpm"},
+			Countermeasures: []string{"Central high-shielding shelter", "Vitamins C and E supplementation"},
 			SourceIDs:       []string{"NASA-HRP-RAD-001", "CSA-SPE-002"},
 			Escalation:      contracts.EscalationStoreAndForward,
 			Actions:         []string{"ENTER_SHELTER", "LOG_DOSIMETRY"},
-			Disclaimer:      "Apoio a decisao clinica embarcada; nao substitui medico de voo.",
+			Disclaimer:      "Onboard clinical decision support; does not replace Flight Surgeon evaluation.",
 		}
 	}
 
-	if scenario == "sans" || has("amsler", "visao", "vision", "ocular", "metamorf") {
+	if scenario == "sans" || has("amsler", "vision", "visual", "ocular", "metamorph", "visao") {
 		return contracts.ChatCorrelateRespPayload{
-			Text:                   "Cefaleia associada a alteracao no teste de Amsler sugere SANS/VIIP (pressao intracraniana).",
-			Differentials:          []string{"SANS / VIIP (cefaleia + metamorfopsia)", "Hipercapnia leve"},
-			DisambiguationQuestion: "Ha piora da visao para perto ou diplopia ao acordar?",
-			Evidence:               []string{"Autoexame Amsler positivo", "Deslocamento cefalico de fluidos"},
-			Countermeasures:        []string{"Aplicar Thigh Cuffs (Braslet)", "Ultrassom ONSD", "Complexo B"},
+			Text:                   "Headache with positive Amsler Grid findings suggests SANS/VIIP (intracranial pressure).",
+			Differentials:          []string{"SANS / VIIP (headache + metamorphopsia)", "Mild Hypercapnia"},
+			DisambiguationQuestion: "Any worsening near vision or diplopia upon waking?",
+			Evidence:               []string{"Positive Amsler self-exam", "Cephalic fluid shift"},
+			Countermeasures:        []string{"Apply Thigh Cuffs (Braslet)", "ONSD Ultrasound", "B-Complex"},
 			SourceIDs:              []string{"NASA-HRP-SANS-001", "CSA-VIIP-003"},
 			Escalation:             contracts.EscalationCrew,
 			Actions:                []string{"APPLY_THIGH_CUFFS", "RUN_ONSD_US"},
-			Disclaimer:             "Apoio a decisao clinica embarcada; nao substitui medico de voo.",
+			Disclaimer:             "Onboard clinical decision support; does not replace Flight Surgeon evaluation.",
 		}
 	}
 
-	if scenario == "dehydration_sleep" || has("sono", "sleep", "desidrat", "dehydrat", "sede") {
+	if scenario == "dehydration_sleep" || has("sleep", "dehydrat", "thirst", "sono", "desidrat", "sede") {
 		return contracts.ChatCorrelateRespPayload{
-			Text:                   "Cefaleia e fadiga correlacionam com privacao de sono (4h) e reducao de 30% no HRV.",
-			Differentials:          []string{"Desidratacao + restricao de sono", "Estresse circadiano"},
-			DisambiguationQuestion: "Qual o volume hidrico ingerido nas ultimas 12h?",
-			Evidence:               []string{"Sono 4h acumulado", "HRV -30% (~18 ms)", "FC repouso elevada"},
-			Countermeasures:        []string{"Protocolo de hidratacao oral + eletrolitos", "Nutrition SMO", "Ajuste circadiano"},
+			Text:                   "Headache and fatigue correlate with sleep deprivation (4h) and 30% HRV reduction.",
+			Differentials:          []string{"Dehydration + Sleep Restriction", "Circadian Stress"},
+			DisambiguationQuestion: "What was your fluid intake over the last 12 hours?",
+			Evidence:               []string{"4h cumulative sleep", "HRV -30% (~18 ms)", "Elevated resting HR"},
+			Countermeasures:        []string{"Oral hydration + electrolytes bolus", "Nutrition SMO", "Circadian lighting adjustment"},
 			SourceIDs:              []string{"NASA-HRP-SLEEP-004", "NASA-IMM-NUT-002"},
 			Escalation:             contracts.EscalationCrew,
 			Actions:                []string{"HYDRATION_BOLUS", "SHIFT_LIGHT_CYCLE"},
-			Disclaimer:             "Apoio a decisao clinica embarcada; nao substitui medico de voo.",
+			Disclaimer:             "Onboard clinical decision support; does not replace Flight Surgeon evaluation.",
 		}
 	}
 
-	if scenario == "hypercapnia" || has("co2", "cefaleia", "cabeca", "cabeça", "headache", "ventila") {
+	if scenario == "hypercapnia" || has("co2", "headache", "ventilat", "cefaleia", "cabeca", "cabeça") {
 		return contracts.ChatCorrelateRespPayload{
-			Text:                   "Cefaleia correlacionada com hipercapnia (CO2 em elevacao no modulo).",
-			Differentials:          []string{"Hipercapnia (CO2 elevado)", "Desidratacao leve", "SANS inicial"},
-			DisambiguationQuestion: "A cefaleia melhora proximo ao difusor de ventilacao?",
-			Evidence:               []string{"SCD40 em elevacao", "Frequencia respiratoria aumentada"},
-			Countermeasures:        []string{"Aumentar ventilacao de cabine", "Verificar scrubber CDRA/CO2", "Hidratacao"},
+			Text:                   "Headache correlates with hypercapnia (elevated CO2 in the module).",
+			Differentials:          []string{"Hypercapnia (elevated CO2)", "Mild Dehydration", "Early SANS"},
+			DisambiguationQuestion: "Does the headache improve near the ventilation diffuser?",
+			Evidence:               []string{"SCD40 trending upward", "Increased respiratory rate"},
+			Countermeasures:        []string{"Increase cabin ventilation", "Check CO2 scrubber CDRA/CO2", "Hydration"},
 			SourceIDs:              []string{"NASA-HRP-CO2-001"},
 			Escalation:             contracts.EscalationCrew,
 			Actions:                []string{"BOOST_VENTILATION", "CHECK_CO2_SCRUBBER"},
-			Disclaimer:             "Apoio a decisao clinica embarcada; nao substitui medico de voo.",
+			Disclaimer:             "Onboard clinical decision support; does not replace Flight Surgeon evaluation.",
 		}
 	}
 
 	return contracts.ChatCorrelateRespPayload{
-		Text:            "Telemetria dentro dos limites nominais para o tripulante ativo.",
-		Differentials:   []string{"Sem achado agudo"},
-		Evidence:        []string{"Sinais vitais estaveis", "Atmosfera nominal"},
-		Countermeasures: []string{"Manter monitoramento de rotina"},
+		Text:            "Telemetry within nominal limits for active crew member.",
+		Differentials:   []string{"No acute finding"},
+		Evidence:        []string{"Stable vital signs", "Nominal atmosphere"},
+		Countermeasures: []string{"Maintain routine monitoring"},
 		SourceIDs:       []string{"NASA-HRP-GEN-000"},
 		Escalation:      contracts.EscalationLocal,
-		Disclaimer:      "Apoio a decisao clinica embarcada; nao substitui medico de voo.",
+		Disclaimer:      "Onboard clinical decision support; does not replace Flight Surgeon evaluation.",
 	}
 }

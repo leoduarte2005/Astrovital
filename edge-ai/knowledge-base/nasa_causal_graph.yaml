@@ -2,7 +2,7 @@ version: 1
 source: "NASA Human Research Program (HRP) Clinical Causal Knowledge Base"
 conditions:
   - id: "sans_viip"
-    name: "SANS / VIIP (Fluid Shift Cefálico)"
+    name: "SANS / VIIP (Cephalic Fluid Shift)"
     source_id: "NASA-HRP-SANS"
     subsystem: "NEURO_OCULAR_SANS"
     prior: 0.15
@@ -21,41 +21,41 @@ conditions:
       - metric: "co2_ppm"
         op: "lt"
         value: 1500.0
-        likelihood_ratio: 1.6
-        description: "CO2 ambiente nominal afasta hipercapnia primária"
+        likelihood_ratio: 1.4
+        description: "Nominal cabin CO2 reduces likelihood of primary hypercapnia"
       - metric: "posture"
         op: "in"
         values: ["supine", "prone"]
-        likelihood_ratio: 1.8
-        description: "Postura em repouso/decúbito favorece redistribuição cefálica de fluidos"
+        likelihood_ratio: 1.15
+        description: "Rest/recumbent posture favors cephalic fluid redistribution"
       - metric: "mission_day"
         op: "gte"
         value: 7.0
-        likelihood_ratio: 2.1
-        description: "Exposição prolongada à microgravidade (>= 7 dias)"
+        likelihood_ratio: 1.15
+        description: "Prolonged microgravity exposure (>= 7 days)"
       - metric: "anomaly_score"
         op: "gte"
         value: 0.40
-        likelihood_ratio: 1.5
-        description: "Desvio fisiológico CSI acima do baseline"
+        likelihood_ratio: 1.4
+        description: "CSI physiological deviation above baseline"
     countermeasures:
-      - "1. Executar exame na Grade de Amsler (Amsler Grid) para avaliar distorção macular ou escotomas."
-      - "2. Aplicar Thigh Cuffs (manguitos venosos nas coxas / Braslet) ou LBNP para reduzir o fluid shift cefálico."
-      - "3. Administrar suplementação de Complexo B (ácido fólico, B6 e B12) conforme protocolo metabólico NASA-HRP-SANS."
-      - "4. Registrar achados em SELF_EXAM e encaminhar telemetria para avaliação do Flight Surgeon (Store-and-Forward)."
+      - "1. Perform the Amsler Grid exam to evaluate macular distortion or scotomas."
+      - "2. Apply Thigh Cuffs (Braslet) or LBNP to reduce cephalic fluid shift."
+      - "3. Administer B-Complex supplementation (folic acid, B6, and B12) per NASA-HRP-SANS metabolic protocol."
+      - "4. Record findings in SELF_EXAM and forward telemetry for Flight Surgeon review (Store-and-Forward)."
     actions:
       - "OPEN_AMSLER_GRID"
       - "LOG_SELF_EXAM"
       - "CHECK_FLUID_SHIFT_PROTOCOL"
     disambiguation_questions:
       - id: "amsler_grid"
-        prompt: "Ao olhar para a Grade de Amsler, você percebe linhas onduladas, visão turva ou pressão ocular/facial?"
+        prompt: "When looking at the Amsler Grid, do you notice wavy lines, blurry vision, or ocular/facial pressure?"
         positive_concepts: ["blurred_vision", "visual_disturbance", "photophobia", "eye_pressure", "facial_puffiness", "nasal_congestion"]
         yes_likelihood: 0.85
         no_likelihood: 0.15
 
   - id: "hypercapnia_co2"
-    name: "Hipercapnia por CO2"
+    name: "CO2 Hypercapnia"
     source_id: "NASA-HRP-CO2"
     subsystem: "RESPIRATORY_ATMOSPHERE"
     prior: 0.18
@@ -73,41 +73,46 @@ conditions:
       - metric: "co2_ppm"
         op: "gte"
         value: 1500.0
-        likelihood_ratio: 5.5
-        description: "SCD40 detecta CO2 elevado (>= 1500 ppm)"
+        likelihood_ratio: 4.5
+        description: "SCD40 detects elevated CO2 (>= 1500 ppm)"
+      - metric: "co2_ppm"
+        op: "gte"
+        value: 2500.0
+        likelihood_ratio: 8.5
+        description: "SCD40 above YELLOW hypercapnia threshold (>= 2500 ppm)"
       - metric: "co2_ppm"
         op: "gte"
         value: 3000.0
-        likelihood_ratio: 8.5
-        description: "SCD40 em nível crítico de hipercapnia (>= 3000 ppm)"
+        likelihood_ratio: 10.0
+        description: "SCD40 at critical hypercapnia level (>= 3000 ppm)"
       - metric: "respiration_hz"
         op: "gte"
         value: 0.32
         likelihood_ratio: 2.2
-        description: "Taquipneia compensatória detectada via CSI"
+        description: "Compensatory tachypnea detected via CSI"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 85.0
         likelihood_ratio: 1.5
-        description: "Elevação simpática da frequência cardíaca"
+        description: "Sympathetic heart rate elevation"
     countermeasures:
-      - "1. Verificar leitura do sensor SCD40 e status dos depuradores de CO2 (CDRA / cartuchos LiOH)."
-      - "2. Aumentar ventilação local da cabine e redirecionar fluxo de ar para a zona ocupada."
-      - "3. Reduzir esforço físico até estabilização de CO2 abaixo de 1000 ppm."
-      - "4. Se CO2 >= 3000 ppm ou houver confusão mental, utilizar máscara de O2 e alertar a tripulação."
+      - "1. Verify SCD40 reading and check CO2 scrubber status (CDRA / LiOH cartridges)."
+      - "2. Increase local cabin ventilation and redirect airflow toward the occupied zone."
+      - "3. Reduce physical exertion until CO2 stabilizes below 1000 ppm."
+      - "4. If CO2 >= 3000 ppm or mental confusion occurs, use an O2 mask and alert the crew."
     actions:
       - "OPEN_VENTILATION_CHECK"
       - "INSPECT_CDRA_SCRUBBER"
       - "MONITOR_SCD40"
     disambiguation_questions:
       - id: "ventilation_air"
-        prompt: "A cefaleia melhora ao aproximar-se de uma saída de ventilação ou há sensação de ar pesado / falta de ar?"
+        prompt: "Does the headache improve near a ventilation outlet, or do you feel stuffy air / shortness of breath?"
         positive_concepts: ["dyspnea", "dizziness"]
         yes_likelihood: 0.80
         no_likelihood: 0.25
 
   - id: "hypoxia"
-    name: "Hipóxia de Cabine"
+    name: "Cabin Hypoxia"
     source_id: "NASA-HRP-HYPOXIA"
     subsystem: "RESPIRATORY_ATMOSPHERE"
     prior: 0.08
@@ -123,41 +128,46 @@ conditions:
       - metric: "spo2_pct"
         op: "lte"
         value: 94.0
-        likelihood_ratio: 6.5
-        description: "Dessaturação arterial no oxímetro MAX30102 (SpO2 <= 94%)"
+        likelihood_ratio: 10.0
+        description: "Arterial desaturation on MAX30102 pulse oximeter (SpO2 <= 94%)"
+      - metric: "spo2_pct"
+        op: "lte"
+        value: 90.0
+        likelihood_ratio: 12.0
+        description: "Critical desaturation on MAX30102 pulse oximeter (SpO2 <= 90%)"
       - metric: "pressure_hpa"
         op: "lte"
         value: 750.0
-        likelihood_ratio: 4.5
-        description: "Queda de pressão atmosférica de cabine no BME280"
+        likelihood_ratio: 6.0
+        description: "Cabin atmospheric pressure drop on BME280"
       - metric: "respiration_hz"
         op: "gte"
         value: 0.35
         likelihood_ratio: 2.0
-        description: "Hiperventilação hipóxica detectada via CSI"
+        description: "Hypoxic hyperventilation detected via CSI"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 95.0
         likelihood_ratio: 1.8
-        description: "Taquicardia compensatória"
+        description: "Compensatory tachycardia"
     countermeasures:
-      - "1. Confirmar SpO2 imediatamente no oxímetro MAX30102 e pressão da cabine no BME280."
-      - "2. Inspecionar suprimento de O2 e integridade de vedação do módulo."
-      - "3. Administrar oxigênio suplementar imediatamente se SpO2 <= 92%."
-      - "4. Acionar escalonamento STORE_AND_FORWARD para equipe médica em solo."
+      - "1. Confirm SpO2 immediately on MAX30102 pulse oximeter and cabin pressure on BME280."
+      - "2. Inspect O2 supply and module pressure seal integrity."
+      - "3. Administer supplemental oxygen immediately if SpO2 <= 92%."
+      - "4. Trigger STORE_AND_FORWARD escalation to ground medical team."
     actions:
       - "ADMINISTER_O2"
       - "CHECK_CABIN_PRESSURE"
       - "VERIFY_MAX30102"
     disambiguation_questions:
       - id: "pulse_ox_check"
-        prompt: "Você sente falta de ar súbita, formigamento em extremidades ou escurecimento visual ao usar o MAX30102?"
+        prompt: "Do you feel sudden shortness of breath, tingling in extremities, or visual darkening while using MAX30102?"
         positive_concepts: ["dyspnea", "cyanosis", "confusion"]
         yes_likelihood: 0.85
         no_likelihood: 0.20
 
   - id: "sleep_immune_deprivation"
-    name: "Privação de Sono / Desregulação Circadiana e Imune"
+    name: "Sleep Deprivation / Circadian & Immune Dysregulation"
     source_id: "NASA-HRP-BMed-IMMUNE"
     subsystem: "IMMUNE_HEMATO_NUTRITION"
     prior: 0.16
@@ -175,35 +185,35 @@ conditions:
         op: "lte"
         value: 30.0
         likelihood_ratio: 2.6
-        description: "Queda de HRV (RMSSD <= 30 ms) indicando estresse autonômico"
+        description: "HRV drop (RMSSD <= 30 ms) indicating autonomic stress"
       - metric: "temp_c"
         op: "gte"
         value: 37.5
         likelihood_ratio: 2.2
-        description: "Elevação térmica compatível com resposta inflamatória/imune"
+        description: "Thermal elevation consistent with inflammatory/immune response"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 78.0
         likelihood_ratio: 1.4
-        description: "Frequência cardíaca basal elevada em repouso"
+        description: "Elevated resting baseline heart rate"
     countermeasures:
-      - "1. Revisar duração e qualidade do sono nas últimas 24h e tendência de HRV."
-      - "2. Ajustar espectro de iluminação circadiana (reduzir luz azul 2h antes do repouso)."
-      - "3. Suspender estimulantes 6h antes do período de sono e reduzir carga operacional."
-      - "4. Se houver febre ou lesão cutânea/reativação viral, registrar SELF_EXAM."
+      - "1. Review sleep duration and quality over the past 24h alongside HRV trend."
+      - "2. Adjust circadian lighting spectrum (reduce blue light 2h before sleep)."
+      - "3. Suspend stimulants 6h before sleep window and reduce operational workload."
+      - "4. If fever or skin lesion/viral reactivation appears, log SELF_EXAM."
     actions:
       - "ADJUST_LIGHTING_CIRCADIAN"
       - "LOG_SLEEP_REST"
       - "CHECK_HRV_TREND"
     disambiguation_questions:
       - id: "sleep_hours"
-        prompt: "Quantas horas seguidas você dormiu nas últimas 24h e há febre ou lesão cutânea associada?"
+        prompt: "How many consecutive hours did you sleep in the last 24h, and do you have fever or any skin rash?"
         positive_concepts: ["insomnia", "fatigue", "rash_infection"]
         yes_likelihood: 0.80
         no_likelihood: 0.20
 
   - id: "bone_loss_renal_stone"
-    name: "Perda Óssea / Risco de Cálculo Renal"
+    name: "Bone Loss / Renal Stone Risk"
     source_id: "NASA-HRP-BONE-RENAL"
     subsystem: "MUSCULOSKELETAL_POSTURE"
     prior: 0.10
@@ -221,31 +231,31 @@ conditions:
       - metric: "mission_day"
         op: "gte"
         value: 14.0
-        likelihood_ratio: 2.0
-        description: "Reabsorção óssea e hipercalciúria crescem após 14 dias de missão"
+        likelihood_ratio: 1.2
+        description: "Bone resorption and hypercalciuria rise after 14 mission days"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 90.0
         likelihood_ratio: 1.7
-        description: "Taquicardia reativa à dor aguda"
+        description: "Reactive tachycardia due to acute pain"
     countermeasures:
-      - "1. Aumentar imediatamente a hidratação oral (> 2.5 L/dia) para estimular diurese."
-      - "2. Executar exame de fita urinária (hematúria/pH) e ultrassom renal a bordo."
-      - "3. Revisar adesão aos exercícios resistivos (ARED) e citrato de potássio."
-      - "4. Se dor em flanco intensa ou febre, iniciar analgesia protocolada e notificar Flight Surgeon."
+      - "1. Immediately increase oral hydration (> 2.5 L/day) to promote diuresis."
+      - "2. Perform urine dipstick test (hematuria/pH) and onboard renal ultrasound."
+      - "3. Review adherence to resistive exercise (ARED) and potassium citrate protocol."
+      - "4. If severe flank pain or fever develops, initiate protocol analgesia and notify Flight Surgeon."
     actions:
       - "INCREASE_HYDRATION"
       - "LOG_URINALYSIS"
       - "CHECK_ARED_COMPLIANCE"
     disambiguation_questions:
       - id: "flank_radiation"
-        prompt: "A dor lombar irradia para o flanco/virilha ou há ardência/escurecimento urinário?"
+        prompt: "Does the lower back pain radiate to the flank/groin, or is there burning/dark urine?"
         positive_concepts: ["flank_pain", "hematuria", "dysuria"]
         yes_likelihood: 0.90
         no_likelihood: 0.10
 
   - id: "iron_overload"
-    name: "Sobrecarga de Ferro / Hemoconcentração"
+    name: "Iron Overload / Hemoconcentration"
     source_id: "NASA-HRP-IRON-HEMATO"
     subsystem: "IMMUNE_HEMATO_NUTRITION"
     prior: 0.07
@@ -260,30 +270,30 @@ conditions:
       - metric: "mission_day"
         op: "gte"
         value: 21.0
-        likelihood_ratio: 2.0
-        description: "Acúmulo progressivo de ferro em missões prolongadas (>= 21 dias)"
+        likelihood_ratio: 1.2
+        description: "Progressive iron accumulation in prolonged missions (>= 21 days)"
       - metric: "anomaly_score"
         op: "gte"
         value: 0.40
         likelihood_ratio: 1.4
-        description: "Alteração persistente em relação ao baseline individual"
+        description: "Persistent deviation relative to individual baseline"
     countermeasures:
-      - "1. Revisar cardápio de bordo para reduzir alimentos fortificados com ferro."
-      - "2. Verificar marcadores hematológicos/ferritina disponíveis no kit laboratorial."
-      - "3. Manter hidratação regular e registrar artralgia ou desconforto abdominal."
-      - "4. Enviar resumo clínico periódico ao Flight Surgeon."
+      - "1. Review onboard menu to reduce iron-fortified foods."
+      - "2. Check hematologic/ferritin markers available in the onboard lab kit."
+      - "3. Maintain regular hydration and log arthralgia or abdominal discomfort."
+      - "4. Send periodic clinical summary to the Flight Surgeon."
     actions:
       - "REVIEW_NUTRITION_LOG"
       - "LOG_SELF_EXAM"
     disambiguation_questions:
       - id: "joint_abdominal"
-        prompt: "Você sente dor articular persistente (mãos/joelhos) ou desconforto no quadrante abdominal superior?"
+        prompt: "Do you feel persistent joint pain (hands/knees) or upper abdominal discomfort?"
         positive_concepts: ["joint_pain", "abdominal_pain"]
         yes_likelihood: 0.80
         no_likelihood: 0.20
 
   - id: "dcs_post_eva"
-    name: "Doença Descompressiva pós-EVA (DCS)"
+    name: "Post-EVA Decompression Sickness (DCS)"
     source_id: "NASA-HRP-DCS"
     subsystem: "CARDIOVASCULAR_FLUIDS"
     prior: 0.08
@@ -301,35 +311,35 @@ conditions:
         op: "eq"
         value: 1.0
         likelihood_ratio: 6.0
-        description: "Histórico recente de EVA / despressurização no contexto da missão"
+        description: "Recent EVA / depressurization history in mission context"
       - metric: "spo2_pct"
         op: "lte"
         value: 94.0
         likelihood_ratio: 2.5
-        description: "Redução de SpO2 compatível com embolia gasosa/pulmonar ('chokes')"
+        description: "SpO2 drop compatible with pulmonary gas embolism ('chokes')"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 95.0
         likelihood_ratio: 1.8
-        description: "Resposta cardiovascular ao estresse descompressivo"
+        description: "Cardiovascular response to decompression stress"
     countermeasures:
-      - "1. Administrar oxigênio a 100% imediatamente em máscara de alta vazão."
-      - "2. Imobilizar membro afetado e avaliar déficit neurológico/parestesias."
-      - "3. Iniciar protocolo de repressurização em traje ou câmara hiperbárica de bordo."
-      - "4. Escalonar alerta médico de emergência (STORE_AND_FORWARD)."
+      - "1. Administer 100% oxygen immediately via high-flow mask."
+      - "2. Immobilize affected limb and assess for neurologic deficits/paresthesias."
+      - "3. Initiate suit or onboard hyperbaric chamber recompression protocol."
+      - "4. Escalate emergency medical alert (STORE_AND_FORWARD)."
     actions:
       - "ADMINISTER_100_O2"
       - "CHECK_EVA_LOG"
       - "PREPARE_RECOMPRESSION"
     disambiguation_questions:
       - id: "eva_recent"
-        prompt: "Os sintomas surgiram após atividade extraveicular (EVA) ou despressurização, com formigamento ou dor articular profunda?"
+        prompt: "Did symptoms start after an extravehicular activity (EVA) or depressurization, with tingling or deep joint pain?"
         positive_concepts: ["paresthesia", "joint_pain", "chest_pain"]
         yes_likelihood: 0.90
         no_likelihood: 0.10
 
   - id: "radiation_ros"
-    name: "Exposição à Radiação / Estresse Oxidativo (SPE/GCR)"
+    name: "Radiation Exposure / Oxidative Stress (SPE/GCR)"
     source_id: "NASA-HRP-RADIATION"
     subsystem: "NEUROBEHAVIORAL_RADIATION"
     prior: 0.08
@@ -348,30 +358,30 @@ conditions:
         op: "eq"
         value: 1.0
         likelihood_ratio: 6.0
-        description: "Alerta de radiação (SPE/GCR) ou modo MODE_RADIATION_ALERT ativo"
+        description: "Radiation alert (SPE/GCR) or MODE_RADIATION_ALERT active"
       - metric: "hrv_ms"
         op: "lte"
         value: 30.0
         likelihood_ratio: 1.8
-        description: "Redução de HRV por estresse oxidativo/autonômico"
+        description: "HRV reduction from oxidative/autonomic stress"
     countermeasures:
-      - "1. Deslocar tripulação para o abrigo de maior blindagem (storm shelter / water wall)."
-      - "2. Verificar leitura dos dosímetros pessoais e confirmar alerta SPE com a central."
-      - "3. Manter hidratação e administrar protocolo antioxidante/antiemético se náusea prodrômica."
-      - "4. Monitorar sinais vitais contínuos e registrar evolução clínica."
+      - "1. Move crew to the highest-shielding storm shelter / water wall area."
+      - "2. Check personal dosimeter readings and confirm SPE alert with mission control."
+      - "3. Maintain hydration and administer antioxidant/antiemetic protocol if prodromal nausea is present."
+      - "4. Monitor continuous vital signs and log clinical progression."
     actions:
       - "MOVE_TO_STORM_SHELTER"
       - "CHECK_DOSIMETER"
       - "MONITOR_VITALS"
     disambiguation_questions:
       - id: "nausea_prodrome"
-        prompt: "Há náusea/vômito prodrômico ou alerta ativo de evento de partícula solar (SPE)?"
+        prompt: "Is there prodromal nausea/vomiting or an active solar particle event (SPE) alert?"
         positive_concepts: ["nausea", "malaise"]
         yes_likelihood: 0.85
         no_likelihood: 0.15
 
   - id: "cns_radiation_effects"
-    name: "Efeitos Neurocomportamentais e no SNC por Radiação (SPE/GCR)"
+    name: "Neurobehavioral & CNS Radiation Effects (SPE/GCR)"
     source_id: "NASA-HRP-CNS-RAD"
     subsystem: "NEUROBEHAVIORAL_RADIATION"
     prior: 0.07
@@ -388,29 +398,29 @@ conditions:
         op: "eq"
         value: 1.0
         likelihood_ratio: 5.5
-        description: "Alerta de tempestade solar (SPE) ou evento radiativo ativo"
+        description: "Solar storm alert (SPE) or active radiation event"
       - metric: "hrv_ms"
         op: "lte"
         value: 30.0
         likelihood_ratio: 1.7
-        description: "Estresse autonômico/oxidativo compatível com exposição radiativa"
+        description: "Autonomic/oxidative stress compatible with radiation exposure"
     countermeasures:
-      - "1. Deslocar tripulação imediatamente para área de maior blindagem (storm shelter)."
-      - "2. Verificar dosímetros pessoais e confirmar boletim de evento de partículas solares (SPE)."
-      - "3. Executar rastreio neurocognitivo e registrar evolução visual/cefaleia em SELF_EXAM."
+      - "1. Move crew immediately to highest-shielding area (storm shelter)."
+      - "2. Verify personal dosimeters and confirm solar particle event (SPE) bulletin."
+      - "3. Perform neurocognitive screening and log visual/headache progression in SELF_EXAM."
     actions:
       - "MOVE_TO_STORM_SHELTER"
       - "CHECK_DOSIMETER"
       - "LOG_SELF_EXAM"
     disambiguation_questions:
       - id: "spe_exposure"
-        prompt: "Há alerta recente de tempestade solar (SPE) ou alteração cognitiva/atenção associada à sensibilidade à luz?"
+        prompt: "Has there been a recent solar particle event (SPE) alert or cognitive/attention changes with light sensitivity?"
         positive_concepts: ["confusion", "photophobia"]
         yes_likelihood: 0.85
         no_likelihood: 0.15
 
   - id: "gi_motility_microbiome"
-    name: "Lentidão Gastrointestinal e Disbiose em Microgravidade"
+    name: "Gastrointestinal Slowdown & Dysbiosis in Microgravity"
     source_id: "NASA-HRP-GI-MICROBIOME"
     subsystem: "IMMUNE_HEMATO_NUTRITION"
     prior: 0.14
@@ -425,27 +435,27 @@ conditions:
         op: "lt"
         value: 35.0
         likelihood_ratio: 1.7
-        description: "Baixa umidade da cabine no BME280 favorece desidratação e lentidão GI"
+        description: "Low cabin humidity on BME280 promotes dehydration and GI slowdown"
       - metric: "mission_day"
         op: "gte"
         value: 5.0
-        likelihood_ratio: 1.6
-        description: "Redução de motilidade GI e alterações de microbioma/farmacocinética em microgravidade"
+        likelihood_ratio: 1.15
+        description: "Reduced GI motility and microbiome/pharmacokinetic shifts in microgravity"
       - metric: "temp_c"
         op: "gte"
         value: 26.0
         likelihood_ratio: 1.4
-        description: "Temperatura elevada na cabine aumenta perda hídrica basal"
+        description: "Elevated cabin temperature increases basal fluid loss"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 85.0
         likelihood_ratio: 1.3
-        description: "Elevação discreta da FC associada a desconforto abdominal ou hipovolemia leve"
+        description: "Mild HR elevation associated with abdominal discomfort or mild hypovolemia"
     countermeasures:
-      - "1. Reforçar hidratação fracionada (> 2.5 L/dia) e monitorar ingesta hídrica/diurese."
-      - "2. Ajustar dieta de bordo priorizando fibras prebióticas e refeições leves de fácil digestão."
-      - "3. Revisar e ajustar horário de medicação oral considerando absorção GI lentificada (NASA HRP GI Pharmacokinetics)."
-      - "4. Monitorar febre, vômitos persistentes ou irradiação para flanco e registrar evolução em SELF_EXAM."
+      - "1. Reinforce fractionated hydration (> 2.5 L/day) and monitor fluid intake/output."
+      - "2. Adjust onboard diet prioritizing prebiotic fiber and light, easily digestible meals."
+      - "3. Review and adjust oral medication timing considering slowed GI absorption (NASA HRP GI Pharmacokinetics)."
+      - "4. Monitor for fever, persistent vomiting, or flank radiation and log progression in SELF_EXAM."
     actions:
       - "INCREASE_HYDRATION"
       - "REVIEW_NUTRITION_FIBER"
@@ -453,13 +463,13 @@ conditions:
       - "LOG_SELF_EXAM"
     disambiguation_questions:
       - id: "gi_localization"
-        prompt: "A dor é acompanhada de estufamento/constipação, náusea ou irradia para a lateral das costas (flanco)?"
+        prompt: "Is the abdominal pain accompanied by bloating/constipation, nausea, or radiation toward your flank?"
         positive_concepts: ["gi_slowdown", "nausea", "flank_pain"]
         yes_likelihood: 0.85
         no_likelihood: 0.15
 
   - id: "reduced_cardiorespiratory_fitness"
-    name: "Descondicionamento Musculoesquelético e Cardiorrespiratório"
+    name: "Musculoskeletal & Cardiorespiratory Deconditioning"
     source_id: "NASA-HRP-FITNESS"
     subsystem: "MUSCULOSKELETAL_POSTURE"
     prior: 0.14
@@ -475,36 +485,36 @@ conditions:
       - metric: "mission_day"
         op: "gte"
         value: 7.0
-        likelihood_ratio: 1.8
-        description: "Atrofia muscular e perda óssea progressiva em microgravidade (>= 7 dias)"
+        likelihood_ratio: 1.15
+        description: "Progressive muscle atrophy and bone loss in microgravity (>= 7 days)"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 85.0
         likelihood_ratio: 1.4
-        description: "Sobrecarga cardiovascular relativa durante esforço ou deambulação"
+        description: "Relative cardiovascular load during exertion or ambulation"
       - metric: "posture"
         op: "in"
         values: ["exercising", "standing", "upright"]
         likelihood_ratio: 1.5
-        description: "Sintoma manifestado sob carga ou tentativa de locomoção"
+        description: "Symptom triggered under load or attempted ambulation"
     countermeasures:
-      - "1. Avaliar intensidade, simetria e localização da dor na perna (muscular vs articular vs panturrilha)."
-      - "2. Revisar sessões recentes de exercício resistivo/aeróbico (ARED e esteira T2) e ajustar carga progressiva."
-      - "3. Garantir hidratação adequada, ingestão proteica e vitamina D conforme protocolo de bordo."
-      - "4. Se houver inchaço unilateral ou dor aguda ao toque na panturrilha, executar protocolo vascular/ultrassom."
+      - "1. Assess intensity, symmetry, and location of leg pain (muscular vs joint vs calf)."
+      - "2. Review recent resistive/aerobic exercise sessions (ARED and T2 treadmill) and adjust progressive load."
+      - "3. Ensure adequate hydration, protein intake, and vitamin D per onboard protocol."
+      - "4. If unilateral swelling or acute calf tenderness is present, execute vascular/ultrasound protocol."
     actions:
       - "CHECK_ARED_COMPLIANCE"
       - "LOG_SELF_EXAM"
       - "REVIEW_NUTRITION_LOG"
     disambiguation_questions:
       - id: "muscle_vs_vte"
-        prompt: "A dor na perna piora ao caminhar/fazer esforço com sensação de fraqueza, ou há inchaço, calor e vermelhidão em apenas uma panturrilha?"
+        prompt: "Does leg pain worsen when walking/exerting with weakness, or is there swelling, warmth, and redness in only one calf?"
         positive_concepts: ["limb_swelling", "muscle_pain", "muscle_weakness"]
         yes_likelihood: 0.85
         no_likelihood: 0.15
 
   - id: "venous_thromboembolism_stasis"
-    name: "Estase Venosa / Suspeita de Trombose de Membro (VTE)"
+    name: "Venous Stasis / Suspected Limb Thrombosis (VTE)"
     source_id: "NASA-HRP-VTE-ISS"
     subsystem: "CARDIOVASCULAR_FLUIDS"
     prior: 0.06
@@ -519,36 +529,36 @@ conditions:
       - metric: "mission_day"
         op: "gte"
         value: 5.0
-        likelihood_ratio: 1.7
-        description: "Estase venosa associada ao fluid shift em microgravidade"
+        likelihood_ratio: 1.15
+        description: "Venous stasis associated with fluid shift in microgravity"
       - metric: "spo2_pct"
         op: "lte"
         value: 94.0
         likelihood_ratio: 2.5
-        description: "Dessaturação sugere risco de embolia pulmonar secundária"
+        description: "Desaturation suggests risk of secondary pulmonary embolism"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 95.0
         likelihood_ratio: 1.8
-        description: "Taquicardia associada a dor vascular ou sobrecarga cardiopulmonar"
+        description: "Tachycardia associated with vascular pain or cardiopulmonary strain"
     countermeasures:
-      - "1. NÃO massagear o membro dolorido; manter o membro em repouso e medir circunferência bilateral das panturrilhas."
-      - "2. Executar ultrassom venoso compressivo a bordo (protocolo NASA ISS VTE) se disponível."
-      - "3. Monitorar SpO2, falta de ar ou dor torácica contínua no MAX30102/CSI."
-      - "4. Encaminhar imediatamente alerta ao Flight Surgeon (Store-and-Forward)."
+      - "1. DO NOT massage the painful limb; keep limb at rest and measure bilateral calf circumference."
+      - "2. Perform onboard compressive venous ultrasound (NASA ISS VTE protocol) if available."
+      - "3. Monitor continuous SpO2, shortness of breath, or chest pain via MAX30102/CSI."
+      - "4. Immediately escalate alert to Flight Surgeon (Store-and-Forward)."
     actions:
       - "PERFORM_VASCULAR_ULTRASOUND"
       - "MONITOR_SPO2"
       - "ESCALATE_FLIGHT_SURGEON"
     disambiguation_questions:
       - id: "vte_unilateral"
-        prompt: "O inchaço ou dor está localizado em apenas uma perna/panturrilha, com aumento de temperatura local ou falta de ar?"
+        prompt: "Is the swelling or pain localized to only one leg/calf, with local warmth or shortness of breath?"
         positive_concepts: ["limb_swelling", "dyspnea", "chest_pain"]
         yes_likelihood: 0.90
         no_likelihood: 0.10
 
   - id: "cv_fluid_shift_orthostatic"
-    name: "Fluid Shift Cardiovascular e Intolerância Ortostática"
+    name: "Cardiovascular Fluid Shift & Orthostatic Intolerance"
     source_id: "NASA-HRP-CV-FLUID"
     subsystem: "CARDIOVASCULAR_FLUIDS"
     prior: 0.10
@@ -562,24 +572,24 @@ conditions:
       - metric: "mission_day"
         op: "gte"
         value: 3.0
-        likelihood_ratio: 1.6
-        description: "Adaptação cardiovascular ao fluid shift em voo/reentrada"
+        likelihood_ratio: 1.15
+        description: "Cardiovascular adaptation to fluid shift in flight/reentry"
       - metric: "heart_rate_bpm"
         op: "gte"
         value: 95.0
         likelihood_ratio: 1.8
-        description: "Taquicardia ortostática compensatória"
+        description: "Compensatory orthostatic tachycardia"
     countermeasures:
-      - "1. Executar protocolo de verificação de pressão arterial e FC em repouso/ortostase (SELF_EXAM blood_pressure)."
-      - "2. Reforçar hidratação com eletrólitos/sal conforme protocolo pré-pouso e considerar Thigh Cuffs / LBNP."
-      - "3. Evitar levantamentos bruscos e monitorar tontura ou pré-síncope."
+      - "1. Execute resting/standing blood pressure and HR check protocol (SELF_EXAM blood_pressure)."
+      - "2. Reinforce electrolyte/salt hydration per pre-landing protocol and consider Thigh Cuffs / LBNP."
+      - "3. Avoid sudden standing and monitor for dizziness or presyncope."
     actions:
       - "INCREASE_HYDRATION"
       - "CHECK_FLUID_SHIFT_PROTOCOL"
       - "LOG_SELF_EXAM"
     disambiguation_questions:
       - id: "orthostatic_trigger"
-        prompt: "Você sente tontura, palpitação ou sensação de desmaio ao ficar de pé ou mudar de posição?"
+        prompt: "Do you feel dizzy, have palpitations, or feel faint when standing up or changing posture?"
         positive_concepts: ["orthostatic_intolerance", "dizziness"]
         yes_likelihood: 0.90
         no_likelihood: 0.10

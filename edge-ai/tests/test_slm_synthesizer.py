@@ -257,13 +257,13 @@ def test_leg_pain_walking_correlates_musculoskeletal_knowledge(tmp_path: Path) -
     correlator = ClinicalCorrelator(db_path=db_file)
     resp = correlator.correlate(
         ChatCorrelateReqPayload(
-            text="Minha perna doi quando tento andar",
+            text="My leg hurts when I try to walk",
             crew_id="crew_001",
             profile=CrewProfile(crew_id="crew_001", name="Cmdr. Silva", mission_day=42),
         )
     )
     assert resp.differentials
-    assert "Descondicionamento" in resp.differentials[0]
+    assert "Deconditioning" in resp.differentials[0]
     assert "NASA-FITNESS" in resp.source_ids
     assert resp.countermeasures
 

@@ -693,16 +693,16 @@ def test_causal_differentiation_headache_co2_vs_sans(tmp_path: Path) -> None:
         },
     )
     assert resp_co2.differentials is not None
-    assert "Hipercapnia" in resp_co2.differentials[0]
+    assert "Hypercapnia" in resp_co2.differentials[0]
     assert "NASA-EVA" in (resp_co2.source_ids or [])
     assert resp_co2.escalation in (Escalation.CREW, Escalation.STORE_AND_FORWARD)
     cm_co2 = " ".join(resp_co2.countermeasures or []).lower()
-    assert "co2" in cm_co2 or "ventilação" in cm_co2 or "cdra" in cm_co2
+    assert "co2" in cm_co2 or "ventilation" in cm_co2 or "cdra" in cm_co2
 
-    # Teste B: "estou com dor de cabeça" + pressão elevada / fluid shift -> SANS/VIIP, Thigh Cuffs + Complexo B + Grade de Amsler
+    # Teste B: "I have a headache" + elevated pressure / fluid shift -> SANS/VIIP, Thigh Cuffs + B-Complex + Amsler Grid
     resp_sans = correlator.correlate(
         ChatCorrelateReqPayload(
-            text="estou com dor de cabeça e pressão elevada, provável fluid shift",
+            text="I have a headache and elevated pressure, probable fluid shift",
             profile=CrewProfile(crew_id="crew_001", name="Cmdr", mission_day=14),
         ),
         peripherals=[
@@ -729,6 +729,8 @@ def test_causal_differentiation_headache_co2_vs_sans(tmp_path: Path) -> None:
     cm_sans = " ".join(resp_sans.countermeasures or [])
     assert "Aplicar Thigh Cuffs" not in cm_sans
     assert "Administrar" not in cm_sans
+    assert "Thigh Cuffs" in cm_sans
+    assert "B-Complex" in cm_sans
     assert resp_sans.disambiguation_question is not None
     assert "Amsler" in resp_sans.disambiguation_question
     assert resp_sans.escalation != Escalation.STORE_AND_FORWARD
@@ -736,7 +738,7 @@ def test_causal_differentiation_headache_co2_vs_sans(tmp_path: Path) -> None:
     # Scenario 3: Ambiguous headache without visual info -> Information Gain picks Amsler Grid question
     resp_ambig = correlator.correlate(
         ChatCorrelateReqPayload(
-            text="Estou com dor de cabeça",
+            text="I have a headache",
             profile=CrewProfile(crew_id="crew_001", name="Cmdr", mission_day=10),
         ),
         peripherals=[PeripheralReading(type=Peripheral.SCD40, value=950.0, unit="ppm", timestamp_us=ts)],
@@ -1010,34 +1012,34 @@ def test_abdominal_pain_dor_de_barriga_correlation(tmp_path: Path) -> None:
 
     assert resp.differentials is not None and len(resp.differentials) >= 1
     assert not resp.differentials[0].startswith("SANS")
-    assert "gastrointestinais" in resp.differentials[0].lower() or "gi_motility" in resp.differentials[0].lower()
+    assert "gi slowdown" in resp.differentials[0].lower() or "microbiome" in resp.differentials[0].lower() or "gi_motility" in resp.differentials[0].lower()
     assert "NASA-MICROBIOME" in (resp.source_ids or [])
 
     cm_text = " ".join(resp.countermeasures or []).lower()
-    assert cm_text and ("protocolo" in cm_text or "contexto" in cm_text or "hidrata" in cm_text)
+    assert cm_text and ("protocol" in cm_text or "hydration" in cm_text or "fiber" in cm_text)
 
     assert resp.disambiguation_question is not None
     q_low = resp.disambiguation_question.lower()
-    assert "alimentar" in q_low or "medicamento" in q_low or "tripulante" in q_low or "estufamento" in q_low
+    assert "diet" in q_low or "medication" in q_low or "crew" in q_low or "bloating" in q_low
 
 
 def test_symptom_extractor_no_headache_fallback_and_nominal_clarification(tmp_path: Path) -> None:
     ext = SymptomExtractor()
-    # "dor" isolado não deve casar headache; texto desconhecido retorna vazio
-    assert ext.extract("estou com dor").concepts == ()
-    assert ext.extract("preciso de ajuda").concepts == ()
-    assert "gi_slowdown" in ext.extract("estufamento e prisao de ventre").concepts
-    assert "flank_pain" in ext.extract("dor no flanco e pedra no rim").concepts
-    assert "nausea" in ext.extract("muito enjoo e vomito").concepts
+    # Isolated "pain" must not match headache; unknown text returns empty
+    assert ext.extract("i am in pain").concepts == ()
+    assert ext.extract("i need help").concepts == ()
+    assert "gi_slowdown" in ext.extract("bloating and constipation").concepts
+    assert "flank_pain" in ext.extract("flank pain and kidney stone").concepts
+    assert "nausea" in ext.extract("bad nausea and vomiting").concepts
 
-    # Sem sintomas e sensores nominais -> não força hipótese P > 0.50; pede detalhamento
+    # Without symptoms and with nominal sensors -> do not force P > 0.50 hypothesis; ask for details
     db_file = tmp_path / "nominal.db"
     _apply_real_migrations(db_file)
     correlator = ClinicalCorrelator(db_path=db_file)
     ts = now_us()
     resp = correlator.correlate(
         ChatCorrelateReqPayload(
-            text="não estou me sentindo muito bem",
+            text="i am not feeling very well",
             crew_id="crew_001",
             profile=CrewProfile(crew_id="crew_001", name="Cmdr", mission_day=14),
         ),
@@ -1058,7 +1060,7 @@ def test_symptom_extractor_no_headache_fallback_and_nominal_clarification(tmp_pa
     assert resp.differentials is None
     assert "headache" not in " ".join(resp.evidence or []).lower()
     assert resp.disambiguation_question is not None
-    assert "detalhar" in resp.disambiguation_question.lower() or "detalhe" in resp.text.lower()
+    assert "describe" in resp.disambiguation_question.lower() or "describe" in resp.text.lower()
 
 
 def test_clinical_repo_lookback_longitudinal_and_rollup_compare(tmp_path: Path) -> None:
@@ -1165,13 +1167,13 @@ def test_correlator_permanent_facts_and_allergy_contraindications(tmp_path: Path
 def test_greeting_with_headache_photophobia_diagnoses_sans_and_cites_telemetry(tmp_path: Path) -> None:
     from edgespace_ai.correlation.causal_graph import CausalGraph
 
-    assert is_pure_greeting("Olá") is True
-    assert is_pure_greeting("Bom dia!") is True
-    assert is_pure_greeting("ola, estou com dores de cabeça ao olhar para a luz") is False
-    assert is_pure_greeting("oi, dor") is False
+    assert is_pure_greeting("Hello") is True
+    assert is_pure_greeting("Good morning!") is True
+    assert is_pure_greeting("hello, I have headaches when looking at the light") is False
+    assert is_pure_greeting("hi, pain") is False
 
     ext = SymptomExtractor()
-    extracted = ext.extract("ola, estou com dores de cabeça ao olhar para a luz")
+    extracted = ext.extract("hello, I have headaches when looking at the light")
     assert "headache" in extracted.concepts
     assert "photophobia" in extracted.concepts
 
@@ -1203,7 +1205,7 @@ def test_greeting_with_headache_photophobia_diagnoses_sans_and_cites_telemetry(t
     assert "hypercapnia_co2" in [h.condition.id for h in yaml_assess.hypotheses[:4]]
     assert "OPEN_AMSLER_GRID" in yaml_assess.hypotheses[0].condition.actions
     yaml_cm = " ".join(yaml_assess.hypotheses[0].condition.countermeasures).lower()
-    assert "thigh cuffs" in yaml_cm and "complexo b" in yaml_cm
+    assert "thigh cuffs" in yaml_cm and "b-complex" in yaml_cm
 
     db_file = tmp_path / "sans_photo.db"
     _apply_real_migrations(db_file)
@@ -1215,8 +1217,8 @@ def test_greeting_with_headache_photophobia_diagnoses_sans_and_cites_telemetry(t
     correlator = ClinicalCorrelator(db_path=db_file)
 
     for phrase in (
-        "ola, estou com dores de cabeça ao olhar para a luz",
-        "estou com dores de cabeça ao olhar para a luz",
+        "hello, I have headaches when looking at the light",
+        "I have headaches when looking at the light",
     ):
         resp = correlator.correlate(
             ChatCorrelateReqPayload(text=phrase, crew_id="crew_003", profile=profile),
@@ -1226,12 +1228,12 @@ def test_greeting_with_headache_photophobia_diagnoses_sans_and_cites_telemetry(t
         ev_text = " ".join(resp.evidence or [])
         assert "headache" in ev_text and "photophobia" in ev_text
         assert resp.differentials and "SANS" in resp.differentials[0]
-        assert any("Hipercapnia" in d or "CO2" in d for d in resp.differentials[1:])
+        assert any("Hypercapnia" in d or "CO2" in d for d in resp.differentials[1:])
         assert resp.actions and "OPEN_AMSLER_GRID" in resp.actions
         assert resp.countermeasures
         low_text = resp.text.lower()
-        assert "como está se sentindo" not in low_text
-        assert "cefaleia" in low_text and "fotofobia" in low_text
+        assert "how are you feeling" not in low_text
+        assert "headache" in low_text and "photophobia" in low_text
         assert "scd40" in low_text and "max30102" in low_text and "supine" in low_text
         assert resp.disambiguation_question is not None and "amsler" in resp.disambiguation_question.lower()
 
@@ -1319,18 +1321,18 @@ def test_multiturn_bayesian_update_and_slm_prompt_guard(tmp_path: Path) -> None:
     assert m2 is not None
     assert float(m2.group(1)) > p1_sqlite
 
-    assert "PROIBIDO" in SLM_SYSTEM_PROMPT and "Grade de Amsler" in SLM_SYSTEM_PROMPT
+    assert "FORBIDDEN" in SLM_SYSTEM_PROMPT and "Amsler Grid" in SLM_SYSTEM_PROMPT
 
     class _GreetingMockLlama:
         def create_chat_completion(self, **_kwargs):
-            return {"choices": [{"message": {"content": "Olá, Eng. Sato! Como está se sentindo hoje?"}}]}
+            return {"choices": [{"message": {"content": "Hello, Eng. Sato! How are you feeling today?"}}]}
 
     synth = LocalSLMSynthesizer(llm=_GreetingMockLlama(), auto_load=False)
     try:
         msgs = synth.build_messages(turn1, [], {"co2_ppm": 620.0, "spo2_pct": 98.0, "posture": "supine", "mission_day": 12})
-        assert "Sintomas detectados:" in msgs[1]["content"]
+        assert "Detected symptoms:" in msgs[1]["content"]
         final_text = synth.synthesize_response(turn1, [], {"co2_ppm": 620.0, "spo2_pct": 98.0})
         assert final_text == turn1.text
-        assert "como está se sentindo" not in final_text.lower()
+        assert "how are you feeling" not in final_text.lower()
     finally:
         synth.close()
