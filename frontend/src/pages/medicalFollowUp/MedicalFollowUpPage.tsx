@@ -1,4 +1,5 @@
 import { useLayoutEffect, useState } from 'react'
+import { ASTRONAUT_PATH, sectionPath } from '@/features/astronaut'
 import { TwinCanvas, type TwinAnchorId } from '@/features/twin3d'
 import { CrewInfoCard, ShelterOverlay } from '@/features/crew'
 import { hasOrganCharts, MetricsPanel, OrganCharts, vitalFeed } from '@/features/vitals'
@@ -7,10 +8,11 @@ import { getDataSource } from '@/lib/data'
 import { crewStateStore, useCrewState } from '@/lib/data/crewState'
 import { useSession } from '@/lib/data/session'
 import { useI18n } from '@/lib/i18n'
+import { previousRoute, useHashRoute } from '@/lib/utils/hashRoute'
 import { Button } from '@/ui/Button'
-import styles from './HomePage.module.css'
+import styles from './MedicalFollowUpPage.module.css'
 
-export default function HomePage() {
+export default function MedicalFollowUpPage() {
   const { t } = useI18n()
   const crew = useSession((state) => state.activeCrew)
   const crewId = crew?.crewId ?? null
@@ -19,6 +21,10 @@ export default function HomePage() {
   const switchFailed = useCrewState((state) => state.switchFailed)
   // Selected twin marker: its chart group (features/vitals/organGroups.ts) shows on the right.
   const [selected, setSelected] = useState<TwinAnchorId | null>(null)
+  // The suit-fragmentation intro plays only when coming from `#/astronaut` to its medical tab; any other way in (reload,
+  // another tab, the home) shows the twin at once. Decided once, when the page mounts.
+  const path = useHashRoute()
+  const [intro] = useState(() => path === sectionPath('medical') && previousRoute() === ASTRONAUT_PATH)
 
   // The live link and the crew switch last as long as the home is mounted (rules/data-layer.md).
   // Layout effect: the mock confirms at once, so the twin mounts before the first paint.
@@ -49,7 +55,7 @@ export default function HomePage() {
       <section className={styles.stage}>
         {confirmed ? (
           <>
-            <TwinCanvas skinTone={crew.skinTone} heightM={statureM(crew.nationality)} onSelect={setSelected} />
+            <TwinCanvas skinTone={crew.skinTone} heightM={statureM(crew.nationality)} onSelect={setSelected} intro={intro} />
             <div className={styles.floating}>
               <CrewInfoCard member={crew}>
                 <MetricsPanel />

@@ -1,62 +1,64 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { APP_NAME } from '@/app/constants'
-import { CrewCard } from '@/features/crew'
+import { CrewStack } from '@/features/crew'
+import { StationCanvas } from '@/features/station'
 import { getDataSource } from '@/lib/data'
 import { rememberCrew } from '@/lib/data/rememberedCrew'
 import { sessionStore } from '@/lib/data/session'
 import { useI18n } from '@/lib/i18n'
 import type { CrewMember } from '@/lib/model/crew'
 import { navigate } from '@/lib/utils/hashRoute'
-import { Button } from '@/ui/Button'
+import { CornerPanel } from '@/ui/CornerPanel'
+import { GridBackdrop } from '@/ui/GridBackdrop'
+import { Hero } from '@/ui/Hero'
 import styles from './CrewPage.module.css'
 
+/**
+ * Start screen (`#/crew`): the ISS on a grid backdrop, a title block at the top left and the crew stack at the top right.
+ * Each card shows its member's heart rate; the links close when the route changes (the unmount).
+ */
 export default function CrewPage() {
   const { t } = useI18n()
   const [crew, setCrew] = useState<CrewMember[] | null>(null)
-  const [failed, setFailed] = useState(false)
-
-  const load = useCallback(() => {
-    getDataSource().listCrew().then(setCrew, () => setFailed(true))
-  }, [])
-
-  const retry = () => {
-    setFailed(false)
-    load()
-  }
+  // A section of the ISS is in focus: the title, the crew stack and the grid step aside (the stack stays mounted, so the feeds stay open).
+  const [focused, setFocused] = useState(false)
 
   useEffect(() => {
     // Arriving here always ends the previous session: nothing of the last crew member survives.
     sessionStore.getState().leave()
-    load()
-  }, [load])
+    let alive = true
+    getDataSource()
+      .listCrew()
+      .then((list) => {
+        if (alive) setCrew(list)
+      })
+      .catch(() => {
+        // Central unavailable: the stack stays empty; the ISS still shows.
+      })
+    return () => {
+      alive = false
+    }
+  }, [])
 
   const handleSelect = (member: CrewMember) => {
     sessionStore.getState().select(member)
     rememberCrew(member.crewId)
-    navigate('/')
+    navigate('/astronaut')
   }
 
   return (
     <main className={styles.root}>
-      <header className={styles.header}>
-        <p className={styles.brand}>{APP_NAME}</p>
-        <h1 className={styles.title}>{t('crew.select.title')}</h1>
-        <p className={styles.subtitle}>{t('crew.select.subtitle')}</p>
-      </header>
-      {crew ? (
-        <div className={styles.grid}>
-          {crew.map((member) => (
-            <CrewCard key={member.crewId} member={member} onSelect={handleSelect} />
-          ))}
-        </div>
-      ) : failed ? (
-        <div className={styles.header}>
-          <p className={styles.subtitle}>{t('crew.list.unavailable')}</p>
-          <Button onClick={retry}>{t('common.retry')}</Button>
-        </div>
-      ) : (
-        <p className={styles.subtitle}>{t('common.loading')}</p>
-      )}
+      <GridBackdrop grid={!focused}>
+        <StationCanvas onFocusChange={setFocused} />
+        <CornerPanel corner="top-left" hidden={focused}>
+          <Hero title={APP_NAME} tagline={t('crew.hero.tagline')} summary={t('crew.hero.summary')} />
+        </CornerPanel>
+        {crew && (
+          <CornerPanel corner="top-right" hidden={focused}>
+            <CrewStack crew={crew} onSelect={handleSelect} />
+          </CornerPanel>
+        )}
+      </GridBackdrop>
     </main>
   )
 }
