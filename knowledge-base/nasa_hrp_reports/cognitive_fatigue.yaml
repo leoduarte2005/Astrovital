@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-COGNITIVE_FATIGUE",
+  "report_id": "cognitive_fatigue",
   "source_id": "NASA-SLEEP",
   "hazard_id": "DISTANCE_FROM_EARTH",
   "category": "BEHAVIORAL_BIOCHEMICAL",
@@ -64,8 +64,8 @@
           "positive_concepts": [
             "lapsos de atenção"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "cognitive_check"
         }
       ],

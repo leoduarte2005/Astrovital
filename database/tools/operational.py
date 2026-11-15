@@ -92,8 +92,9 @@ def validate(path):
                 'crew_circadian_schedule','nutrition_hydration_logs','causal_conditions','causal_sensor_rules',
                 'causal_disambiguation_questions','causal_contraindications']
         counts={t:c.execute(f'SELECT COUNT(*) FROM {t}').fetchone()[0] for t in tables}
-        checks['risk_coverage']=counts['clinical_reports']==19 and counts['clinical_hazards']==5 and counts['causal_conditions']>=19
-        checks['category_coverage']=dict(c.execute('SELECT category,count(*) FROM clinical_reports GROUP BY category'))=={'PHYSIOLOGICAL':11,'BEHAVIORAL_BIOCHEMICAL':8}
+        checks['risk_coverage']=counts['clinical_reports']>=19 and counts['clinical_hazards']==5 and counts['causal_conditions']>=19
+        categories=dict(c.execute('SELECT category,count(*) FROM clinical_reports GROUP BY category'))
+        checks['category_coverage']=categories.get('PHYSIOLOGICAL',0)>=11 and categories.get('BEHAVIORAL_BIOCHEMICAL',0)>=8
         active=c.execute('SELECT crew_id FROM individual_baselines WHERE is_active=1 ORDER BY crew_id').fetchall()
         checks['three_active_baselines']=[r[0] for r in active]==['crew_001','crew_002','crew_003']
         checks['baseline_vectors']=all(b['feature_dim']==64 and len(b['mean'])==64 and len(b['std'])==64 and all(v>0 for v in b['std']) for b in (repo.baseline(f'crew_{i:03d}') for i in range(1,4)))

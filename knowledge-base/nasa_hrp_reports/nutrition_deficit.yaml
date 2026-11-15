@@ -1,13 +1,26 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-NUTRITION_DEFICIT",
+  "report_id": "inadequate_nutrition",
   "source_id": "NASA-NUTRITION",
   "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
   "category": "BEHAVIORAL_BIOCHEMICAL",
   "title": "Nutrição inadequada",
   "problem": "Adequação e aceitabilidade da alimentação são relevantes para saúde e desempenho durante missões longas.",
   "primary_symptoms": [
-    "redução de ingestão"
+    "redução de ingestão",
+    "fadiga",
+    "perda de peso",
+    "fraqueza",
+    "tontura",
+    "apetite reduzido",
+    "hidratação baixa",
+    "fatigue",
+    "weight loss",
+    "weakness",
+    "dizziness",
+    "low appetite",
+    "low hydration",
+    "Nutrition SMO"
   ],
   "secondary_symptoms": [
     "perda de massa corporal",
@@ -30,7 +43,19 @@
       "symptoms": [
         "redução de ingestão",
         "perda de massa corporal",
-        "fadiga"
+        "fadiga",
+        "perda de peso",
+        "fraqueza",
+        "tontura",
+        "apetite reduzido",
+        "hidratação baixa",
+        "fatigue",
+        "weight loss",
+        "weakness",
+        "dizziness",
+        "low appetite",
+        "low hydration",
+        "Nutrition SMO"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -75,8 +100,8 @@
           "positive_concepts": [
             "redução de ingestão"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "nutrition_review"
         }
       ],
@@ -114,8 +139,8 @@
             "ARED",
             "exercício"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "blood_pressure"
         }
       ],
@@ -158,5 +183,17 @@
       "model_status": "ENGINEERING_TEST_ONLY",
       "match_policy": "ALL"
     }
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-NUTRITION",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Inadequate Food and Nutrition; Nutrition SMO",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-NUTRITION"
+    },
+    "detection": [
+      "Registro alimentar e hidratação",
+      "Autoexame: sangue capilar (glicemia)"
+    ]
+  }
 }

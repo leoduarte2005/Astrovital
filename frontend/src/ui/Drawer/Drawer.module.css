@@ -1,0 +1,80 @@
+.panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: var(--z-drawer);
+  display: flex;
+  flex-direction: column;
+  width: var(--drawer-width);
+  padding: var(--space-4) var(--space-5);
+  border-left: var(--border-frame) solid var(--ink);
+  background: var(--bg);
+  transform: translateX(100%);
+  visibility: hidden;
+  transition:
+    transform var(--duration-fast) var(--ease-out),
+    visibility 0s var(--duration-fast);
+}
+
+.panelOpen {
+  transform: translateX(0);
+  visibility: visible;
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.panelExpanded {
+  width: 100vw;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-sm);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.tab {
+  position: fixed;
+  top: 50%;
+  right: 0;
+  z-index: var(--z-drawer-tab);
+  display: grid;
+  place-items: center;
+  width: var(--touch-min);
+  height: calc(var(--touch-min) * 1.4);
+  border: var(--border-thin) solid var(--ink);
+  border-right: 0;
+  border-radius: var(--radius-sm) 0 0 var(--radius-sm);
+  background: var(--bg);
+  color: var(--ink);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.tabOpen {
+  transform: translate(calc(-1 * var(--drawer-width)), -50%);
+}
+
+/* Expanded panel is full width: the tab sits on the left edge of the screen. */
+.tabExpanded {
+  transform: translate(calc(-100vw + 100%), -50%);
+}

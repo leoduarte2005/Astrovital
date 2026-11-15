@@ -1,0 +1,80 @@
+/*
+ * Design tokens. Paper/newspaper look in dark mode: no pure black/white,
+ * no gradients, no glass. Only hex and rgba (Chromium 90 baseline).
+ * Units: rem only for font sizes; px for everything else.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Background: the only surface for now */
+  --bg: #100c08; /* page background, also used by cards, drawers and controls */
+
+  /* Ink */
+  --ink: #f9f8f2; /* primary text, frames */
+  --ink-2: #cfcec7; /* secondary text */
+  --ink-3: #adaea9; /* auxiliary text (only over --bg) */
+
+  /* Lines, like a ruler on paper */
+  --line: rgba(249, 248, 242, 0.16); /* internal separators */
+  --line-strong: rgba(249, 248, 242, 0.44); /* control borders */
+
+  /* Accent: technical-blueprint blue. Never signals health state. */
+  --accent: #9dbaf7;
+  --accent-ink: #2d3135; /* text over accent fill */
+  --accent-tint: rgba(157, 186, 247, 0.16);
+
+  /* Disabled controls: a warm grey just above --bg, with muted text */
+  --disabled-bg: #1c1915;
+  --disabled-ink: #6f6c66;
+
+  /* Health state: calm, always with label or icon */
+  --ok: #9cc5a6;
+  --warn: #e0be72;
+  --high: #e09a86;
+
+  /* Overlay and shadow base (not #000) */
+  --scrim: rgba(30, 34, 37, 0.5);
+
+  /* Type */
+  --font-mono: 'Ubuntu Mono', ui-monospace, 'SFMono-Regular', Menlo, Consolas,
+    'PingFang SC', 'Microsoft YaHei', 'Noto Sans CJK SC', monospace;
+  --text-xs: clamp(0.75rem, 0.7rem + 0.15vw, 0.9375rem);
+  --text-sm: clamp(0.875rem, 0.8rem + 0.2vw, 1.125rem);
+  --text-body: clamp(1rem, 0.9rem + 0.3vw, 1.5rem);
+  --text-lg: clamp(1.25rem, 1.05rem + 0.6vw, 2rem);
+  --text-title: clamp(1.5rem, 1.2rem + 1.2vw, 2.75rem);
+  --text-display: clamp(2.5rem, 2rem + 3vw, 6rem);
+  --weight-regular: 400;
+  --weight-bold: 700;
+  --leading-tight: 1.2;
+  --leading-body: 1.5;
+  --tracking-wide: 0.12em;
+
+  /* Space: multiples of 4 px, starting at 8 for gaps */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Shape: 2 px controls/chips/fields; 4 px panels/cards/dialogs; 0 on contiguous grid cells */
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --border-frame: 2px; /* with --ink: screen frame and main dividers */
+  --border-thin: 1px; /* with --line: internal separators */
+
+  /* Depth: none on panels; a single shadow for dialogs and tooltips */
+  --shadow-overlay: 0 4px 16px var(--scrim);
+
+  --z-drawer: 10;
+  --z-drawer-tab: 11;
+  --z-overlay: 20;
+
+  /* Layout and interaction */
+  --touch-min: 40px;
+  --drawer-width: min(384px, 86vw);
+  --hover-shift: translate(-2px, 2px); /* pointer devices only, separated bordered elements */
+  --duration-fast: 120ms;
+  --ease-out: cubic-bezier(0.2, 0.7, 0.2, 1);
+}

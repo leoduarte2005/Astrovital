@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-DECOMPRESSION_SICKNESS",
+  "report_id": "dcs_post_eva",
   "source_id": "NASA-DCS",
   "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
   "category": "PHYSIOLOGICAL",
@@ -8,7 +8,22 @@
   "problem": "Transições de pressão durante EVA podem causar doença descompressiva; acionar o procedimento de emergência autorizado.",
   "primary_symptoms": [
     "dor articular pós-EVA",
-    "parestesias"
+    "parestesias",
+    "dor articular",
+    "tontura",
+    "falta de ar",
+    "formigamento",
+    "confusão",
+    "dor no peito",
+    "lesão cutânea",
+    "joint pain",
+    "dizziness",
+    "dyspnea",
+    "paresthesia",
+    "confusion",
+    "chest pain",
+    "rash",
+    "decompression sickness"
   ],
   "secondary_symptoms": [
     "dispneia",
@@ -32,7 +47,21 @@
         "dor articular pós-EVA",
         "parestesias",
         "dispneia",
-        "rash"
+        "rash",
+        "dor articular",
+        "tontura",
+        "falta de ar",
+        "formigamento",
+        "confusão",
+        "dor no peito",
+        "lesão cutânea",
+        "joint pain",
+        "dizziness",
+        "dyspnea",
+        "paresthesia",
+        "confusion",
+        "chest pain",
+        "decompression sickness"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -78,8 +107,8 @@
             "dor articular pós-EVA",
             "parestesias"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "post_eva_review"
         }
       ],
@@ -93,5 +122,22 @@
         }
       ]
     }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-DCS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Decompression Sickness; NASA-STD-3001 Vol. 1/2",
+      "section": "EVA / decompression",
+      "source_id": "NASA-HRP-DCS"
+    },
+    "detection": [
+      "Histórico EVA/despressurização na Central",
+      "MAX30102: SpO2 e FC",
+      "Autoexame neurológico e articular"
+    ]
+  },
+  "search_aliases": [
+    "decompression",
+    "decompression sickness"
   ]
 }

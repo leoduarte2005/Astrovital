@@ -1,13 +1,26 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-RADIATION_CNS",
+  "report_id": "cns_radiation_effects",
   "source_id": "NASA-CNS",
   "hazard_id": "SPACE_RADIATION",
   "category": "PHYSIOLOGICAL",
   "title": "Radiação e efeitos no SNC",
   "problem": "Riscos neurocognitivos da radiação incluem incertezas de pesquisa. Sensores comuns não diagnosticam lesão do SNC.",
   "primary_symptoms": [
-    "alteração cognitiva"
+    "alteração cognitiva",
+    "lapso de atenção",
+    "lentidão cognitiva",
+    "cefaleia",
+    "dor de cabeça",
+    "fadiga",
+    "tontura",
+    "attention lapse",
+    "slowed cognition",
+    "headache",
+    "fatigue",
+    "dizziness",
+    "radiation",
+    "CNS"
   ],
   "secondary_symptoms": [
     "redução de desempenho"
@@ -28,7 +41,20 @@
       "recommended_mission_mode": "MODE_RADIATION_ALERT",
       "symptoms": [
         "alteração cognitiva",
-        "redução de desempenho"
+        "redução de desempenho",
+        "lapso de atenção",
+        "lentidão cognitiva",
+        "cefaleia",
+        "dor de cabeça",
+        "fadiga",
+        "tontura",
+        "attention lapse",
+        "slowed cognition",
+        "headache",
+        "fatigue",
+        "dizziness",
+        "radiation",
+        "CNS"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -73,8 +99,8 @@
           "positive_concepts": [
             "alteração cognitiva"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "cognitive_check"
         }
       ],
@@ -91,5 +117,18 @@
   ],
   "supporting_source_ids": [
     "CSA-RADIATION"
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-RAD-CNS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Acute and Late CNS Effects from Space Radiation",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-RAD-CNS"
+    },
+    "detection": [
+      "Testes cognitivos curtos",
+      "Séries de radiação (contexto)",
+      "Autorrelato"
+    ]
+  }
 }

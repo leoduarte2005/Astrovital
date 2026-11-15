@@ -3,6 +3,7 @@ package store
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"edgespace/central/internal/contracts"
 )
@@ -25,30 +26,67 @@ func (s *Store) Health(ctx context.Context) error {
 }
 
 // ListCrew implements Reader. Depends on M1 table crew_profiles(crew_id, name);
-// if the table or either column is absent it returns an empty list.
+// if the table or either column is absent it returns the fallback crew list.
 func (s *Store) ListCrew(ctx context.Context) ([]contracts.CrewSummary, error) {
-	var cols int
-	err := s.readerDB.QueryRowContext(ctx,
-		`SELECT COUNT(1) FROM pragma_table_info('crew_profiles') WHERE name IN ('crew_id','name')`).Scan(&cols)
+	cols, err := s.tableCols(ctx, "crew_profiles")
 	if err != nil {
 		return nil, fmt.Errorf("store: inspect crew_profiles: %w", err)
 	}
-	out := []contracts.CrewSummary{}
-	if cols < 2 {
+	if !hasCols(cols, "crew_id", "name") {
 		if s.operational {
 			return nil, s.schemaError("crew_profiles", nil)
 		}
 		return s.fallback.listCrew(), nil
 	}
-	rows, err := s.readerDB.QueryContext(ctx, `SELECT crew_id, name FROM crew_profiles ORDER BY crew_id`)
+
+	selectCols := []string{"crew_id", "name"}
+	hasRole := cols["role"]
+	hasDay := cols["mission_day"]
+	hasBase := cols["baseline_path"]
+	if hasRole {
+		selectCols = append(selectCols, "COALESCE(role,'')")
+	}
+	if hasDay {
+		selectCols = append(selectCols, "COALESCE(mission_day,0)")
+	}
+	if hasBase {
+		selectCols = append(selectCols, "COALESCE(baseline_path,'')")
+	}
+
+	if s.operational {
+		selectCols = append(selectCols, "COALESCE((SELECT calibration_status FROM individual_baselines b WHERE b.crew_id=crew_profiles.crew_id AND b.is_active=1),'REQUIRES_CALIBRATION')")
+	}
+	q := fmt.Sprintf("SELECT %s FROM crew_profiles ORDER BY crew_id", strings.Join(selectCols, ","))
+	rows, err := s.readerDB.QueryContext(ctx, q)
 	if err != nil {
 		return nil, fmt.Errorf("store: list crew: %w", err)
 	}
 	defer rows.Close()
+
+	out := []contracts.CrewSummary{}
 	for rows.Next() {
 		var c contracts.CrewSummary
-		if err := rows.Scan(&c.CrewID, &c.Name); err != nil {
+		var baselinePath string
+		var calibrationStatus string
+		dest := []any{&c.CrewID, &c.Name}
+		if hasRole {
+			dest = append(dest, &c.Role)
+		}
+		if hasDay {
+			dest = append(dest, &c.MissionDay)
+		}
+		if hasBase {
+			dest = append(dest, &baselinePath)
+		}
+		if s.operational {
+			dest = append(dest, &calibrationStatus)
+		}
+		if err := rows.Scan(dest...); err != nil {
 			return nil, fmt.Errorf("store: scan crew: %w", err)
+		}
+		c.CalibrationRequired = baselinePath == ""
+		if s.operational {
+			c.CalibrationRequired = calibrationStatus != "READY"
 		}
 		out = append(out, c)
 	}

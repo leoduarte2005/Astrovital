@@ -1,0 +1,37 @@
+.root {
+  display: inline-grid;
+  place-items: center;
+  width: var(--touch-min);
+  height: var(--touch-min);
+  padding: 0;
+  border: var(--border-thin) solid var(--ink);
+  border-radius: 50%;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+/* Portalled to <body>: fixed position, above every surface (drawers, floating cards, the twin). */
+.tooltip {
+  position: fixed;
+  z-index: var(--z-overlay);
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-thin) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--bg);
+  box-shadow: var(--shadow-overlay);
+  color: var(--ink);
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+@media (hover: hover) {
+  .root:hover:not(:disabled) {
+    background: var(--ink);
+    color: var(--bg);
+  }
+}

@@ -1,14 +1,30 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-HYPERCAPNIA",
+  "report_id": "hypercapnia_co2",
   "source_id": "NASA-EVA",
   "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
   "category": "PHYSIOLOGICAL",
-  "title": "Exposição elevada a CO2",
+  "title": "Hipercapnia / exposição elevada a CO2",
   "problem": "CO2 ambiental elevado pode exigir avaliação do sistema de suporte de vida e contexto de sintomas.",
   "primary_symptoms": [
     "cefaleia",
-    "headache"
+    "headache",
+    "dor de cabeça",
+    "tontura",
+    "fadiga",
+    "falta de ar",
+    "confusão",
+    "náusea",
+    "pele corada",
+    "hipercapnia",
+    "dizziness",
+    "fatigue",
+    "dyspnea",
+    "confusion",
+    "nausea",
+    "flushed skin",
+    "hypercapnia",
+    "CO2"
   ],
   "secondary_symptoms": [
     "mal-estar",
@@ -22,7 +38,7 @@
   "conditions": [
     {
       "condition_id": "HYPERCAPNIA",
-      "name": "Exposição elevada a CO2",
+      "name": "Hipercapnia / exposição elevada a CO2",
       "source_id": "NASA-EVA",
       "subsystem": "RESPIRATORY_ATMOSPHERE",
       "prior": 0.05,
@@ -32,11 +48,28 @@
         "cefaleia",
         "headache",
         "mal-estar",
-        "dificuldade de concentração"
+        "dificuldade de concentração",
+        "dor de cabeça",
+        "tontura",
+        "fadiga",
+        "falta de ar",
+        "confusão",
+        "náusea",
+        "pele corada",
+        "hipercapnia",
+        "dizziness",
+        "fatigue",
+        "dyspnea",
+        "confusion",
+        "nausea",
+        "flushed skin",
+        "hypercapnia",
+        "CO2"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
-        "Solicitar avaliação pelo protocolo médico autorizado para a missão."
+        "Solicitar avaliação pelo protocolo médico autorizado para a missão.",
+        "Conferir o sensor de CO2 e registrar o estado da ventilação para a equipe responsável pelo suporte de vida."
       ],
       "actions": [
         "RECORD_CONTEXT",
@@ -67,8 +100,8 @@
             "cefaleia",
             "headache"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "environment_check"
         }
       ],
@@ -82,5 +115,22 @@
         }
       ]
     }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-CO2",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Health Effects from CO2; NASA-STD-3001 Vol. 1/2",
+      "section": "Atmosphere / CO2 limits",
+      "source_id": "NASA-HRP-CO2"
+    },
+    "detection": [
+      "I2C: SCD40 (CO2)",
+      "Respiração via CSI",
+      "Amsler normal ajuda a excluir SANS"
+    ]
+  },
+  "search_aliases": [
+    "hypercapnia",
+    "CO2"
   ]
 }

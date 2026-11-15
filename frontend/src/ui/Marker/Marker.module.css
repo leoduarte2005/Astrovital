@@ -1,0 +1,94 @@
+.root {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 16px;
+  height: 16px;
+  visibility: hidden;
+  pointer-events: auto;
+}
+
+.ring {
+  position: absolute;
+  inset: 0;
+  border: var(--border-thin) solid var(--ink);
+  border-radius: 50%;
+}
+
+.ring::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  margin: -2px 0 0 -2px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+
+/* Zero-size anchor at the centre of the ring; the leader and tag are drawn from it. */
+.leader {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  visibility: hidden;
+}
+
+/* Active (selected) marker: leader and chip stay visible without hover. */
+.root[data-active='true'] .leader {
+  visibility: visible;
+}
+
+/* Segmented leader: a 45-degree segment up-right, then a horizontal one to the tag. */
+.diagonal,
+.horizontal {
+  position: absolute;
+  height: var(--border-thin);
+  background: var(--ink);
+}
+
+.diagonal {
+  left: 0;
+  top: 0;
+  width: 28px;
+  transform-origin: 0 0;
+  transform: rotate(-45deg);
+}
+
+.horizontal {
+  left: 20px;
+  top: -20px;
+  width: 56px;
+}
+
+.tag {
+  position: absolute;
+  left: 76px;
+  top: -20px;
+  transform: translateY(-50%);
+  white-space: nowrap;
+}
+
+.tag .chip {
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  border-color: var(--ink);
+}
+
+/* Hover-only parts. Growth, cursor and leader need a pointer device. */
+@media (hover: hover) {
+  .root {
+    cursor: pointer;
+  }
+
+  .root:hover .ring {
+    transform: scale(1.5);
+  }
+
+  .root:hover .leader {
+    visibility: visible;
+  }
+}

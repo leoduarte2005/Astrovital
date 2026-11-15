@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-SPACE_MOTION_SICKNESS",
+  "report_id": "space_motion_sickness",
   "source_id": "NASA-SENSORIMOTOR",
   "hazard_id": "GRAVITY_FIELDS",
   "category": "PHYSIOLOGICAL",
@@ -65,8 +65,8 @@
             "náusea",
             "desorientação"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "symptom_review"
         }
       ],

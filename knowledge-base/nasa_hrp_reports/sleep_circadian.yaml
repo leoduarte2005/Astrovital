@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-SLEEP_CIRCADIAN",
+  "report_id": "sleep_immune_deprivation",
   "source_id": "NASA-SLEEP",
   "hazard_id": "ISOLATION_CONFINEMENT",
   "category": "BEHAVIORAL_BIOCHEMICAL",
@@ -8,7 +8,25 @@
   "problem": "Sono insuficiente, turnos irregulares e sobrecarga podem reduzir desempenho e devem ser avaliados longitudinalmente.",
   "primary_symptoms": [
     "sonolência",
-    "insônia"
+    "insônia",
+    "fadiga",
+    "cefaleia",
+    "confusão",
+    "mal-estar",
+    "lesão cutânea",
+    "sono curto",
+    "hidratação baixa",
+    "fatigue",
+    "insomnia",
+    "headache",
+    "confusion",
+    "malaise",
+    "skin lesion",
+    "short sleep",
+    "low hydration",
+    "dehydration",
+    "cortisol",
+    "CRP"
   ],
   "secondary_symptoms": [
     "irritabilidade",
@@ -32,7 +50,24 @@
         "sonolência",
         "insônia",
         "irritabilidade",
-        "cefaleia"
+        "cefaleia",
+        "fadiga",
+        "confusão",
+        "mal-estar",
+        "lesão cutânea",
+        "sono curto",
+        "hidratação baixa",
+        "fatigue",
+        "insomnia",
+        "headache",
+        "confusion",
+        "malaise",
+        "skin lesion",
+        "short sleep",
+        "low hydration",
+        "dehydration",
+        "cortisol",
+        "CRP"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -67,8 +102,8 @@
             "sonolência",
             "insônia"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "sleep_review"
         }
       ],
@@ -82,5 +117,22 @@
         }
       ]
     }
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-SLEEP",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Performance and Behavioral Health Decrements due to Inadequate Sleep/Circadian Misalignment; BMed",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-BMed-IMMUNE"
+    },
+    "detection": [
+      "Arquitetura do sono e HRV via CSI (MODE_REST_VITALS)",
+      "Autoexame: temperatura e hidratação",
+      "Testes cognitivos curtos"
+    ]
+  },
+  "search_aliases": [
+    "insomnia",
+    "insônia"
   ]
 }

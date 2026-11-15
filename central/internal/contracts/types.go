@@ -263,23 +263,34 @@ type ChatMessage struct {
 
 // ChatCorrelateRespPayload sent IA→C (response).
 type ChatCorrelateRespPayload struct {
-	Text                   string     `json:"text"`
-	Differentials          []string   `json:"differentials,omitempty"`
-	Evidence               []string   `json:"evidence,omitempty"`
-	Countermeasures        []string   `json:"countermeasures,omitempty"`
-	SourceIDs              []string   `json:"source_ids,omitempty"`
-	Escalation             Escalation `json:"escalation"`
-	Disclaimer             string     `json:"disclaimer,omitempty"`
-	DisambiguationQuestion string     `json:"disambiguation_question,omitempty"`
-	Actions                []string   `json:"actions,omitempty"`
+	MemoryUpdates          []ClinicalMemoryUpdate `json:"memory_updates,omitempty"`
+	ModelStatus            string                 `json:"model_status,omitempty"`
+	Text                   string                 `json:"text"`
+	Differentials          []string               `json:"differentials,omitempty"`
+	Evidence               []string               `json:"evidence,omitempty"`
+	Countermeasures        []string               `json:"countermeasures,omitempty"`
+	SourceIDs              []string               `json:"source_ids,omitempty"`
+	Escalation             Escalation             `json:"escalation"`
+	Disclaimer             string                 `json:"disclaimer,omitempty"`
+	DisambiguationQuestion string                 `json:"disambiguation_question,omitempty"`
+	Actions                []string               `json:"actions,omitempty"`
 }
 
 // CalibrationFeedbackPayload sent IA→C (response).
 type CalibrationFeedbackPayload struct {
-	StepID   string  `json:"step_id"`
-	Progress int     `json:"progress"` // 0-100
-	Quality  float64 `json:"quality"`
-	Error    string  `json:"error,omitempty"`
+	BaselineUpdate json.RawMessage `json:"baseline_update,omitempty"`
+	StepID         string          `json:"step_id"`
+	Progress       int             `json:"progress"` // 0-100
+	Quality        float64         `json:"quality"`
+	Error          string          `json:"error,omitempty"`
+}
+
+type ClinicalMemoryUpdate struct {
+	FactType   string  `json:"fact_type"`
+	FactKey    string  `json:"fact_key"`
+	FactValue  string  `json:"fact_value"`
+	Confidence float64 `json:"confidence"`
+	SourceRole string  `json:"source_role"`
 }
 
 // --- REST Response Payloads ---

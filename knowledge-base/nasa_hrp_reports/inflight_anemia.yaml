@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-INFLIGHT_ANEMIA",
+  "report_id": "inflight_anemia",
   "source_id": "NASA-IRON",
   "hazard_id": "GRAVITY_FIELDS",
   "category": "BEHAVIORAL_BIOCHEMICAL",
@@ -65,8 +65,8 @@
             "fadiga",
             "intolerância ao esforço"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "capillary_blood"
         }
       ],

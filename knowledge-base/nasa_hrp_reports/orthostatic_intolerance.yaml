@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-ORTHOSTATIC_INTOLERANCE",
+  "report_id": "cv_fluid_shift_orthostatic",
   "source_id": "NASA-CARDIO",
   "hazard_id": "GRAVITY_FIELDS",
   "category": "PHYSIOLOGICAL",
@@ -8,7 +8,17 @@
   "problem": "Adaptações cardiovasculares ao voo podem comprometer a tolerância ortostática. Avaliar contexto postural e pressão.",
   "primary_symptoms": [
     "tontura ao levantar",
-    "presíncope"
+    "presíncope",
+    "síncope",
+    "palpitação",
+    "face inchada",
+    "fadiga",
+    "orthostatic dizziness",
+    "syncope",
+    "palpitations",
+    "facial puffiness",
+    "fatigue",
+    "orthostatic intolerance"
   ],
   "secondary_symptoms": [
     "palpitações",
@@ -32,7 +42,16 @@
         "tontura ao levantar",
         "presíncope",
         "palpitações",
-        "fadiga"
+        "fadiga",
+        "síncope",
+        "palpitação",
+        "face inchada",
+        "orthostatic dizziness",
+        "syncope",
+        "palpitations",
+        "facial puffiness",
+        "fatigue",
+        "orthostatic intolerance"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -78,8 +97,8 @@
             "tontura ao levantar",
             "presíncope"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "blood_pressure"
         }
       ],
@@ -117,8 +136,8 @@
             "ARED",
             "exercício"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "blood_pressure"
         }
       ],
@@ -187,8 +206,8 @@
             "ARED",
             "exercício"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "blood_pressure"
         }
       ],
@@ -233,5 +252,17 @@
       "model_status": "ENGINEERING_TEST_ONLY",
       "match_policy": "ALL"
     }
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-CV-FLUID",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Cardiovascular Adaptations; JAMA Netw Open 2019 (n=11) via database/space_health_sqlite",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-CV-FLUID"
+    },
+    "detection": [
+      "Autoexame: pressão arterial em repouso e ortostática",
+      "FC via MAX30102/CSI"
+    ]
+  }
 }

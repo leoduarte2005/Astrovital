@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "report_id": "radiation_ros",
+  "source_id": "CSA-RADIATION",
+  "hazard_id": "SPACE_RADIATION",
+  "category": "PHYSIOLOGICAL",
+  "title": "Radiação: Estresse Oxidativo (CANS/ROS) por SPE/GCR",
+  "problem": "Eventos SPE e GCR geram espécies reativas de oxigênio (ROS) e efeitos agudos como náusea e fadiga. Contramedidas: abrigo e antioxidantes (Vitaminas C e E).",
+  "primary_symptoms": [
+    "náusea",
+    "fadiga",
+    "cefaleia",
+    "mal-estar",
+    "tontura",
+    "visão turva",
+    "nausea",
+    "fatigue",
+    "headache",
+    "malaise",
+    "dizziness",
+    "blurred vision",
+    "oxidative stress",
+    "ROS"
+  ],
+  "secondary_symptoms": [],
+  "detection": [
+    "Alerta SPE e dosímetros",
+    "HRV em queda (MODE_RADIATION_ALERT)",
+    "Autoexame de sintomas"
+  ],
+  "scientific_scope": "Referência de risco; regras, priors e limiares são fixtures de engenharia, não validação clínica.",
+  "legacy_reference": {
+    "id": "HRP-RISK-RADIATION-ROS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Acute and Late CNS Effects / Radiation Carcinogenesis",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-RADIATION"
+    }
+  },
+  "conditions": [
+    {
+      "condition_id": "RADIATION_ACUTE",
+      "name": "Radiação: Estresse Oxidativo (CANS/ROS) por SPE/GCR",
+      "source_id": "CSA-RADIATION",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.03,
+      "default_escalation": "STORE_AND_FORWARD",
+      "recommended_mission_mode": "MODE_RADIATION_ALERT",
+      "symptoms": [
+        "náusea",
+        "fadiga",
+        "cefaleia",
+        "mal-estar",
+        "tontura",
+        "visão turva",
+        "nausea",
+        "fatigue",
+        "headache",
+        "malaise",
+        "dizziness",
+        "blurred vision",
+        "oxidative stress",
+        "ROS"
+      ],
+      "countermeasures": [
+        "Registrar exposição e contexto.",
+        "Aplicar apenas o procedimento autorizado e solicitar avaliação da equipe responsável."
+      ],
+      "actions": [
+        "RADIATION_SPE_ALERT"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "spe_alert",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "MISSION_CONTEXT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "RED",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Sinal de teste para revisão contextual, não diagnóstico."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há contexto documentado para este risco?",
+          "positive_concepts": [
+            "náusea",
+            "fadiga",
+            "cefaleia",
+            "mal-estar",
+            "tontura",
+            "visão turva",
+            "nausea",
+            "fatigue",
+            "headache",
+            "malaise",
+            "dizziness",
+            "blurred vision",
+            "oxidative stress",
+            "ROS"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "symptom_review"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Não iniciar tratamento sem autorização clínica."
+        }
+      ]
+    }
+  ]
+}

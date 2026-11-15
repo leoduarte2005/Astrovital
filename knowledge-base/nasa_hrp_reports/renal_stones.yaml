@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-RENAL_STONES",
+  "report_id": "renal_stones",
   "source_id": "NASA-URINARY",
   "hazard_id": "GRAVITY_FIELDS",
   "category": "PHYSIOLOGICAL",
@@ -67,8 +67,8 @@
             "dor no flanco",
             "cólica"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "symptom_review"
         }
       ],

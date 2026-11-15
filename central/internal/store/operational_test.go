@@ -54,7 +54,7 @@ func TestOperationalMigrationsPersistClinicalDataAcrossRestart(t *testing.T) {
 		t.Fatal(err)
 	}
 	s = operationalStore(t, path)
-	for table, want := range map[string]int{"audit_log": 1, "csi_blobs": 1, "peripheral_readings": 1, "self_exams": 1, "chat_messages": 2, "schema_version": 4, "causal_conditions": 22} {
+	for table, want := range map[string]int{"audit_log": 1, "csi_blobs": 1, "peripheral_readings": 1, "self_exams": 1, "chat_messages": 2, "schema_version": 4, "causal_conditions": 26} {
 		var count int
 		if err := s.readerDB.QueryRow("SELECT COUNT(*) FROM " + table).Scan(&count); err != nil || count != want {
 			t.Fatalf("%s count=%d want=%d err=%v", table, count, want, err)

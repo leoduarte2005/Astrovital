@@ -1,13 +1,26 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-ONE_CARBON_METABOLISM",
+  "report_id": "one_carbon_b_vitamins",
   "source_id": "NASA-ONE-CARBON",
   "hazard_id": "GRAVITY_FIELDS",
   "category": "BEHAVIORAL_BIOCHEMICAL",
   "title": "Via de um carbono e vitaminas B",
   "problem": "Associações entre metabolismo de um carbono e SANS são investigativas; suplementação não é uma contramedida universal comprovada.",
   "primary_symptoms": [
-    "marcador bioquímico alterado"
+    "marcador bioquímico alterado",
+    "visão turva",
+    "cefaleia",
+    "dor de cabeça",
+    "fadiga",
+    "formigamento",
+    "blurred vision",
+    "headache",
+    "fatigue",
+    "tingling",
+    "SANS",
+    "VIIP",
+    "B-complex",
+    "homocysteine"
   ],
   "secondary_symptoms": [
     "alteração visual"
@@ -28,7 +41,20 @@
       "recommended_mission_mode": "MODE_REST_VITALS",
       "symptoms": [
         "marcador bioquímico alterado",
-        "alteração visual"
+        "alteração visual",
+        "visão turva",
+        "cefaleia",
+        "dor de cabeça",
+        "fadiga",
+        "formigamento",
+        "blurred vision",
+        "headache",
+        "fatigue",
+        "tingling",
+        "SANS",
+        "VIIP",
+        "B-complex",
+        "homocysteine"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -62,8 +88,8 @@
           "positive_concepts": [
             "marcador bioquímico alterado"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "nutrition_review"
         }
       ],
@@ -77,5 +103,17 @@
         }
       ]
     }
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-ONE-CARBON",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of SANS; one-carbon metabolism",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-ONE-CARBON"
+    },
+    "detection": [
+      "Autoexame: Amsler e sangue capilar",
+      "CO2 normal"
+    ]
+  }
 }

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-MICROBIOME_GI",
+  "report_id": "host_microorganism_interactions",
   "source_id": "NASA-MICROBIOME",
   "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
   "category": "BEHAVIORAL_BIOCHEMICAL",
@@ -8,7 +8,18 @@
   "problem": "Mudanças do microbioma e interação hospedeiro-microrganismo são áreas de pesquisa; sintomas não identificam uma composição microbiana.",
   "primary_symptoms": [
     "diarreia",
-    "desconforto gastrointestinal"
+    "desconforto gastrointestinal",
+    "febre",
+    "lesão cutânea",
+    "tosse",
+    "mal-estar",
+    "fever",
+    "skin lesion",
+    "diarrhea",
+    "cough",
+    "malaise",
+    "infection",
+    "microbiome"
   ],
   "secondary_symptoms": [
     "distensão abdominal"
@@ -30,7 +41,18 @@
       "symptoms": [
         "diarreia",
         "desconforto gastrointestinal",
-        "distensão abdominal"
+        "distensão abdominal",
+        "febre",
+        "lesão cutânea",
+        "tosse",
+        "mal-estar",
+        "fever",
+        "skin lesion",
+        "diarrhea",
+        "cough",
+        "malaise",
+        "infection",
+        "microbiome"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -65,8 +87,8 @@
             "diarreia",
             "desconforto gastrointestinal"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "symptom_review"
         }
       ],
@@ -80,5 +102,17 @@
         }
       ]
     }
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-MICROBIOME",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Health Event due to Host-Microorganism Interactions",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-MICROBIOME"
+    },
+    "detection": [
+      "Autoexame: temperatura",
+      "Sintomas infecciosos autorrelatados"
+    ]
+  }
 }

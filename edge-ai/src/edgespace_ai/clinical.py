@@ -3,7 +3,7 @@
 Runtime reads SQLite only. YAML files are build-time authoring inputs.
 The optional rule evaluator is an engineering acceptance harness, not a diagnosis.
 """
-from datetime import date, timedelta
+from datetime import date, timedelta, datetime, timezone
 import json
 import math
 from pathlib import Path
@@ -64,6 +64,42 @@ class ClinicalRepository:
         end=date.fromisoformat(as_of)
         start=end-timedelta(days=days-1)
         return [dict(r) for r in self.connection.execute('SELECT * FROM telemetry_daily_rollups WHERE crew_id=? AND day_utc BETWEEN ? AND ? ORDER BY day_utc',(crew_id,str(start),str(end)))]
+
+    def context_metrics(self, crew_id):
+        """Only recorded context is evidence; absent measurements stay unknown."""
+        c=self.connection
+        metrics={}
+        memory=self.memory(crew_id)
+        for fact in memory:
+            if fact['fact_type'] in ('SENSITIVITY','CONDITION_HISTORY'):
+                try: metrics[fact['fact_key']]=float(fact['fact_value'])
+                except ValueError: pass
+        latest=c.execute('SELECT MAX(ts_us) FROM telemetry_timeseries WHERE crew_id=?',(crew_id,)).fetchone()[0]
+        if latest is not None:
+            row=c.execute('SELECT heart_rate_bpm,hrv_ms,resp_rate_bpm,spo2_pct,co2_ppm FROM telemetry_timeseries WHERE crew_id=? AND ts_us=?',(crew_id,latest)).fetchone()
+            if row: metrics.update({k:v for k,v in dict(row).items() if v is not None})
+        allowed={r[0] for r in c.execute('SELECT DISTINCT metric FROM causal_sensor_rules')}|{r[0] for r in c.execute('SELECT DISTINCT guard_metric FROM causal_contraindications')}
+        for row in c.execute('SELECT result FROM self_exams WHERE crew_id=? ORDER BY ts_us DESC LIMIT 20',(crew_id,)):
+            try: values=json.loads(row['result'])
+            except (json.JSONDecodeError,TypeError): continue
+            if isinstance(values,dict):
+                for key,value in values.items():
+                    if key in allowed and isinstance(value,(int,float)):
+                        metrics.setdefault(key,value)
+        now=int(datetime.now(timezone.utc).timestamp()*1_000_000)
+        types=[r[0] for r in c.execute('SELECT event_type FROM mission_context_events WHERE (crew_id=? OR crew_id IS NULL) AND ts_us<=? AND COALESCE(end_us,ts_us)>=?',(crew_id,now,now-2*3600_000_000))]
+        if any(t.startswith('EXERCISE_') for t in types):metrics['exercise_recent']=1
+        if 'EVA' in types:metrics['eva_recent']=1
+        if 'RADIATION_SPE_ALERT' in types:metrics['spe_alert']=1
+        rows=c.execute("SELECT date(ts_us/1000000,'unixepoch') AS day,SUM(water_ml) AS water,SUM(energy_kcal) AS energy FROM nutrition_hydration_logs WHERE crew_id=? AND ts_us BETWEEN ? AND ? GROUP BY day",(crew_id,now-7*86400_000_000,now)).fetchall()
+        metrics.setdefault('nutrition_days_observed',len(rows))
+        water=[r['water'] for r in rows if r['water'] is not None];energy=[r['energy'] for r in rows if r['energy'] is not None]
+        if water:metrics.setdefault('water_7d_mean_ml',sum(water)/len(water))
+        if energy:metrics.setdefault('energy_7d_mean_kcal',sum(energy)/len(energy))
+        rollups=self.rollups(crew_id,7,datetime.now(timezone.utc).date().isoformat())
+        sleeps=[r['sleep_duration_h'] for r in rollups if r['sleep_duration_h'] is not None]
+        if sleeps:metrics.setdefault('sleep_duration_h',sum(sleeps)/len(sleeps))
+        return metrics
 
     def search_reports(self, query, limit=20):
         if not 1 <= limit <= 100:

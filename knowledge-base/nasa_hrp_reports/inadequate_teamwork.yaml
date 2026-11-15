@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "report_id": "inadequate_teamwork",
+  "source_id": "NASA-TEAM",
+  "hazard_id": "ISOLATION_CONFINEMENT",
+  "category": "BEHAVIORAL_BIOCHEMICAL",
+  "title": "Trabalho em Equipe Inadequado / Inadequate Teamwork",
+  "problem": "Falhas de coordenação, comunicação e coesão entre tripulantes aumentam erros e conflitos.",
+  "primary_symptoms": [
+    "conflito",
+    "falha de comunicação",
+    "irritabilidade",
+    "baixa coesão",
+    "conflict",
+    "communication failure",
+    "irritability",
+    "low cohesion",
+    "teamwork"
+  ],
+  "secondary_symptoms": [],
+  "detection": [
+    "Padrões de presença/locomoção via MODE_CABIN_TOMOGRAPHY",
+    "Autorrelato de coesão"
+  ],
+  "scientific_scope": "Referência de risco; regras, priors e limiares são fixtures de engenharia, não validação clínica.",
+  "legacy_reference": {
+    "id": "HRP-RISK-TEAM",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Performance and Behavioral Health Decrements due to Inadequate Cooperation, Coordination, Communication",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-TEAM"
+    }
+  },
+  "conditions": [
+    {
+      "condition_id": "TEAMWORK",
+      "name": "Trabalho em Equipe Inadequado / Inadequate Teamwork",
+      "source_id": "NASA-TEAM",
+      "subsystem": "NEUROBEHAVIORAL_RADIATION",
+      "prior": 0.03,
+      "default_escalation": "CREW",
+      "recommended_mission_mode": "MODE_REST_VITALS",
+      "symptoms": [
+        "conflito",
+        "falha de comunicação",
+        "irritabilidade",
+        "baixa coesão",
+        "conflict",
+        "communication failure",
+        "irritability",
+        "low cohesion",
+        "teamwork"
+      ],
+      "countermeasures": [
+        "Registrar exposição e contexto.",
+        "Aplicar apenas o procedimento autorizado e solicitar avaliação da equipe responsável."
+      ],
+      "actions": [
+        "TEAM_SUPPORT"
+      ],
+      "linked_protocols": [
+        "symptom_review"
+      ],
+      "match_policy": "ALL",
+      "model_status": "ENGINEERING_TEST_ONLY",
+      "sensor_rules": [
+        {
+          "metric": "teamwork_concern",
+          "op": "EQ",
+          "threshold_value": 1,
+          "source_sensor": "MISSION_CONTEXT",
+          "values_json": {},
+          "likelihood_ratio": 3.0,
+          "severity_tier": "YELLOW",
+          "weight_basis": "ENGINEERING_TEST_ONLY_NOT_CLINICALLY_VALIDATED",
+          "description": "Sinal de teste para revisão contextual, não diagnóstico."
+        }
+      ],
+      "questions": [
+        {
+          "prompt": "Há contexto documentado para este risco?",
+          "positive_concepts": [
+            "conflito",
+            "falha de comunicação",
+            "irritabilidade",
+            "baixa coesão",
+            "conflict",
+            "communication failure",
+            "irritability",
+            "low cohesion",
+            "teamwork"
+          ],
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
+          "linked_protocol_id": "symptom_review"
+        }
+      ],
+      "contraindications": [
+        {
+          "blocked_action": "UNREVIEWED_TREATMENT",
+          "guard_metric": "clinical_authorization",
+          "guard_op": "EQ",
+          "guard_value": 0,
+          "rationale": "Não iniciar tratamento sem autorização clínica."
+        }
+      ]
+    }
+  ]
+}

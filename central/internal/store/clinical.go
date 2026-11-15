@@ -634,10 +634,12 @@ func (s *Store) SaveChatExchange(ctx context.Context, crewID string, req contrac
 			if err != nil {
 				return err
 			}
-			return s.writeNowOrEnqueue(ctx, Exec{
-				Query: `INSERT INTO chat_messages(ts_us,crew_id,role,content,metadata_json) VALUES (?,?,'user',?,'{}'),(?,?,'assistant',?,?)`,
-				Args:  []any{tsUs, crewID, req.Text, tsUs + 1, crewID, resp.Text, string(metadata)},
-			}, false)
+			writes, err := s.memoryWrites(crewID, resp.MemoryUpdates, tsUs)
+			if err != nil {
+				return err
+			}
+			writes = append([]Exec{{Query: `INSERT INTO chat_messages(ts_us,crew_id,role,content,metadata_json) VALUES (?,?,'user',?,'{}'),(?,?,'assistant',?,?)`, Args: []any{tsUs, crewID, req.Text, tsUs + 1, crewID, resp.Text, string(metadata)}}}, writes...)
+			return s.writeNowOrEnqueue(ctx, Statements{Items: writes}, true)
 		}
 		if err := s.writeNowOrEnqueue(ctx, Exec{
 			Query: `INSERT INTO chat_messages(ts_us, crew_id, role, content) VALUES (?,?,?,?)`,

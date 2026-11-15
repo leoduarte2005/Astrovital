@@ -1,0 +1,12 @@
+node_modules
+dist
+dist-demo
+bin
+*.log
+.DS_Store
+data/
+docs/
+rules/
+tools/
+CLAUDE.md
+prompt.txt

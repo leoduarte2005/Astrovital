@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-BONE_LOSS",
+  "report_id": "bone_loss_renal_stone",
   "source_id": "NASA-BONE",
   "hazard_id": "GRAVITY_FIELDS",
   "category": "PHYSIOLOGICAL",
@@ -8,7 +8,21 @@
   "problem": "Descarregamento mecânico pode afetar a resistência óssea; marcadores e exames específicos são necessários.",
   "primary_symptoms": [
     "dor óssea",
-    "bone pain"
+    "bone pain",
+    "dor no flanco",
+    "dor lombar",
+    "hematúria",
+    "náusea",
+    "disúria",
+    "fraqueza muscular",
+    "flank pain",
+    "back pain",
+    "hematuria",
+    "nausea",
+    "dysuria",
+    "muscle weakness",
+    "bone loss",
+    "kidney stone"
   ],
   "secondary_symptoms": [
     "limitação funcional"
@@ -30,7 +44,21 @@
       "symptoms": [
         "dor óssea",
         "bone pain",
-        "limitação funcional"
+        "limitação funcional",
+        "dor no flanco",
+        "dor lombar",
+        "hematúria",
+        "náusea",
+        "disúria",
+        "fraqueza muscular",
+        "flank pain",
+        "back pain",
+        "hematuria",
+        "nausea",
+        "dysuria",
+        "muscle weakness",
+        "bone loss",
+        "kidney stone"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -65,8 +93,8 @@
             "dor óssea",
             "bone pain"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "musculoskeletal_check"
         }
       ],
@@ -80,5 +108,18 @@
         }
       ]
     }
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-BONE-RENAL",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Bone Fracture / Renal Stone Formation",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-BONE-RENAL"
+    },
+    "detection": [
+      "Cadência de treino via CSI (MODE_COUNTERMEASURE_EXERCISE)",
+      "Autoexame: fita urinária",
+      "Autoexame: ultrassom renal"
+    ]
+  }
 }

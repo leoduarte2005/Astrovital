@@ -145,6 +145,30 @@
       "url": "https://ntrs.nasa.gov/citations/20220000513",
       "section": "Abstract; research association, not an approved treatment",
       "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-RADIATION-CANCER",
+      "title": "Risk of Radiation-Induced Cancers",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-radiation-induced-cancers/",
+      "section": "Risk overview",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-TEAM",
+      "title": "Risk of Inadequate Teamwork",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-inadequate-teamwork/",
+      "section": "Risk overview",
+      "reviewed_on": "2026-11-14"
+    },
+    {
+      "source_id": "NASA-EARTH",
+      "title": "Risk of Inadequate Systems Operations Support",
+      "publisher": "NASA",
+      "url": "https://www.nasa.gov/reference/risk-of-inadequate-systems-operations-support/",
+      "section": "Risk overview",
+      "reviewed_on": "2026-11-14"
     }
   ],
   "hazards": [

@@ -27,8 +27,8 @@ class OperationalTests(unittest.TestCase):
     def test_clean_database_passes_entire_acceptance_checklist(self):
         result=operational.validate(self.path)
         self.assertTrue(result['passed'],result)
-        self.assertEqual(result['counts']['clinical_reports'],19)
-        self.assertEqual(result['counts']['causal_conditions'],22)
+        self.assertEqual(result['counts']['clinical_reports'],28)
+        self.assertEqual(result['counts']['causal_conditions'],26)
         self.assertEqual(result['golden_cases']['passed'],25)
         self.assertEqual(self.writer.execute('PRAGMA journal_mode').fetchone()[0],'wal')
 
@@ -53,9 +53,9 @@ class OperationalTests(unittest.TestCase):
             rows=repo.search_reports('cefaleia OR SANS OR CO2')
             self.assertTrue(rows)
             self.assertEqual([r['rank'] for r in rows],sorted(r['rank'] for r in rows))
-        self.writer.execute("UPDATE clinical_reports SET symptoms_text='uniquefirsttoken' WHERE report_id='HRP-PROJECT-SANS'")
+        self.writer.execute("UPDATE clinical_reports SET symptoms_text='uniquefirsttoken' WHERE report_id='sans_viip'")
         self.assertEqual(self.writer.execute("SELECT count(*) FROM clinical_reports_fts WHERE clinical_reports_fts MATCH 'uniquefirsttoken'").fetchone()[0],1)
-        self.writer.execute("UPDATE clinical_reports SET symptoms_text='uniquesecondtoken' WHERE report_id='HRP-PROJECT-SANS'")
+        self.writer.execute("UPDATE clinical_reports SET symptoms_text='uniquesecondtoken' WHERE report_id='sans_viip'")
         self.assertEqual(self.writer.execute("SELECT count(*) FROM clinical_reports_fts WHERE clinical_reports_fts MATCH 'uniquefirsttoken'").fetchone()[0],0)
         self.writer.execute("INSERT INTO protocols(protocol_id,name,description) VALUES ('test-protocol','uniquethirdtoken','sample')")
         self.assertEqual(self.writer.execute("SELECT count(*) FROM protocols_fts WHERE protocols_fts MATCH 'uniquethirdtoken'").fetchone()[0],1)
@@ -69,9 +69,7 @@ class OperationalTests(unittest.TestCase):
             c.execute('PRAGMA foreign_keys=ON')
             for name in ('0001_operational_schema.sql','0002_operational_seeds.sql'):
                 c.executescript((operational.MIGRATIONS/name).read_text())
-            c.execute("INSERT INTO clinical_sources VALUES ('test','title','NASA','https://example.test','section','2026-11-14')")
-            c.execute("INSERT INTO clinical_hazards VALUES ('test','test')")
-            c.execute("INSERT INTO clinical_reports VALUES ('test','test','test','PHYSIOLOGICAL','existingtoken','description','content','symptoms','countermeasures','{}')")
+            c.execute("INSERT INTO clinical_reports VALUES ('test','test','Gravity Fields','PHYSIOLOGICAL','CARDIOVASCULAR_FLUIDS','existingtoken','description','symptoms','countermeasures','LOCAL','content')")
             c.execute("INSERT INTO protocols(protocol_id,name,description) VALUES ('test','existingtoken','description')")
             c.commit()
             c.executescript((operational.MIGRATIONS/'0003_intelligence_and_longitudinal.sql').read_text())
@@ -135,7 +133,7 @@ class OperationalTests(unittest.TestCase):
         self.assertEqual(len(csi),1080)
         self.assertEqual({(r['crew_id'],r['ts_us']) for r in csi},{(r['crew_id'],int(r['ts_us'])) for r in peripherals})
         self.assertEqual({r['posture'] for r in csi},set(generator.POSTURES))
-        self.assertEqual(sum(r['features'] is None for r in csi),18)
+        self.assertEqual(sum(r['features'] is None for r in csi),342)
         self.assertEqual(sum(r['spo2_pct']=='' for r in peripherals),18)
         self.assertTrue(all(r['data_class']=='SYNTHETIC' for r in csi+peripherals))
 

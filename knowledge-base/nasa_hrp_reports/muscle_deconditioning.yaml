@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-MUSCLE_DECONDITIONING",
+  "report_id": "reduced_cardiorespiratory_fitness",
   "source_id": "NASA-FITNESS",
   "hazard_id": "GRAVITY_FIELDS",
   "category": "PHYSIOLOGICAL",
@@ -8,7 +8,15 @@
   "problem": "Redução de força e capacidade física deve ser acompanhada com medidas funcionais e contexto de exercício.",
   "primary_symptoms": [
     "fraqueza",
-    "perda de força"
+    "perda de força",
+    "fadiga ao esforço",
+    "falta de ar ao esforço",
+    "palpitação",
+    "exertional fatigue",
+    "weakness",
+    "exertional dyspnea",
+    "palpitations",
+    "deconditioning"
   ],
   "secondary_symptoms": [
     "intolerância ao esforço"
@@ -30,7 +38,15 @@
       "symptoms": [
         "fraqueza",
         "perda de força",
-        "intolerância ao esforço"
+        "intolerância ao esforço",
+        "fadiga ao esforço",
+        "falta de ar ao esforço",
+        "palpitação",
+        "exertional fatigue",
+        "weakness",
+        "exertional dyspnea",
+        "palpitations",
+        "deconditioning"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -65,8 +81,8 @@
             "fraqueza",
             "perda de força"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "musculoskeletal_check"
         }
       ],
@@ -80,5 +96,17 @@
         }
       ]
     }
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-FITNESS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Reduced Physical Performance / Impaired Cardiorespiratory Fitness",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-FITNESS"
+    },
+    "detection": [
+      "Cinemática e cadência em MODE_COUNTERMEASURE_EXERCISE",
+      "FC no esforço (MAX30102)"
+    ]
+  }
 }

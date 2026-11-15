@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-BEHAVIORAL_HEALTH",
+  "report_id": "behavioral_health_psychiatric",
   "source_id": "NASA-BEHAVIOR",
   "hazard_id": "ISOLATION_CONFINEMENT",
   "category": "BEHAVIORAL_BIOCHEMICAL",
@@ -8,7 +8,16 @@
   "problem": "Isolamento e exigências da missão podem afetar saúde comportamental; respostas subjetivas exigem avaliação contextual e suporte.",
   "primary_symptoms": [
     "humor deprimido",
-    "ansiedade"
+    "ansiedade",
+    "insônia",
+    "irritabilidade",
+    "apatia",
+    "low mood",
+    "anxiety",
+    "insomnia",
+    "irritability",
+    "apathy",
+    "depression"
   ],
   "secondary_symptoms": [
     "isolamento",
@@ -32,7 +41,16 @@
         "humor deprimido",
         "ansiedade",
         "isolamento",
-        "alterações de sono"
+        "alterações de sono",
+        "insônia",
+        "irritabilidade",
+        "apatia",
+        "low mood",
+        "anxiety",
+        "insomnia",
+        "irritability",
+        "apathy",
+        "depression"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -67,8 +85,8 @@
             "humor deprimido",
             "ansiedade"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "behavioral_check"
         }
       ],
@@ -82,5 +100,18 @@
         }
       ]
     }
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-BHP",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Cognitive or Behavioral Conditions and Psychiatric Disorders",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-BHP"
+    },
+    "detection": [
+      "Check-in de humor (SELF_EXAM)",
+      "Sono e HRV via CSI",
+      "Testes cognitivos curtos"
+    ]
+  }
 }

@@ -1,3 +1,53 @@
+-- Upgrade of the published operational 0001/0002; run once in the migration transaction.
+CREATE TABLE clinical_sources (
+    source_id TEXT PRIMARY KEY, title TEXT NOT NULL, publisher TEXT NOT NULL,
+    url TEXT NOT NULL, section TEXT NOT NULL, reviewed_on TEXT NOT NULL
+);
+CREATE TABLE clinical_hazards (hazard_id TEXT PRIMARY KEY, name TEXT NOT NULL);
+
+CREATE TABLE crew_baselines (crew_id TEXT PRIMARY KEY REFERENCES crew_profiles(crew_id),baseline_path TEXT,updated_at_us INTEGER NOT NULL DEFAULT 0);
+CREATE TABLE chat_sessions (session_id TEXT PRIMARY KEY,crew_id TEXT NOT NULL REFERENCES crew_profiles(crew_id),started_us INTEGER NOT NULL,ended_us INTEGER);
+ALTER TABLE crew_profiles ADD COLUMN data_class TEXT NOT NULL DEFAULT 'REAL' CHECK(data_class IN ('REAL','SYNTHETIC'));
+ALTER TABLE telemetry_timeseries ADD COLUMN data_class TEXT NOT NULL DEFAULT 'REAL' CHECK(data_class IN ('REAL','SYNTHETIC','DERIVED'));
+ALTER TABLE protocols ADD COLUMN source_id TEXT REFERENCES clinical_sources(source_id);
+DROP TRIGGER clinical_reports_ai;
+DROP TRIGGER clinical_reports_ad;
+DROP TRIGGER clinical_reports_au;
+DROP TABLE clinical_reports_fts;
+ALTER TABLE clinical_reports RENAME TO clinical_reports_legacy;
+CREATE TABLE clinical_reports (
+    report_id TEXT PRIMARY KEY, source_id TEXT NOT NULL REFERENCES clinical_sources(source_id),
+    hazard_id TEXT NOT NULL REFERENCES clinical_hazards(hazard_id),
+    category TEXT NOT NULL CHECK(category IN ('PHYSIOLOGICAL','BEHAVIORAL_BIOCHEMICAL','HAZARD')),
+    title TEXT NOT NULL, problem TEXT NOT NULL, content_text TEXT NOT NULL,
+    symptoms_text TEXT NOT NULL DEFAULT '', countermeasures_text TEXT NOT NULL DEFAULT '',
+    payload_json TEXT NOT NULL CHECK(json_valid(payload_json))
+);
+
+INSERT INTO clinical_sources(source_id,title,publisher,url,section,reviewed_on)
+SELECT DISTINCT source_id,source_id,'NASA (legacy attribution)','https://www.nasa.gov/hrp/risks/','Legacy reference; details preserved in payload_json','2026-11-14' FROM clinical_reports_legacy;
+INSERT INTO clinical_hazards VALUES
+('GRAVITY_FIELDS','Campos de gravidade'),('SPACE_RADIATION','Radiação espacial'),
+('ISOLATION_CONFINEMENT','Isolamento e confinamento'),('HOSTILE_CLOSED_ENVIRONMENT','Ambiente fechado e hostil'),('DISTANCE_FROM_EARTH','Distância da Terra');
+INSERT INTO clinical_reports(report_id,source_id,hazard_id,category,title,problem,content_text,symptoms_text,countermeasures_text,payload_json)
+SELECT id,source_id,CASE WHEN lower(hazard) LIKE '%radiation%' THEN 'SPACE_RADIATION'
+ WHEN lower(hazard) LIKE '%isolation%' THEN 'ISOLATION_CONFINEMENT'
+ WHEN lower(hazard) LIKE '%distance%' THEN 'DISTANCE_FROM_EARTH'
+ WHEN lower(hazard) LIKE '%gravity%' THEN 'GRAVITY_FIELDS' ELSE 'HOSTILE_CLOSED_ENVIRONMENT' END,
+ CASE WHEN category IN ('BEHAVIORAL','BIOCHEMICAL') THEN 'BEHAVIORAL_BIOCHEMICAL' ELSE category END,
+ title,description,content,symptoms_text,countermeasures_text,
+ json_object('legacy_id',id,'legacy_hazard',hazard,'legacy_subsystem',subsystem,'legacy_escalation',escalation)
+FROM clinical_reports_legacy;
+DROP TABLE clinical_reports_legacy;
+-- Rebuild to allow NULL sensor values and attach explicit provenance/crew references.
+ALTER TABLE peripheral_readings RENAME TO peripheral_readings_legacy;
+CREATE TABLE peripheral_readings(reading_id INTEGER PRIMARY KEY,ts_us INTEGER NOT NULL,node_id INTEGER,
+ sensor_type TEXT NOT NULL,value REAL,unit TEXT,crew_id TEXT REFERENCES crew_profiles(crew_id),
+ data_class TEXT NOT NULL DEFAULT 'REAL' CHECK(data_class IN ('REAL','SYNTHETIC')));
+INSERT INTO peripheral_readings(ts_us,node_id,sensor_type,value,unit)
+ SELECT ts_us,node_id,sensor_type,value,unit FROM peripheral_readings_legacy;
+DROP TABLE peripheral_readings_legacy;
+CREATE INDEX idx_peripheral_type_ts ON peripheral_readings(sensor_type,ts_us);
 -- Applied once by the migration ledger; no BEGIN/COMMIT (Go owns its transaction).
 ALTER TABLE crew_profiles ADD COLUMN biological_sex TEXT NOT NULL DEFAULT 'M' CHECK(biological_sex IN ('M','F'));
 ALTER TABLE crew_profiles ADD COLUMN height_cm REAL CHECK(height_cm > 0);
@@ -15,7 +65,6 @@ ALTER TABLE crew_profiles ADD COLUMN sans_susceptibility TEXT NOT NULL DEFAULT '
 ALTER TABLE crew_profiles ADD COLUMN sas_susceptibility TEXT NOT NULL DEFAULT 'MODERATE' CHECK(sas_susceptibility IN ('LOW','MODERATE','HIGH'));
 ALTER TABLE crew_profiles ADD COLUMN co2_sensitivity TEXT NOT NULL DEFAULT 'NORMAL' CHECK(co2_sensitivity IN ('NORMAL','HIGH'));
 ALTER TABLE crew_profiles ADD COLUMN mission_start_us INTEGER;
-ALTER TABLE peripheral_readings ADD COLUMN crew_id TEXT REFERENCES crew_profiles(crew_id);
 CREATE INDEX idx_peripheral_crew_sensor_ts ON peripheral_readings(crew_id,sensor_type,ts_us);
 ALTER TABLE self_exams ADD COLUMN protocol_id TEXT REFERENCES protocols(protocol_id);
 ALTER TABLE self_exams ADD COLUMN payload_json TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(payload_json));
@@ -46,10 +95,6 @@ CREATE TRIGGER protocols_au AFTER UPDATE ON protocols BEGIN
     VALUES(new.rowid,new.protocol_id,new.name,new.description,new.steps_json,new.rich_steps_json);
 END;
 INSERT INTO protocols_fts(protocols_fts) VALUES('rebuild');
-DROP TRIGGER clinical_reports_ai;
-DROP TRIGGER clinical_reports_ad;
-DROP TRIGGER clinical_reports_au;
-DROP TABLE clinical_reports_fts;
 CREATE VIRTUAL TABLE clinical_reports_fts USING fts5(
     report_id UNINDEXED,title,problem,content_text,symptoms_text,countermeasures_text,
     content='clinical_reports',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2'
@@ -86,6 +131,7 @@ CREATE TABLE individual_baselines (
     baseline_id TEXT PRIMARY KEY, crew_id TEXT NOT NULL REFERENCES crew_profiles(crew_id),
     version INTEGER NOT NULL CHECK(version > 0), onnx_model_path TEXT,
     feature_dim INTEGER NOT NULL DEFAULT 64 CHECK(feature_dim > 0),
+    feature_schema_id TEXT NOT NULL DEFAULT 'EDGESPACE_DSP64_V1',
     mean_json TEXT NOT NULL CHECK(json_valid(mean_json) AND json_type(mean_json)='array' AND json_array_length(mean_json)=feature_dim),
     std_json TEXT NOT NULL CHECK(json_valid(std_json) AND json_type(std_json)='array' AND json_array_length(std_json)=feature_dim),
     anomaly_threshold REAL NOT NULL CHECK(anomaly_threshold > 0),

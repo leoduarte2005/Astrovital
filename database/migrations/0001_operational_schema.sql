@@ -1,97 +1,155 @@
--- Operational database only. Connection must enable foreign_keys and WAL.
-CREATE TABLE clinical_sources (
-    source_id TEXT PRIMARY KEY, title TEXT NOT NULL, publisher TEXT NOT NULL,
-    url TEXT NOT NULL, section TEXT NOT NULL, reviewed_on TEXT NOT NULL
+-- 0001_operational_schema.sql
+-- EdgeSpace Phase 1: operational schema + clinical FTS5 index.
+-- Applied by central/internal/store/migrate.go inside tx.Begin()/tx.Commit().
+-- No PRAGMA journal_mode here: SQLite forbids changing it inside a transaction;
+-- Central already sets PRAGMAs via DSN. No explicit BEGIN/COMMIT: owned by the runner.
+
+-- ---------------------------------------------------------------------------
+-- Operational tables (match central/internal/store/clinical.go)
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS cluster_nodes (
+    mac           TEXT PRIMARY KEY,
+    node_id       INTEGER NOT NULL,
+    first_seen_us INTEGER,
+    last_seen_us  INTEGER
 );
-CREATE TABLE clinical_hazards (hazard_id TEXT PRIMARY KEY, name TEXT NOT NULL);
-CREATE TABLE crew_profiles (
-    crew_id TEXT PRIMARY KEY, name TEXT NOT NULL, role TEXT NOT NULL DEFAULT '',
-    mission_day INTEGER NOT NULL DEFAULT 0 CHECK(mission_day >= 0), age INTEGER CHECK(age >= 18),
-    baseline_path TEXT NOT NULL DEFAULT '',
-    thresholds_json TEXT NOT NULL DEFAULT '{}' CHECK(json_valid(thresholds_json)),
-    data_class TEXT NOT NULL DEFAULT 'REAL' CHECK(data_class IN ('REAL','SYNTHETIC'))
+
+CREATE TABLE IF NOT EXISTS crew_profiles (
+    crew_id         TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    role            TEXT NOT NULL DEFAULT '',
+    mission_day     INTEGER NOT NULL DEFAULT 0,
+    age             INTEGER NOT NULL DEFAULT 0,
+    baseline_path   TEXT NOT NULL DEFAULT '',
+    thresholds_json TEXT NOT NULL DEFAULT '{}'
 );
-CREATE TABLE crew_baselines (
-    crew_id TEXT PRIMARY KEY REFERENCES crew_profiles(crew_id),
-    baseline_path TEXT, updated_at_us INTEGER NOT NULL DEFAULT 0
+
+-- crew_id nullable, intentionally no FK: unattributed samples must not abort batches.
+CREATE TABLE IF NOT EXISTS telemetry_timeseries (
+    ts_us         INTEGER NOT NULL,
+    crew_id       TEXT,
+    mission_mode  TEXT,
+    heart_rate_bpm REAL,
+    hrv_ms        REAL,
+    resp_rate_bpm REAL,
+    spo2_pct      REAL,
+    posture       TEXT,
+    confidence    REAL,
+    co2_ppm       REAL,
+    temp_c        REAL,
+    humidity_pct  REAL,
+    pressure_hpa  REAL
 );
-CREATE TABLE cluster_nodes (
-    mac TEXT PRIMARY KEY, node_id INTEGER NOT NULL UNIQUE CHECK(node_id BETWEEN 0 AND 4),
-    first_seen_us INTEGER NOT NULL, last_seen_us INTEGER NOT NULL
+
+CREATE TABLE IF NOT EXISTS peripheral_readings (
+    ts_us       INTEGER NOT NULL,
+    node_id     INTEGER,
+    sensor_type TEXT NOT NULL,
+    value       REAL NOT NULL,
+    unit        TEXT
 );
-CREATE TABLE telemetry_timeseries (
-    reading_id INTEGER PRIMARY KEY, ts_us INTEGER NOT NULL,
-    crew_id TEXT REFERENCES crew_profiles(crew_id),
-    mission_mode TEXT NOT NULL CHECK(mission_mode IN ('MODE_CABIN_TOMOGRAPHY','MODE_REST_VITALS','MODE_COUNTERMEASURE_EXERCISE','MODE_RADIATION_ALERT')),
-    heart_rate_bpm REAL, hrv_ms REAL, resp_rate_bpm REAL, spo2_pct REAL,
-    posture TEXT, confidence REAL CHECK(confidence BETWEEN 0 AND 1),
-    co2_ppm REAL, temp_c REAL, humidity_pct REAL, pressure_hpa REAL,
-    data_class TEXT NOT NULL DEFAULT 'REAL' CHECK(data_class IN ('REAL','SYNTHETIC','DERIVED'))
+
+-- crew_id nullable, intentionally no FK.
+CREATE TABLE IF NOT EXISTS alerts_audit (
+    alert_id       TEXT PRIMARY KEY,
+    ts_us          INTEGER NOT NULL,
+    crew_id        TEXT,
+    subsystem      TEXT NOT NULL,
+    severity       TEXT NOT NULL,
+    message        TEXT NOT NULL,
+    countermeasure TEXT,
+    escalation     TEXT,
+    handled        INTEGER NOT NULL DEFAULT 0
 );
-CREATE INDEX idx_telemetry_crew_ts ON telemetry_timeseries(crew_id,ts_us);
-CREATE TABLE peripheral_readings (
-    reading_id INTEGER PRIMARY KEY, ts_us INTEGER NOT NULL, node_id INTEGER NOT NULL,
-    sensor_type TEXT NOT NULL, value REAL, unit TEXT NOT NULL DEFAULT '',
-    data_class TEXT NOT NULL DEFAULT 'REAL' CHECK(data_class IN ('REAL','SYNTHETIC'))
+
+CREATE TABLE IF NOT EXISTS store_and_forward_outbox (
+    outbox_id   TEXT PRIMARY KEY,
+    ts_us       INTEGER NOT NULL,
+    subsystem   TEXT NOT NULL,
+    severity    TEXT NOT NULL,
+    message     TEXT NOT NULL,
+    destination TEXT,
+    sent        INTEGER NOT NULL DEFAULT 0
 );
-CREATE TABLE self_exams (
-    exam_id INTEGER PRIMARY KEY, ts_us INTEGER NOT NULL,
-    crew_id TEXT NOT NULL REFERENCES crew_profiles(crew_id),
-    exam_type TEXT NOT NULL, result TEXT NOT NULL, observations TEXT NOT NULL DEFAULT ''
+
+CREATE TABLE IF NOT EXISTS self_exams (
+    ts_us        INTEGER NOT NULL,
+    crew_id      TEXT NOT NULL,
+    exam_type    TEXT NOT NULL,
+    result       TEXT NOT NULL,
+    observations TEXT
 );
-CREATE TABLE chat_sessions (
-    session_id TEXT PRIMARY KEY, crew_id TEXT NOT NULL REFERENCES crew_profiles(crew_id),
-    started_us INTEGER NOT NULL, ended_us INTEGER
-);
-CREATE TABLE chat_messages (
-    message_id INTEGER PRIMARY KEY, session_id TEXT REFERENCES chat_sessions(session_id),
-    ts_us INTEGER NOT NULL, crew_id TEXT NOT NULL REFERENCES crew_profiles(crew_id),
-    role TEXT NOT NULL CHECK(role IN ('user','assistant','clinician','system')),
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+    ts_us   INTEGER NOT NULL,
+    crew_id TEXT NOT NULL,
+    role    TEXT NOT NULL,
     content TEXT NOT NULL
 );
-CREATE INDEX idx_chat_crew_ts ON chat_messages(crew_id,ts_us DESC,message_id DESC);
-CREATE TABLE protocols (
-    protocol_id TEXT PRIMARY KEY, name TEXT NOT NULL, description TEXT NOT NULL,
-    subsystems_json TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(subsystems_json)),
-    steps_json TEXT NOT NULL DEFAULT '[]' CHECK(json_valid(steps_json)),
-    source_id TEXT REFERENCES clinical_sources(source_id)
+
+CREATE TABLE IF NOT EXISTS protocols (
+    protocol_id     TEXT PRIMARY KEY,
+    name            TEXT NOT NULL,
+    subsystems_json TEXT NOT NULL DEFAULT '[]',
+    description     TEXT NOT NULL DEFAULT '',
+    steps_json      TEXT NOT NULL DEFAULT '[]'
 );
-CREATE TABLE clinical_reports (
-    report_id TEXT PRIMARY KEY, source_id TEXT NOT NULL REFERENCES clinical_sources(source_id),
-    hazard_id TEXT NOT NULL REFERENCES clinical_hazards(hazard_id),
-    category TEXT NOT NULL CHECK(category IN ('PHYSIOLOGICAL','BEHAVIORAL_BIOCHEMICAL')),
-    title TEXT NOT NULL, problem TEXT NOT NULL, content_text TEXT NOT NULL,
-    symptoms_text TEXT NOT NULL DEFAULT '', countermeasures_text TEXT NOT NULL DEFAULT '',
-    payload_json TEXT NOT NULL CHECK(json_valid(payload_json))
+
+-- ---------------------------------------------------------------------------
+-- Performance indexes
+-- ---------------------------------------------------------------------------
+
+CREATE INDEX IF NOT EXISTS idx_telemetry_crew_ts   ON telemetry_timeseries(crew_id, ts_us);
+CREATE INDEX IF NOT EXISTS idx_peripheral_type_ts  ON peripheral_readings(sensor_type, ts_us);
+CREATE INDEX IF NOT EXISTS idx_alerts_ts           ON alerts_audit(ts_us DESC);
+CREATE INDEX IF NOT EXISTS idx_outbox_sent_ts      ON store_and_forward_outbox(sent, ts_us DESC);
+CREATE INDEX IF NOT EXISTS idx_self_exams_crew_ts  ON self_exams(crew_id, ts_us DESC);
+CREATE INDEX IF NOT EXISTS idx_chat_crew_ts        ON chat_messages(crew_id, ts_us DESC);
+
+-- ---------------------------------------------------------------------------
+-- Clinical base table + FTS5 index (consumed by edge-ai clinical_store.py)
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE IF NOT EXISTS clinical_reports (
+    id                   TEXT PRIMARY KEY,
+    source_id            TEXT NOT NULL,
+    hazard               TEXT NOT NULL,
+    category             TEXT NOT NULL,
+    subsystem            TEXT NOT NULL,
+    title                TEXT NOT NULL,
+    description          TEXT NOT NULL,
+    symptoms_text        TEXT NOT NULL,
+    countermeasures_text TEXT NOT NULL,
+    escalation           TEXT NOT NULL,
+    content              TEXT NOT NULL
 );
-CREATE VIRTUAL TABLE clinical_reports_fts USING fts5(
-    report_id UNINDEXED,title,problem,content_text,
-    content='clinical_reports',content_rowid='rowid',tokenize='unicode61 remove_diacritics 2'
+
+CREATE VIRTUAL TABLE IF NOT EXISTS clinical_reports_fts USING fts5(
+    id, source_id, title, subsystem, description, content,
+    tokenize='unicode61 remove_diacritics 2'
 );
-CREATE TRIGGER clinical_reports_ai AFTER INSERT ON clinical_reports BEGIN
-    INSERT INTO clinical_reports_fts(rowid,report_id,title,problem,content_text)
-    VALUES(new.rowid,new.report_id,new.title,new.problem,new.content_text);
+
+-- Backfill for pre-existing rows (no-op on fresh DB; skips ids already indexed).
+INSERT INTO clinical_reports_fts(id, source_id, title, subsystem, description, content)
+SELECT r.id, r.source_id, r.title, r.subsystem, r.description, r.content
+FROM clinical_reports r
+WHERE NOT EXISTS (SELECT 1 FROM clinical_reports_fts f WHERE f.id = r.id);
+
+CREATE TRIGGER IF NOT EXISTS clinical_reports_ai AFTER INSERT ON clinical_reports
+BEGIN
+    INSERT INTO clinical_reports_fts(id, source_id, title, subsystem, description, content)
+    VALUES (new.id, new.source_id, new.title, new.subsystem, new.description, new.content);
 END;
-CREATE TRIGGER clinical_reports_ad AFTER DELETE ON clinical_reports BEGIN
-    INSERT INTO clinical_reports_fts(clinical_reports_fts,rowid,report_id,title,problem,content_text)
-    VALUES('delete',old.rowid,old.report_id,old.title,old.problem,old.content_text);
+
+CREATE TRIGGER IF NOT EXISTS clinical_reports_au AFTER UPDATE ON clinical_reports
+BEGIN
+    DELETE FROM clinical_reports_fts WHERE id = old.id;
+    INSERT INTO clinical_reports_fts(id, source_id, title, subsystem, description, content)
+    VALUES (new.id, new.source_id, new.title, new.subsystem, new.description, new.content);
 END;
-CREATE TRIGGER clinical_reports_au AFTER UPDATE ON clinical_reports BEGIN
-    INSERT INTO clinical_reports_fts(clinical_reports_fts,rowid,report_id,title,problem,content_text)
-    VALUES('delete',old.rowid,old.report_id,old.title,old.problem,old.content_text);
-    INSERT INTO clinical_reports_fts(rowid,report_id,title,problem,content_text)
-    VALUES(new.rowid,new.report_id,new.title,new.problem,new.content_text);
+
+CREATE TRIGGER IF NOT EXISTS clinical_reports_ad AFTER DELETE ON clinical_reports
+BEGIN
+    DELETE FROM clinical_reports_fts WHERE id = old.id;
 END;
-CREATE TABLE alerts_audit (
-    alert_id TEXT PRIMARY KEY, ts_us INTEGER NOT NULL,
-    crew_id TEXT REFERENCES crew_profiles(crew_id), subsystem TEXT NOT NULL,
-    severity TEXT NOT NULL CHECK(severity IN ('GREEN','YELLOW','RED')),
-    message TEXT NOT NULL, countermeasure TEXT NOT NULL DEFAULT '',
-    escalation TEXT NOT NULL DEFAULT 'LOCAL' CHECK(escalation IN ('LOCAL','CREW','STORE_AND_FORWARD')),
-    handled INTEGER NOT NULL DEFAULT 0 CHECK(handled IN (0,1))
-);
-CREATE TABLE store_and_forward_outbox (
-    outbox_id TEXT PRIMARY KEY, ts_us INTEGER NOT NULL, subsystem TEXT NOT NULL,
-    severity TEXT NOT NULL, message TEXT NOT NULL, destination TEXT NOT NULL DEFAULT 'ground_control',
-    sent INTEGER NOT NULL DEFAULT 0 CHECK(sent IN (0,1))
-);

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-SANS",
+  "report_id": "sans_viip",
   "source_id": "NASA-SANS",
   "hazard_id": "GRAVITY_FIELDS",
   "category": "PHYSIOLOGICAL",
@@ -9,7 +9,21 @@
   "primary_symptoms": [
     "visão turva",
     "blurred vision",
-    "metamorfopsia"
+    "metamorfopsia",
+    "cefaleia",
+    "dor de cabeça",
+    "pressão ocular",
+    "papiledema",
+    "congestão nasal",
+    "face inchada",
+    "headache",
+    "eye pressure",
+    "papilledema",
+    "nasal congestion",
+    "facial puffiness",
+    "fluid shift",
+    "SANS",
+    "VIIP"
   ],
   "secondary_symptoms": [
     "cefaleia",
@@ -34,7 +48,19 @@
         "blurred vision",
         "metamorfopsia",
         "cefaleia",
-        "headache"
+        "headache",
+        "dor de cabeça",
+        "pressão ocular",
+        "papiledema",
+        "congestão nasal",
+        "face inchada",
+        "eye pressure",
+        "papilledema",
+        "nasal congestion",
+        "facial puffiness",
+        "fluid shift",
+        "SANS",
+        "VIIP"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -71,8 +97,8 @@
             "blurred vision",
             "metamorfopsia"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "amsler_grid"
         }
       ],
@@ -89,5 +115,19 @@
   ],
   "research_countermeasures": [
     "Thigh Cuff e suplementação de vitaminas B são intervenções investigadas, não condutas automáticas deste software."
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-SANS",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of SANS",
+      "section": "Evidence Report: Spaceflight Associated Neuro-ocular Syndrome",
+      "source_id": "NASA-HRP-SANS"
+    },
+    "detection": [
+      "Autoexame: Grade de Amsler (SELF_EXAM)",
+      "Autoexame: ultrassom ONSD > 5.0 mm",
+      "CO2 ambiente (SCD40) normal",
+      "Postura via CSI"
+    ]
+  }
 }

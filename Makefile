@@ -19,7 +19,7 @@ RESEARCH_DEMO_PATH ?= ./var/space_health_demo.db
 .PHONY: help contracts-validate firmware-build firmware-flash \
         db-migrate db-operational-validate db-operational-test db-intelligence-generate db-intelligence-check \
         frontend-build central-build central-run-mock edge-ai-setup edge-ai-run \
-        db-research-inventory db-research-queries db-research-validate \
+        test-e2e-ai db-research-inventory db-research-queries db-research-validate \
         db-research-demo db-research-import-physiology db-research-missingness db-research-test all clean
 
 help:
@@ -44,6 +44,7 @@ help:
 	@echo "  central-run-mock    Central com --mock-cluster (sem hardware)              [Leonardo/M4]"
 	@echo "  edge-ai-setup       Cria venv e instala requirements do edge-ai            [Santiago+Leonardo/M5]"
 	@echo "  edge-ai-run         Sobe worker IA em 127.0.0.1:5006                       [Santiago+Leonardo/M5]"
+	@echo "  test-e2e-ai         Valida integração real edge-ai (:5006) + Central Go"
 	@echo "  all                 contracts-validate + frontend-build + central-build"
 
 contracts-validate:
@@ -122,6 +123,11 @@ edge-ai-run:
 	@if [ -d edge-ai/src/edgespace_ai ] && [ -f edge-ai/requirements.txt ]; then cd edge-ai && \
 	PYTHONPATH=src ./.venv/bin/python -m edgespace_ai --listen 127.0.0.1:5006 --db ../$(DB_PATH); \
 	else echo "[pendente] worker edge-ai ainda não implementado"; fi
+
+test-e2e-ai:
+	@PY=edge-ai/.venv/bin/python; \
+	if [ ! -x "$$PY" ] && [ -x edge-ai/.venv/Scripts/python.exe ]; then PY=edge-ai/.venv/Scripts/python.exe; fi; \
+	PYTHONPATH=edge-ai/src "$$PY" edge-ai/tests/e2e_central_integration.py
 
 all: contracts-validate frontend-build central-build
 

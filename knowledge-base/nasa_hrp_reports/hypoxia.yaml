@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-HYPOXIA",
+  "report_id": "hypoxia",
   "source_id": "NASA-HYPOXIA",
   "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
   "category": "PHYSIOLOGICAL",
@@ -78,8 +78,8 @@
             "dispneia",
             "falta de ar"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "oxygen_check"
         }
       ],
@@ -93,5 +93,9 @@
         }
       ]
     }
+  ],
+  "search_aliases": [
+    "hypoxia",
+    "hipóxia"
   ]
 }

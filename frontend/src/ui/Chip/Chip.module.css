@@ -1,0 +1,27 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-4);
+  border: 1px solid var(--line);
+  max-width: 100%;
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--ink-2);
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  text-align: center;
+}
+
+.solid {
+  border-color: transparent;
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.dot {
+  width: 0.55em;
+  height: 0.55em;
+  border-radius: 50%;
+  background: var(--chip-dot);
+}

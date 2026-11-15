@@ -55,6 +55,11 @@ type Exec struct {
 	Args  []any
 }
 
+// Statements preserves related writes in the single writer's transaction.
+type Statements struct{ Items []Exec }
+
+func (Statements) isCmd() {}
+
 func (Exec) isCmd() {}
 
 // RegistrySet upserts a key in the internal central_registry table.

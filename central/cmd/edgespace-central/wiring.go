@@ -46,6 +46,9 @@ func (a storeSessionAdapter) LoadRecentChat(ctx context.Context, crewID string, 
 func (a storeSessionAdapter) SaveAudit(ctx context.Context, crewID *string, eventType, details string, tsUs int64) error {
 	return a.st.SaveAudit(ctx, crewID, eventType, details, tsUs)
 }
+func (a storeSessionAdapter) SaveBaseline(ctx context.Context, crew string, data []byte, ts int64) error {
+	return a.st.SaveBaselineUpdate(ctx, crew, data, ts)
+}
 func (a storeSessionAdapter) SaveChat(ctx context.Context, crewID string, req contracts.ChatMsgPayload, resp contracts.ChatCorrelateRespPayload, tsUs int64) error {
 	return a.st.SaveChatExchange(ctx, crewID, req, resp, tsUs)
 }

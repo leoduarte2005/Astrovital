@@ -1,0 +1,35 @@
+.root {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-3);
+  border: var(--border-thin) solid var(--ink);
+  border-radius: var(--radius-sm);
+  font: inherit;
+  font-size: var(--text-sm);
+  color: var(--ink);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.ghost {
+  background: var(--bg);
+}
+
+.ghost:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--bg);
+}
+
+.solid {
+  background: var(--accent);
+  border-color: transparent;
+  color: var(--accent-ink);
+  font-weight: var(--weight-bold);
+}
+
+.iconOnly {
+  min-width: var(--touch-min);
+  padding: 0;
+}

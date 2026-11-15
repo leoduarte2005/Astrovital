@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-IMMUNE_VIRAL_REACTIVATION",
+  "report_id": "altered_immune_responses",
   "source_id": "NASA-IMMUNE",
   "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
   "category": "PHYSIOLOGICAL",
@@ -8,7 +8,17 @@
   "problem": "Alterações imunológicas e reativação de vírus latentes são investigadas com amostras biológicas; rash isolado não identifica o agente.",
   "primary_symptoms": [
     "rash",
-    "erupção cutânea"
+    "erupção cutânea",
+    "febre",
+    "lesão cutânea",
+    "erupção",
+    "fadiga",
+    "mal-estar",
+    "fever",
+    "skin lesion",
+    "fatigue",
+    "malaise",
+    "latent virus reactivation"
   ],
   "secondary_symptoms": [
     "febre",
@@ -32,7 +42,15 @@
         "rash",
         "erupção cutânea",
         "febre",
-        "fadiga"
+        "fadiga",
+        "lesão cutânea",
+        "erupção",
+        "mal-estar",
+        "fever",
+        "skin lesion",
+        "fatigue",
+        "malaise",
+        "latent virus reactivation"
       ],
       "countermeasures": [
         "Registrar contexto e conferir a qualidade das observações.",
@@ -67,8 +85,8 @@
             "rash",
             "erupção cutânea"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "temperature"
         }
       ],
@@ -82,5 +100,18 @@
         }
       ]
     }
-  ]
+  ],
+  "legacy_reference": {
+    "id": "HRP-RISK-IMMUNE",
+    "source": {
+      "document": "NASA Human Research Program (HRP), Human Research Roadmap - Risk of Adverse Health Event due to Altered Immune Response",
+      "section": "Evidence Report",
+      "source_id": "NASA-HRP-IMMUNE"
+    },
+    "detection": [
+      "Autoexame: temperatura",
+      "Autoexame: sangue capilar (marcadores imunes)",
+      "HRV via CSI"
+    ]
+  }
 }

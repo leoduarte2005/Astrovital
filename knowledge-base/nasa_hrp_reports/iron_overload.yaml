@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "report_id": "HRP-PROJECT-IRON_OVERLOAD",
+  "report_id": "iron_overload",
   "source_id": "NASA-IRON",
   "hazard_id": "HOSTILE_CLOSED_ENVIRONMENT",
   "category": "BEHAVIORAL_BIOCHEMICAL",
@@ -62,8 +62,8 @@
           "positive_concepts": [
             "ferritina elevada"
           ],
-          "yes_likelihood": 3.0,
-          "no_likelihood": 0.5,
+          "yes_likelihood": 0.85,
+          "no_likelihood": 0.15,
           "linked_protocol_id": "capillary_blood"
         }
       ],
