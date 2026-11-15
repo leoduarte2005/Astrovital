@@ -17,5 +17,9 @@ export const routes: Record<string, ComponentType> = {
   '/crew': lazy(() => import('@/pages/crew')),
   ...Object.fromEntries(MODULES.map((module) => [module.path, placeholder(module.labelKey)])),
   '/garden': lazy(() => import('@/pages/garden')),
-  '/landing': lazy(() => import('@/pages/landing')),
+  '/games': lazy(() => import('@/pages/games')),
+  '/leisure': lazy(() => import('@/pages/leisure')),
+  // Full-page games: each opens in its own tab, outside the crew session (see App).
+  '/game/asteroids': lazy(() => import('@/pages/gameAsteroids')),
+  '/game/landing': lazy(() => import('@/pages/gameLanding')),
 }

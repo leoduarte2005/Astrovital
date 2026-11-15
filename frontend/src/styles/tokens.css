@@ -17,11 +17,20 @@
   /* Lines, like a ruler on paper */
   --line: rgba(249, 248, 242, 0.16); /* internal separators */
   --line-strong: rgba(249, 248, 242, 0.44); /* control borders */
+  --line-on-light: rgba(16, 12, 8, 0.16); /* separators on the light chart card (ink on --ink) */
 
   /* Accent: technical-blueprint blue. Never signals health state. */
   --accent: #9dbaf7;
   --accent-ink: #2d3135; /* text over accent fill */
   --accent-tint: rgba(157, 186, 247, 0.16);
+
+  /* Organ group colours for chart series. Vascular = blood red (heart tint, rules/twin3d.md). */
+  --organ-blood: #c8283f;
+  --organ-lungs: #d4a5a0; /* respiratory group (lung tint, rules/twin3d.md) */
+  --organ-neuro: #b5527a; /* brain: deeper than its pink tint, readable on the light chart card */
+  --organ-nutrition: #8b4a3c; /* liver and gut (liver tint) */
+  --organ-kidneys: #7a2e2e; /* kidneys (tint) */
+  --organ-spine: #8a7650; /* spine: deeper than its ivory tint, readable on the light chart card */
 
   /* Disabled controls: a warm grey just above --bg, with muted text */
   --disabled-bg: #1c1915;
@@ -73,6 +82,8 @@
 
   /* Layout and interaction */
   --touch-min: 40px;
+  --scrollbar-size: 4px; /* thin white scrollbar on chart areas */
+  --control-sm: 32px; /* compact icon button inside cards; below the 44 px touch target, pointer use */
   --drawer-width: min(384px, 86vw);
   --hover-shift: translate(-2px, 2px); /* pointer devices only, separated bordered elements */
   --duration-fast: 120ms;
