@@ -73,6 +73,8 @@ export interface TwinOptions {
   skinTone: string
   /** Aborted by the caller when this mount is stale; checked before any GL object is created. */
   signal: AbortSignal
+  /** Stature in metres. The body scales uniformly to it (the model's own height is scale 1). */
+  heightM: number
   /** HTML markers by anchor id; moved each frame by projection, never by React state. */
   markers: Partial<Record<TwinAnchorId, HTMLElement>>
 }
@@ -175,8 +177,11 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
     const box = new Box3().setFromObject(body)
     const size = box.getSize(new Vector3())
     const center = box.getCenter(new Vector3())
+    // Uniform scale keeps the body's proportions: skin, bones, organs and markers all scale together.
+    const scale = options.heightM / size.y
+    size.multiplyScalar(scale)
     // Anchors are children of the body, so they turn with it. Set in model units before the
-    // re-centring below: after `body.position.sub(center)` the GLB middle is the canvas origin.
+    // re-centring below: after `body.position = -center * scale` the GLB middle is the canvas origin.
     const anchors = TWIN_ANCHORS.flatMap((anchor) => {
       const element = options.markers[anchor.id]
       if (!element) return []
@@ -186,7 +191,8 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
       body.add(object)
       return [{ object, element, layerIds: anchor.layers }]
     })
-    body.position.sub(center)
+    body.scale.setScalar(scale)
+    body.position.copy(center).multiplyScalar(-scale)
     // Radius of the horizontal footprint: worst case while the body turns.
     const radius = Math.hypot(size.x, size.z) / 2
 

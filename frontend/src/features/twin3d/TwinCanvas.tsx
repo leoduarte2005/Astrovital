@@ -8,7 +8,7 @@ import type { TwinRenderer } from './renderer'
 type Status = 'loading' | 'ready' | 'error'
 
 /** Mounts the lazy three.js renderer on a canvas. The twin takes no pointer input. */
-export function TwinCanvas({ skinTone }: { skinTone: string }) {
+export function TwinCanvas({ skinTone, heightM }: { skinTone: string; heightM: number }) {
   const { t } = useI18n()
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const markerRefs = useRef<Partial<Record<TwinAnchorId, HTMLElement | null>>>({})
@@ -28,7 +28,7 @@ export function TwinCanvas({ skinTone }: { skinTone: string }) {
     let handle: TwinRenderer | null = null
 
     import('./renderer')
-      .then((module) => module.mount(canvas, { skinTone, signal: controller.signal, markers }))
+      .then((module) => module.mount(canvas, { skinTone, heightM, signal: controller.signal, markers }))
       .then((renderer) => {
         if (controller.signal.aborted) {
           renderer.dispose()
@@ -47,7 +47,7 @@ export function TwinCanvas({ skinTone }: { skinTone: string }) {
       controller.abort()
       handle?.dispose()
     }
-  }, [skinTone])
+  }, [skinTone, heightM])
 
   return (
     <div className={styles.root}>
