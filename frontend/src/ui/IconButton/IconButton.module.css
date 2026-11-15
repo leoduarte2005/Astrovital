@@ -13,6 +13,16 @@
   cursor: pointer;
 }
 
+/* Size variants: the button box and the icon are set separately (see `size` and `iconSize`). */
+.sm {
+  width: var(--control-sm);
+  height: var(--control-sm);
+}
+
+.iconSm {
+  font-size: var(--text-sm);
+}
+
 /* Portalled to <body>: fixed position, above every surface (drawers, floating cards, the twin). */
 .tooltip {
   position: fixed;

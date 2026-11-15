@@ -1,0 +1,56 @@
+.root {
+  margin: auto;
+  padding: var(--space-3) var(--space-4);
+  border: var(--border-frame) solid var(--ink);
+  border-radius: var(--radius-md);
+  background: var(--bg);
+  color: var(--ink);
+}
+
+.root::backdrop {
+  background: var(--scrim);
+}
+
+/* xl: most of the screen, with the 16 px gutter on phones. */
+.xl {
+  width: min(1100px, calc(100vw - 2 * var(--space-4)));
+  max-width: none;
+  max-height: calc(100vh - 2 * var(--space-4));
+  overflow: auto;
+}
+
+/* Title and close button share one row, centred vertically. */
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.xl {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+
+.xl::-webkit-scrollbar {
+  width: var(--scrollbar-size);
+}
+
+.xl::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.xl::-webkit-scrollbar-thumb {
+  border-radius: var(--radius-sm);
+  background: var(--ink);
+}

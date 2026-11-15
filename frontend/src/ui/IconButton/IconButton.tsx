@@ -11,6 +11,10 @@ interface IconButtonProps {
   disabled?: boolean
   /** Set when the button toggles a disclosure (drawer, menu). */
   expanded?: boolean
+  /** Button box: `md` = touch target (40 px), `sm` = compact (32 px). Default `md`. */
+  size?: 'md' | 'sm'
+  /** Icon size: `md` = body text, `sm` = small text. Defaults to `size`. */
+  iconSize?: 'md' | 'sm'
 }
 
 interface Anchor {
@@ -28,7 +32,7 @@ const EDGE = 8
  * The tooltip is portalled to `document.body` with fixed positioning, so no ancestor's `overflow`,
  * `transform` or stacking context can clip it, and it never adds scroll to the page.
  */
-export function IconButton({ icon, label, onClick, disabled = false, expanded }: IconButtonProps) {
+export function IconButton({ icon, label, onClick, disabled = false, expanded, size = 'md', iconSize = size }: IconButtonProps) {
   const buttonRef = useRef<HTMLButtonElement>(null)
   const tipRef = useRef<HTMLSpanElement>(null)
   const [anchor, setAnchor] = useState<Anchor | null>(null)
@@ -73,7 +77,7 @@ export function IconButton({ icon, label, onClick, disabled = false, expanded }:
       <button
         ref={buttonRef}
         type="button"
-        className={styles.root}
+        className={[styles.root, size === 'sm' ? styles.sm : '', iconSize === 'sm' ? styles.iconSm : ''].filter(Boolean).join(' ')}
         aria-label={label}
         aria-expanded={expanded}
         onClick={() => {
