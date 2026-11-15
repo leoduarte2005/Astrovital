@@ -62,6 +62,7 @@ class IPCState:
     latest_features: Optional[np.ndarray] = None
     latest_anomaly_score: Optional[float] = None
     latest_link_quality: float = 1.0
+    last_symptom_ts_us: Optional[int] = None
 
 
 class IPCHandler:
@@ -206,6 +207,8 @@ class IPCHandler:
             thresholds=thresholds,
             baseline=active_baseline,
         )
+        if any(e.startswith("Sintomas detectados:") for e in (resp.evidence or [])):
+            self.state.last_symptom_ts_us = env.ts_us
 
         if self.synthesizer.is_ready:
             memory_facts = _collect_memory_facts(req, crew_id=crew_id)
@@ -320,6 +323,21 @@ class IPCHandler:
         active_baseline = self.baseline_registry.active_baseline()
         anomaly_pred = self.anomaly_scorer.score(extracted, baseline=active_baseline)
         self.state.latest_anomaly_score = anomaly_pred.anomaly_score
+
+        active_crew = env.crew_id or self.state.active_crew_id
+        if active_crew:
+            symptomatic = (
+                self.state.last_symptom_ts_us is not None
+                and (env.ts_us - self.state.last_symptom_ts_us) < 1800_000_000
+            )
+            self.calibration_engine.apply_clean_sample(
+                active_crew,
+                extracted.vector,
+                anomaly_score=anomaly_pred.anomaly_score,
+                link_quality=self.state.latest_link_quality,
+                posture=posture_label,
+                symptomatic=symptomatic,
+            )
 
         inference = AIInferencePayload(
             cycle_seq_first=win.cycle_seq_first,

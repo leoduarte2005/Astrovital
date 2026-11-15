@@ -1,0 +1,33 @@
+{
+  "synonyms_total": 90,
+  "synonyms_rejected": 6,
+  "synonyms_written": "C:\\Users\\Eloiza Meira\\OneDrive\\Desktop\\Edge_Space\\edge-ai\\models\\clinical_synonyms.json",
+  "bayes": {
+    "params_before": {
+      "SYMPTOM_GAIN": 4.5,
+      "UNMATCHED_SYMPTOM_PENALTY": 0.65,
+      "NEGATIVE_EVIDENCE_FLOOR": 0.85,
+      "OVERLAP_YES_LIKELIHOOD": 0.5
+    },
+    "params_proposed": {
+      "SYMPTOM_GAIN": 4.499746578006867,
+      "UNMATCHED_SYMPTOM_PENALTY": 0.6490740866494483,
+      "NEGATIVE_EVIDENCE_FLOOR": 0.8485543633900758,
+      "OVERLAP_YES_LIKELIHOOD": 0.5010826307834534
+    },
+    "probe_before": {
+      "top1": 0.8333,
+      "top3": 1.0
+    },
+    "probe_after": {
+      "top1": 0.9167,
+      "top3": 1.0
+    },
+    "golden_before": "32/32",
+    "golden_after": "32/32",
+    "evaluations": 29,
+    "recommend_apply": true,
+    "applied": false,
+    "note": "Probe set is small and engineering-synthetic; proposal requires human review."
+  }
+}

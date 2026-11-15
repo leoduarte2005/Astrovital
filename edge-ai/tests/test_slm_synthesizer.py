@@ -268,3 +268,19 @@ def test_leg_pain_walking_correlates_musculoskeletal_knowledge(tmp_path: Path) -
     assert resp.countermeasures
 
 
+
+def test_discover_gguf_prefers_edgespace_medical_and_formats_db_memory(tmp_path: Path) -> None:
+    from edgespace_ai.correlation.synthesizer import _discover_gguf_model, _format_memory_facts
+
+    slm_dir = tmp_path / "slm"
+    slm_dir.mkdir()
+    base = slm_dir / "qwen2.5-1.5b-instruct-q4_k_m.gguf"
+    fine = slm_dir / "edgespace-medical-q4_k_m.gguf"
+    base.write_bytes(b"BASE")
+    fine.write_bytes(b"FINE")
+    assert _discover_gguf_model(slm_dir) == fine
+
+    formatted = _format_memory_facts([{"fact_type": "ALLERGY", "fact_key": "sulfa", "fact_value": "sulfa"}])
+    assert formatted == ["[ALLERGY] sulfa"]
+
+

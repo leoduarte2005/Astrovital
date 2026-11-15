@@ -93,7 +93,7 @@ def _discover_gguf_model(slm_dir: Path) -> Optional[Path]:
     if not candidates:
         return None
 
-    preferred_tokens = ("qwen2.5-1.5b", "qwen2.5", "llama-3.2-3b", "llama-3.2")
+    preferred_tokens = ("edgespace-medical", "qwen2.5-1.5b", "qwen2.5", "llama-3.2-3b", "llama-3.2")
     for token in preferred_tokens:
         for path in candidates:
             if token in path.name.lower():
@@ -107,8 +107,10 @@ def _format_memory_facts(memory_facts: Sequence[Any]) -> list[str]:
         if fact is None:
             continue
         if isinstance(fact, dict):
-            fact_type = str(fact.get("type") or fact.get("category") or "fato").strip()
-            content = str(fact.get("content") or fact.get("fact") or fact.get("value") or "").strip()
+            fact_type = str(fact.get("type") or fact.get("fact_type") or fact.get("category") or "fato").strip()
+            content = str(
+                fact.get("content") or fact.get("fact") or fact.get("fact_value") or fact.get("value") or ""
+            ).strip()
             if not content:
                 content = json.dumps(fact, ensure_ascii=False)
             formatted.append(f"[{fact_type}] {content}")

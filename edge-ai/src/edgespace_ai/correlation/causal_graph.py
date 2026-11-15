@@ -22,6 +22,28 @@ from .symptom_extractor import SymptomExtractor
 from .symptom_extractor import ExtractedSymptoms
 
 
+# Tunable engineering constants (calibrated offline by training/auto_calibrate_engine.py).
+SYMPTOM_GAIN = 4.5
+UNMATCHED_SYMPTOM_PENALTY = 0.65
+NEGATIVE_EVIDENCE_FLOOR = 0.85
+OVERLAP_YES_LIKELIHOOD = 0.50
+PRIOR_MULTIPLIER_MIN = 0.5
+PRIOR_MULTIPLIER_MAX = 2.0
+# Live sensors whose *normal* reading is mild evidence against a threshold-driven condition.
+NEGATIVE_EVIDENCE_METRICS = frozenset({"co2_ppm", "spo2_pct"})
+
+
+def question_p_yes(question: "DisambiguationQuestion", condition: "CausalCondition") -> float:
+    """P(answer=yes | condition) shared by Bayesian update and information-gain selection."""
+    if condition.id == question.owner_condition_id:
+        p_yes = question.yes_likelihood
+    elif any(c in condition.symptoms for c in question.positive_concepts):
+        p_yes = OVERLAP_YES_LIKELIHOOD
+    else:
+        p_yes = question.no_likelihood
+    return min(max(p_yes, 1e-4), 1.0 - 1e-4)
+
+
 @dataclass(frozen=True)
 class SensorRule:
     metric: str
@@ -226,6 +248,7 @@ class CausalGraph:
         profile: Optional[CrewProfile] = None,
         baseline: Optional[CrewBaseline] = None,
         answered_questions: Optional[dict[str, str]] = None,
+        prior_multipliers: Optional[dict[str, float]] = None,
     ) -> CausalAssessment:
         """Evaluate P(H|E) over all causal conditions given symptoms and telemetry."""
         metrics, breaches, red_breach, yellow_breach = self._extract_metrics(
@@ -292,19 +315,35 @@ class CausalGraph:
             matched_sym: list[str] = []
             matched_sens: list[str] = []
 
+            mult = 1.0
+            if prior_multipliers:
+                mult = min(max(float(prior_multipliers.get(cond.id, 1.0)), PRIOR_MULTIPLIER_MIN), PRIOR_MULTIPLIER_MAX)
+                if abs(mult - 1.0) > 1e-9:
+                    log_p += math.log(mult)
+                    matched_sens.append(f"Histórico do tripulante: prior x{mult:.2f} para {cond.name}")
+
             for concept in symptoms.concepts:
                 weight = cond.symptoms.get(concept)
                 if weight is not None:
-                    log_p += math.log(1.0 + 4.5 * weight)
+                    log_p += math.log(1.0 + SYMPTOM_GAIN * weight)
                     matched_sym.append(concept)
                 else:
-                    log_p += math.log(0.65)
+                    log_p += math.log(UNMATCHED_SYMPTOM_PENALTY)
 
             for rule in cond.sensor_rules:
                 if rule.matches(metrics, longitudinal=long_row):
                     log_p += math.log(max(rule.likelihood_ratio, 1.0))
                     if rule.description:
                         matched_sens.append(rule.description)
+                elif (
+                    rule.metric in NEGATIVE_EVIDENCE_METRICS
+                    and rule.rule_scope == "INSTANT"
+                    and rule.op in ("gt", "gte", "lt", "lte")
+                    and rule.likelihood_ratio > 1.0
+                    and isinstance(metrics.get(rule.metric), (int, float))
+                ):
+                    # Live sensor present and on the benign side of the threshold: mild evidence against.
+                    log_p += math.log(max(1.0 / math.sqrt(rule.likelihood_ratio), NEGATIVE_EVIDENCE_FLOOR))
 
             # Dynamic threshold boost for CO2 / SpO2 if crew thresholds are explicitly configured
             if cond.id in ("hypercapnia_co2","HYPERCAPNIA") and any("co2_ppm" in b for b in breaches):
@@ -318,13 +357,7 @@ class CausalGraph:
                     q_obj = questions_by_id.get(q_id)
                     if q_obj is None:
                         continue
-                    if cond.id == q_obj.owner_condition_id:
-                        p_yes = q_obj.yes_likelihood
-                    elif any(c in cond.symptoms for c in q_obj.positive_concepts):
-                        p_yes = 0.50
-                    else:
-                        p_yes = q_obj.no_likelihood
-                    p_yes = min(max(p_yes, 1e-4), 1.0 - 1e-4)
+                    p_yes = question_p_yes(q_obj, cond)
                     if ans == "yes":
                         log_p += math.log(p_yes)
                         if cond.id == q_obj.owner_condition_id:

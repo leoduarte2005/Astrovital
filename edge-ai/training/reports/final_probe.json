@@ -1,0 +1,195 @@
+{
+  "golden": {
+    "cases_passed": 32,
+    "cases_total": 32,
+    "cases_pass_rate": 1.0,
+    "crew_cases_count": 4,
+    "crew_cases_expectation_units": 12,
+    "failures": []
+  },
+  "nlu_and_ranking": {
+    "samples": 12,
+    "concept_recall": 1.0,
+    "concept_precision": 1.0,
+    "forbidden_false_positives": 0,
+    "top1_accuracy": 0.9167,
+    "top3_accuracy": 1.0,
+    "polarity_uncertainty_accuracy": 1.0,
+    "correlate_p95_ms": 24.02,
+    "details": [
+      {
+        "id": "NLU01",
+        "got_concepts": [
+          "headache",
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "headache",
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": "SANS"
+      },
+      {
+        "id": "NLU02",
+        "got_concepts": [
+          "dizziness",
+          "headache"
+        ],
+        "exp_concepts": [
+          "dizziness",
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": "HYPERCAPNIA"
+      },
+      {
+        "id": "NLU03",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": "SANS"
+      },
+      {
+        "id": "NLU04",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA"
+        ],
+        "exp_top1": "HYPOXIA"
+      },
+      {
+        "id": "NLU05",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "MICROBIOME_GI",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": "SPACE_MOTION_SICKNESS"
+      },
+      {
+        "id": "NLU06",
+        "got_concepts": [
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": "RENAL_STONES"
+      },
+      {
+        "id": "NLU07",
+        "got_concepts": [],
+        "exp_concepts": [],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "NLU08",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": "SLEEP_CIRCADIAN"
+      },
+      {
+        "id": "NLU09",
+        "got_concepts": [
+          "blurred_vision",
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "blurred_vision",
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": "SANS"
+      },
+      {
+        "id": "NLU10",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "DECOMPRESSION_SICKNESS"
+        ],
+        "exp_top1": "DECOMPRESSION_SICKNESS"
+      },
+      {
+        "id": "NLU11",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": "ORTHOSTATIC_INTOLERANCE"
+      },
+      {
+        "id": "NLU12",
+        "got_concepts": [],
+        "exp_concepts": [],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      }
+    ]
+  }
+}

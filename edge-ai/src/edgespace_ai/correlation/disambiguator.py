@@ -6,7 +6,7 @@ import math
 from dataclasses import dataclass
 from typing import Optional, Sequence
 
-from .causal_graph import DisambiguationQuestion, HypothesisPosterior
+from .causal_graph import DisambiguationQuestion, HypothesisPosterior, question_p_yes
 
 
 @dataclass(frozen=True)
@@ -111,17 +111,9 @@ class Disambiguator:
         base_probs: Sequence[float],
         base_entropy: float,
     ) -> float:
-        p_yes_given_h: list[float] = []
-        for h in hypotheses:
-            if h.condition.id == question.owner_condition_id:
-                p_yes = question.yes_likelihood
-            else:
-                overlap = [c for c in question.positive_concepts if c in h.condition.symptoms]
-                if overlap:
-                    p_yes = 0.55
-                else:
-                    p_yes = question.no_likelihood
-            p_yes_given_h.append(min(max(p_yes, 1e-4), 1.0 - 1e-4))
+        # Same P(yes | condition) table used by CausalGraph.evaluate, so question selection
+        # and the posterior update are consistent (expected information gain is exact).
+        p_yes_given_h: list[float] = [question_p_yes(question, h.condition) for h in hypotheses]
 
         p_yes_total = sum(p * py for p, py in zip(base_probs, p_yes_given_h))
         p_no_total = max(1e-9, 1.0 - p_yes_total)

@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import json
+import os
 import re
 import unicodedata
 from dataclasses import dataclass
+from difflib import SequenceMatcher
+from pathlib import Path
 from typing import Any, Optional, Sequence
 
 from ..ipc.protocol import ChatMessage
@@ -459,8 +463,13 @@ def detect_followup_polarity(text: str) -> Optional[str]:
     cleaned = re.sub(r"\s+", " ", re.sub(r"[^a-z0-9 ]", " ", norm)).strip()
     if not cleaned:
         return None
-    if cleaned in _FOLLOWUP_ANSWERS:
-        return "no" if cleaned in {"nao", "no", "not sure", "nao sei"} else "yes"
+    # Uncertain replies must never move the posterior: checked before yes/no.
+    if cleaned in _UNSURE_ANSWERS or cleaned.startswith(_UNSURE_PREFIXES):
+        return "unsure"
+    if cleaned in _YES_ANSWERS:
+        return "yes"
+    if cleaned in _NO_ANSWERS:
+        return "no"
     tokens = cleaned.split()
     if len(tokens) > 12:
         return None
@@ -525,10 +534,17 @@ class SymptomExtractor:
                 matched.setdefault(k, list(v))
 
         fallback_docs: tuple[ClinicalDocument, ...] = ()
-        if not matched and not pure_greeting and not _is_followup_answer(current_norm) and self.clinical_store is not None:
+        non_negated_norm = _strip_negated_clauses(current_norm)
+        if (
+            not matched
+            and not pure_greeting
+            and not _is_followup_answer(current_norm)
+            and self.clinical_store is not None
+            and non_negated_norm
+        ):
             relevant_tokens = [
                 tok
-                for tok in re.findall(r"[a-z0-9]{3,}", current_norm)
+                for tok in re.findall(r"[a-z0-9]{3,}", non_negated_norm)
                 if tok not in _NON_CLINICAL_STOPWORDS
             ]
             if relevant_tokens:
@@ -567,9 +583,23 @@ class SymptomExtractor:
         )
 
 
-_FOLLOWUP_ANSWERS = frozenset(
-    {"sim", "nao", "yes", "no", "talvez", "maybe", "um pouco", "bastante", "a little", "not sure", "nao sei"}
+_YES_ANSWERS = frozenset({"sim", "yes", "um pouco", "bastante", "a little", "a bit"})
+_NO_ANSWERS = frozenset({"nao", "no"})
+_UNSURE_ANSWERS = frozenset(
+    {"talvez", "maybe", "not sure", "nao sei", "sei la", "unsure", "i dont know", "nao tenho certeza"}
 )
+_UNSURE_PREFIXES = (
+    "nao sei",
+    "nao tenho certeza",
+    "not sure",
+    "i m not sure",
+    "im not sure",
+    "talvez",
+    "maybe",
+    "sei la",
+    "i dont know",
+)
+_FOLLOWUP_ANSWERS = _YES_ANSWERS | _NO_ANSWERS | _UNSURE_ANSWERS
 
 
 def _is_followup_answer(norm_text: str) -> bool:
@@ -579,15 +609,114 @@ def _is_followup_answer(norm_text: str) -> bool:
     return cleaned in _FOLLOWUP_ANSWERS
 
 
-def _match_lexicon(norm_text: str) -> dict[str, list[str]]:
+# Typo tolerance for single-word terms >= 6 chars. 0.85 catches transpositions such as
+# "cefaleai" (ratio 0.875) with no extra hits on 25 common non-clinical probe words.
+FUZZY_MIN_RATIO = 0.85
+_SYNONYM_CACHE: dict[str, tuple[float, dict[str, tuple[str, ...]]]] = {}
+
+
+def _default_synonyms_path() -> Path:
+    env_p = os.environ.get("EDGESPACE_SYNONYMS_PATH", "").strip()
+    if env_p:
+        return Path(env_p)
+    return Path(__file__).resolve().parents[3] / "models" / "clinical_synonyms.json"
+
+
+def load_clinical_synonyms(path: Optional[Path] = None) -> dict[str, tuple[str, ...]]:
+    """Load expanded bilingual synonyms from ``edge-ai/models/clinical_synonyms.json``."""
+    target = path or _default_synonyms_path()
+    if not target.is_file():
+        return {}
+    key = str(target)
+    try:
+        mtime = target.stat().st_mtime
+        cached = _SYNONYM_CACHE.get(key)
+        if cached is not None and cached[0] == mtime:
+            return cached[1]
+        raw = json.loads(target.read_text(encoding="utf-8"))
+        syn_raw = raw.get("synonyms") if isinstance(raw, dict) else None
+        if not isinstance(syn_raw, dict):
+            return {}
+        parsed = {
+            str(k): tuple(dict.fromkeys(_normalize_text(str(p)) for p in v if str(p).strip()))
+            for k, v in syn_raw.items()
+            if isinstance(v, list)
+        }
+        _SYNONYM_CACHE[key] = (mtime, parsed)
+        return parsed
+    except Exception:
+        return {}
+
+
+_CLAUSE_SPLIT_RE = re.compile(r"(?:[,.;!?]+|\b(?:e|mas|porem|and|but)\b)")
+_NEGATION_RE = re.compile(
+    r"(?:^|\s)(?:nao\s+(?:estou\s+com|estou|tenho|sinto|ha)|sem|nenhum|nenhuma|negativo\s+para|no|without|not\s+having|denies|deny)\s*$"
+)
+
+
+def _strip_negated_clauses(norm_text: str) -> str:
+    """Keep only clauses not led by an explicit clinical negation marker."""
+    if not norm_text:
+        return ""
+    kept: list[str] = []
+    for clause in _CLAUSE_SPLIT_RE.split(norm_text):
+        c = clause.strip()
+        if not c:
+            continue
+        if re.match(
+            r"^(?:nao\s+(?:estou\s+com|estou|tenho|sinto|ha)|sem|nenhum|nenhuma|negativo\s+para|no|without|not\s+having|denies|deny)\b",
+            c,
+        ):
+            continue
+        kept.append(c)
+    return " ".join(kept)
+
+
+def _has_positive_match(phrase: str, text: str) -> bool:
+    """Return True if ``phrase`` occurs in ``text`` outside a negation prefix."""
+    if not phrase or not text:
+        return False
+    if " " in phrase:
+        pat = re.compile(rf"(?<![a-z0-9]){re.escape(phrase)}(?![a-z0-9])")
+    else:
+        pat = re.compile(rf"(?<![a-z0-9]){re.escape(phrase)}(?![a-z0-9])")
+    for m in pat.finditer(text):
+        prefix = text[: m.start()]
+        # Inspect only text since the last clause boundary
+        last_sep = max(
+            (s.end() for s in _CLAUSE_SPLIT_RE.finditer(prefix)),
+            default=0,
+        )
+        local_prefix = prefix[last_sep:]
+        if _NEGATION_RE.search(local_prefix):
+            continue
+        return True
+    return False
+
+
+def _match_lexicon(norm_text: str, *, extra_synonyms: Optional[dict[str, tuple[str, ...]]] = None) -> dict[str, list[str]]:
     """Return lexicon concepts found in already-normalized text. Never invents a default symptom."""
     matched: dict[str, list[str]] = {}
     if not norm_text:
         return matched
+    ext_syn = extra_synonyms if extra_synonyms is not None else load_clinical_synonyms()
     for concept, phrases in SYMPTOM_LEXICON.items():
-        hits = [p for p in phrases if _phrase_in_text(p, norm_text)]
+        all_phrases = (*phrases, *ext_syn.get(concept, ()))
+        hits = [p for p in all_phrases if _has_positive_match(p, norm_text)]
         if hits:
-            matched[concept] = hits
+            matched[concept] = list(dict.fromkeys(hits))
+
+    if not matched:
+        pos_text = _strip_negated_clauses(norm_text)
+        words = [w for w in re.findall(r"[a-z]{6,}", pos_text) if w not in _NON_CLINICAL_STOPWORDS]
+        if words:
+            for concept, phrases in SYMPTOM_LEXICON.items():
+                single_terms = [p for p in (*phrases, *ext_syn.get(concept, ())) if " " not in p and len(p) >= 6]
+                for w in words:
+                    for term in single_terms:
+                        if abs(len(w) - len(term)) <= 2 and SequenceMatcher(None, w, term).ratio() >= FUZZY_MIN_RATIO:
+                            matched.setdefault(concept, []).append(f"fuzzy:{w}->{term}")
+                            break
     return matched
 
 

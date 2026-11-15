@@ -15,6 +15,7 @@ from ..ipc.protocol import (
     PeripheralReading,
     Threshold,
     CrewProfile,
+    now_us,
 )
 from .causal_graph import CausalGraph
 from .clinical_store import ClinicalStore
@@ -45,9 +46,57 @@ def _trim_entity(raw: str) -> str:
     return " ".join(words[:4]).strip()
 
 
+_NEGATED_FACT_RE = re.compile(
+    r"\b(?:nao|nunca|sem|not|never|no)\s+(?:sou|tenho|estou|uso|tomo|i\s+am|i'm|im|have|take|taking)\b"
+)
+
+
+def _drop_negated_fact_clauses(norm: str) -> str:
+    """Remove clauses like 'nao sou alergico a X' so negated facts are never stored."""
+    clauses = re.split(r"[,.;!?]+|\s+(?:mas|but)\s+", norm)
+    return ", ".join(c.strip() for c in clauses if c.strip() and not _NEGATED_FACT_RE.search(c))
+
+
+# (fact_type, fact_key substring) -> {condition_id: prior multiplier}; bounded by CausalGraph.
+_MEMORY_PRIOR_RULES: tuple[tuple[str, str, dict[str, float]], ...] = (
+    ("SENSITIVITY", "co2", {"HYPERCAPNIA": 1.5}),
+    ("CONDITION_HISTORY", "space_motion_sickness", {"SPACE_MOTION_SICKNESS": 1.6}),
+    ("CONDITION_HISTORY", "sans", {"SANS": 1.5}),
+    ("CONDITION_HISTORY", "viip", {"SANS": 1.5}),
+    ("SLEEP_NOTE", "poor_sleep", {"SLEEP_CIRCADIAN": 1.3}),
+)
+_PROFILE_PRIOR_RULES: tuple[tuple[str, str, dict[str, float]], ...] = (
+    ("co2_sensitivity", "HIGH", {"HYPERCAPNIA": 1.4}),
+    ("sans_susceptibility", "HIGH", {"SANS": 1.4}),
+    ("sas_susceptibility", "HIGH", {"SPACE_MOTION_SICKNESS": 1.4}),
+    ("motion_sickness_history", "HIGH", {"SPACE_MOTION_SICKNESS": 1.4}),
+)
+
+
+def derive_prior_multipliers(
+    facts: Sequence[dict[str, Any]],
+    crew_row: Optional[dict[str, Any]] = None,
+) -> dict[str, float]:
+    """Turn permanent crew facts + profile susceptibilities into bounded per-condition prior multipliers."""
+    out: dict[str, float] = {}
+    for fact in facts:
+        ftype = str(fact.get("fact_type") or "")
+        fkey = _normalize_text(str(fact.get("fact_key") or ""))
+        for rule_type, needle, effects in _MEMORY_PRIOR_RULES:
+            if ftype == rule_type and needle in fkey:
+                for cid, m in effects.items():
+                    out[cid] = max(out.get(cid, 1.0), m)
+    if crew_row:
+        for column, level, effects in _PROFILE_PRIOR_RULES:
+            if str(crew_row.get(column) or "").upper() == level:
+                for cid, m in effects.items():
+                    out[cid] = max(out.get(cid, 1.0), m)
+    return out
+
+
 def extract_permanent_facts(text: str) -> list[dict[str, Any]]:
     """Deterministically extract PT/EN permanent clinical facts for crew_clinical_memory."""
-    norm = _normalize_text(text)
+    norm = _drop_negated_fact_clauses(_normalize_text(text))
     if not norm:
         return []
     updates: list[dict[str, Any]] = []
@@ -158,6 +207,7 @@ class ClinicalCorrelator:
         """Run end-to-end clinical causal correlation and build ``CHAT_CORRELATE_RESP``."""
         objective=None
         memory=[]
+        crew: dict[str, Any] = {}
         memory_updates = extract_permanent_facts(req.text)
         if self.db_path is not None and req.crew_id:
             with ClinicalRepository(self.db_path) as repo:
@@ -166,10 +216,20 @@ class ClinicalCorrelator:
             profile_kwargs = {k: crew[k] for k in CrewProfile.model_fields if k in crew}
             req=req.model_copy(update={"profile":CrewProfile(**profile_kwargs)})
 
+        now_ts = now_us()
+        episode_cutoff_us = now_ts - 6 * 3600_000_000
+        in_multiturn = bool(req.recent_history)
         answered_questions: dict[str, str] = {
             str(m["fact_key"]): str(m["fact_value"])
             for m in memory
-            if m.get("fact_type") == "ANSWERED_TOPIC" and m.get("fact_key") and m.get("fact_value") in ("yes", "no")
+            if m.get("fact_type") == "ANSWERED_TOPIC"
+            and m.get("fact_key")
+            and m.get("fact_value") in ("yes", "no")
+            and (
+                in_multiturn
+                or str(m.get("source_role") or "") == "SEED"
+                or int(m.get("updated_us") or 0) >= episode_cutoff_us
+            )
         }
         last = next(
             (m["fact_value"] for m in memory if m["fact_key"] == "last_question_id" and m["fact_type"] == "PREFERENCE"),
@@ -188,6 +248,7 @@ class ClinicalCorrelator:
                             break
                     break
 
+        skip_questions_this_turn: set[str] = set()
         polarity = detect_followup_polarity(req.text)
         if last and polarity in ("yes", "no"):
             answered_questions[last] = polarity
@@ -200,6 +261,9 @@ class ClinicalCorrelator:
                     source_role="user",
                 )
             )
+        elif last and polarity == "unsure":
+            # Uncertain answer: do NOT shift Bayesian posterior, just advance past this question.
+            skip_questions_this_turn.add(last)
         extracted = self.symptom_extractor.extract(
             req.text,
             recent_history=req.recent_history,
@@ -214,6 +278,7 @@ class ClinicalCorrelator:
             profile=req.profile,
             baseline=baseline,
             answered_questions=answered_questions or None,
+            prior_multipliers=derive_prior_multipliers([*memory, *memory_updates], crew) or None,
         )
 
         store_docs = (
@@ -339,7 +404,12 @@ class ClinicalCorrelator:
         # Disambiguation question via information gain
         disambig = self.disambiguator.select_question(
             top_hypotheses,
-            answered_topics=set(extracted.answered_topics)|{m["fact_key"] for m in memory+memory_updates if m.get("fact_type")=="ANSWERED_TOPIC"},
+            answered_topics=(
+                set(extracted.answered_topics)
+                | set(answered_questions.keys())
+                | skip_questions_this_turn
+                | {m["fact_key"] for m in memory_updates if m.get("fact_type") == "ANSWERED_TOPIC"}
+            ),
             observed_concepts=extracted.concepts,
         )
 

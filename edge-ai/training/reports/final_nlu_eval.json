@@ -1,0 +1,3898 @@
+{
+  "golden": {
+    "cases_passed": 32,
+    "cases_total": 32,
+    "cases_pass_rate": 1.0,
+    "crew_cases_count": 4,
+    "crew_cases_expectation_units": 12,
+    "failures": []
+  },
+  "nlu_and_ranking": {
+    "samples": 255,
+    "concept_recall": 0.9647,
+    "concept_precision": 0.8367,
+    "forbidden_false_positives": 0,
+    "top1_accuracy": 0.0,
+    "top3_accuracy": 0.0,
+    "polarity_uncertainty_accuracy": 1.0,
+    "correlate_p95_ms": 22.78,
+    "details": [
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES",
+          "SPACE_MOTION_SICKNESS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "abdominal_pain"
+        ],
+        "exp_concepts": [
+          "abdominal_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "SANS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision",
+          "visual_disturbance"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "blurred_vision"
+        ],
+        "exp_concepts": [
+          "blurred_vision"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "bone_pain"
+        ],
+        "exp_concepts": [
+          "bone_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness"
+        ],
+        "exp_concepts": [
+          "dizziness"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dyspnea"
+        ],
+        "exp_concepts": [
+          "dyspnea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPOXIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "eye_pressure"
+        ],
+        "exp_concepts": [
+          "eye_pressure"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "CARDIOVASCULAR_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "fatigue"
+        ],
+        "exp_concepts": [
+          "fatigue"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "flank_pain",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "back_pain",
+          "flank_pain"
+        ],
+        "exp_concepts": [
+          "flank_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "RENAL_STONES"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "gi_slowdown"
+        ],
+        "exp_concepts": [
+          "gi_slowdown"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "headache"
+        ],
+        "exp_concepts": [
+          "headache"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "HYPERCAPNIA",
+          "SANS",
+          "HYPOXIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "insomnia"
+        ],
+        "exp_concepts": [
+          "insomnia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SLEEP_CIRCADIAN",
+          "BEHAVIORAL_HEALTH"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain",
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain",
+          "muscle_pain",
+          "nausea"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain",
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain",
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain",
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "joint_pain"
+        ],
+        "exp_concepts": [
+          "joint_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "muscle_pain"
+        ],
+        "exp_concepts": [
+          "muscle_pain"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MUSCLE_DECONDITIONING",
+          "EXERCISE_RECOVERY"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "nausea"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "dizziness",
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "exp_concepts": [
+          "orthostatic_intolerance"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "CARDIOVASCULAR_DECONDITIONING",
+          "ORTHOSTATIC_INTOLERANCE",
+          "DEHYDRATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SPACE_MOTION_SICKNESS",
+          "HYPERCAPNIA",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "photophobia"
+        ],
+        "exp_concepts": [
+          "photophobia"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "SANS",
+          "HYPERCAPNIA",
+          "SLEEP_CIRCADIAN"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "nausea",
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "MICROBIOME_GI",
+          "SPACE_MOTION_SICKNESS",
+          "IMMUNE_VIRAL_REACTIVATION"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      },
+      {
+        "id": "",
+        "got_concepts": [
+          "rash_infection"
+        ],
+        "exp_concepts": [
+          "rash_infection"
+        ],
+        "forbidden_hits": [],
+        "got_top3": [
+          "IMMUNE_VIRAL_REACTIVATION",
+          "SLEEP_CIRCADIAN",
+          "MICROBIOME_GI"
+        ],
+        "exp_top1": null
+      }
+    ]
+  }
+}
