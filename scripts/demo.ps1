@@ -56,6 +56,7 @@ $UiTargetDir  = Join-Path $CentralDir 'internal\httpws\ui'
 $ModelsDir    = Join-Path $EdgeAiDir 'models'
 $VarDir       = Join-Path $Root 'var'
 $BuildDir     = Join-Path $Root 'build'
+$ToolsDir     = Join-Path $env:LOCALAPPDATA 'edgespace-tools'
 $CentralExe   = Join-Path $BuildDir 'edgespace-central.exe'
 $PythonExe    = Join-Path $EdgeAiDir '.venv\Scripts\python.exe'
 $DbPath       = Join-Path $VarDir 'edgespace.db'
@@ -141,25 +142,151 @@ function Test-TcpPort([int]$port) {
     } catch { return $false } finally { $c.Close() }
 }
 
+function Get-RequiredGoVersion {
+    $goMod = Join-Path $CentralDir 'go.mod'
+    if (Test-Path $goMod) {
+        $m = [regex]::Match((Get-Content $goMod -Raw), '(?m)^go\s+([0-9]+\.[0-9]+(?:\.[0-9]+)?)')
+        if ($m.Success) { return $m.Groups[1].Value }
+    }
+    return '1.27.4'
+}
+
+function Expand-ZipFast([string]$zipPath, [string]$destDir) {
+    $tar = Get-Command tar.exe -ErrorAction SilentlyContinue
+    if ($tar) {
+        & $tar.Source -xf $zipPath -C $destDir
+        if ($LASTEXITCODE -eq 0) { return }
+    }
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    [System.IO.Compression.ZipFile]::ExtractToDirectory($zipPath, $destDir)
+}
+
+function Install-Go([string]$targetVer) {
+    $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'amd64' }
+    $goRoot = Join-Path $ToolsDir 'go'
+    $goExe = Join-Path $goRoot 'bin\go.exe'
+    $zipPath = Join-Path $env:TEMP "edgespace-go-${targetVer}-windows-${arch}.zip"
+    $urls = @("https://go.dev/dl/go${targetVer}.windows-${arch}.zip")
+
+    $ProgressPreference = 'SilentlyContinue'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    New-Item -ItemType Directory -Force -Path $ToolsDir | Out-Null
+
+    $downloaded = $false
+    foreach ($url in $urls) {
+        try {
+            Write-Step "baixando Go $targetVer ($arch) de $url..."
+            Invoke-WebRequest -Uri $url -OutFile $zipPath -UseBasicParsing -TimeoutSec 120
+            $downloaded = $true
+            break
+        } catch { }
+    }
+    if (-not $downloaded) {
+        $releases = Invoke-RestMethod -Uri 'https://go.dev/dl/?mode=json' -UseBasicParsing -TimeoutSec 30
+        $file = $releases | Where-Object { $_.stable } | ForEach-Object { $_.files } |
+            Where-Object { $_.os -eq 'windows' -and $_.arch -eq $arch -and $_.kind -eq 'archive' } |
+            Select-Object -First 1
+        if (-not $file) { throw "nenhum pacote Go windows/$arch encontrado em go.dev" }
+        $fallbackUrl = "https://go.dev/dl/$($file.filename)"
+        Write-Step "baixando Go $($file.version) ($arch) de $fallbackUrl..."
+        Invoke-WebRequest -Uri $fallbackUrl -OutFile $zipPath -UseBasicParsing -TimeoutSec 120
+    }
+
+    try {
+        if (Test-Path $goRoot) { Remove-Item -Recurse -Force $goRoot }
+        Write-Step "extraindo Go para $goRoot..."
+        Expand-ZipFast $zipPath $ToolsDir
+    } finally {
+        Remove-Item $zipPath -Force -ErrorAction SilentlyContinue
+    }
+    if (-not (Test-Path $goExe)) { throw "falha ao instalar Go em $goExe" }
+    $env:PATH = "$(Split-Path $goExe);$env:PATH"
+    return $goExe
+}
+
 function Find-Go {
+    $reqRaw = Get-RequiredGoVersion
+    if ($reqRaw -match '^\d+\.\d+\.\d+$') { $reqVer = [version]$reqRaw } else { $reqVer = [version]"$reqRaw.0" }
     $cmd = Get-Command go -ErrorAction SilentlyContinue
-    if ($cmd) { return $cmd.Source }
-    $candidates = @(
+    $candidates = @()
+    if ($cmd) { $candidates += $cmd.Source }
+    $candidates += @(
+        (Join-Path $ToolsDir 'go\bin\go.exe'),
         (Join-Path $env:ProgramFiles 'Go\bin\go.exe'),
         'C:\Go\bin\go.exe',
-        (Join-Path $env:LOCALAPPDATA 'go-sdk\go\bin\go.exe'),
-        (Join-Path $env:LOCALAPPDATA 'edgespace-tools\go\bin\go.exe')
+        (Join-Path $env:LOCALAPPDATA 'go-sdk\go\bin\go.exe')
     )
-    foreach ($c in $candidates) { if ($c -and (Test-Path $c)) { return $c } }
-    throw 'go.exe nao encontrado (instale Go ou adicione ao PATH)'
+    $candidates = @($candidates | Where-Object { $_ -and (Test-Path $_) } | Select-Object -Unique)
+
+    $prevEapGo = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    try {
+        foreach ($c in $candidates) {
+            $out = (& $c version 2>$null | Select-Object -First 1)
+            if ($LASTEXITCODE -eq 0 -and $out -match 'go([0-9]+\.[0-9]+(?:\.[0-9]+)?)') {
+                $vStr = if ($Matches[1] -match '^\d+\.\d+\.\d+$') { $Matches[1] } else { "$($Matches[1]).0" }
+                if ([version]$vStr -ge $reqVer) {
+                    $binDir = Split-Path $c
+                    if ($env:PATH -notlike "*$binDir*") { $env:PATH = "$binDir;$env:PATH" }
+                    return $c
+                }
+            }
+        }
+    } finally {
+        $ErrorActionPreference = $prevEapGo
+    }
+    return (Install-Go $reqRaw)
+}
+
+function Install-Python {
+    $pyVer = '3.12.8'
+    $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'amd64' }
+    $installer = Join-Path $env:TEMP "edgespace-python-${pyVer}-${arch}.exe"
+    $url = "https://www.python.org/ftp/python/${pyVer}/python-${pyVer}-${arch}.exe"
+
+    $ProgressPreference = 'SilentlyContinue'
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
+    Write-Step "baixando Python $pyVer ($arch) de $url..."
+    Invoke-WebRequest -Uri $url -OutFile $installer -UseBasicParsing -TimeoutSec 120
+    try {
+        Write-Step "instalando Python $pyVer para o usuario atual..."
+        $p = Start-Process -FilePath $installer -ArgumentList @('/quiet', 'InstallAllUsers=0', 'PrependPath=1', 'Include_test=0') -Wait -PassThru
+        if ($p.ExitCode -ne 0) { throw "instalador Python retornou exit $($p.ExitCode)" }
+    } finally {
+        Remove-Item $installer -Force -ErrorAction SilentlyContinue
+    }
+
+    $installed = Join-Path $env:LOCALAPPDATA "Programs\Python\Python312\python.exe"
+    if (-not (Test-Path $installed)) {
+        $installed = Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python3*\python.exe') -ErrorAction SilentlyContinue |
+            Sort-Object FullName -Descending | Select-Object -First 1 -ExpandProperty FullName
+    }
+    if (-not $installed -or -not (Test-Path $installed)) { throw 'Python instalado mas python.exe nao encontrado' }
+    $binDir = Split-Path $installed
+    if ($env:PATH -notlike "*$binDir*") { $env:PATH = "$binDir;$(Join-Path $binDir 'Scripts');$env:PATH" }
+    return $installed
 }
 
 function Find-PythonBase {
-    foreach ($name in @('python3', 'python', 'py')) {
-        $cmd = Get-Command $name -ErrorAction SilentlyContinue
-        if ($cmd) { return $cmd.Source }
+    $candidates = @(@('python3'), @('python'), @('py', '-3'))
+    $localPys = @(Get-ChildItem (Join-Path $env:LOCALAPPDATA 'Programs\Python\Python3*\python.exe') -ErrorAction SilentlyContinue |
+        Sort-Object FullName -Descending | Select-Object -ExpandProperty FullName)
+    foreach ($lp in $localPys) { $candidates += ,@($lp) }
+
+    $prevEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    try {
+        foreach ($cand in $candidates) {
+            $cmd = Get-Command $cand[0] -ErrorAction SilentlyContinue
+            if (-not $cmd) { continue }
+            $extraArgs = if ($cand.Count -gt 1) { $cand[1..($cand.Count - 1)] } else { @() }
+            $exePath = (& $cmd.Source @extraArgs -c "import sys, venv; assert sys.version_info >= (3, 11); print(sys.executable)" 2>$null | Select-Object -First 1)
+            if ($LASTEXITCODE -eq 0 -and $exePath -and (Test-Path $exePath.Trim())) {
+                return $exePath.Trim()
+            }
+        }
+    } finally {
+        $ErrorActionPreference = $prevEap
     }
-    throw 'Python 3 nao encontrado no PATH'
+    return (Install-Python)
 }
 
 function Show-Tail([string]$path, [int]$n = 20) {
@@ -214,19 +341,66 @@ function Get-EspSerialPorts {
     return @($ports)
 }
 
+function Ensure-EspIdf {
+    $idfCmd = Get-Command idf.py -ErrorAction SilentlyContinue
+    if ($idfCmd) { return }
+
+    $exportCandidates = @()
+    if ($env:IDF_PATH) { $exportCandidates += (Join-Path $env:IDF_PATH 'export.ps1') }
+    $exportCandidates += @(
+        (Join-Path $ToolsDir 'esp-idf\export.ps1'),
+        (Join-Path $env:USERPROFILE 'esp\esp-idf\export.ps1')
+    )
+    $espressifDirs = @(Get-ChildItem 'C:\Espressif\frameworks\esp-idf-v5*\export.ps1' -ErrorAction SilentlyContinue | Sort-Object FullName -Descending | Select-Object -ExpandProperty FullName)
+    $exportCandidates += $espressifDirs
+
+    foreach ($exp in $exportCandidates) {
+        if ($exp -and (Test-Path $exp)) {
+            $env:IDF_PATH = Split-Path $exp
+            Write-Step "carregando ambiente ESP-IDF de $env:IDF_PATH"
+            . $exp
+            if (Get-Command idf.py -ErrorAction SilentlyContinue) { return }
+        }
+    }
+
+    $git = Get-Command git -ErrorAction SilentlyContinue
+    if (-not $git) {
+        $winget = Get-Command winget -ErrorAction SilentlyContinue
+        if (-not $winget) { throw 'git nao encontrado no PATH para clonar ESP-IDF' }
+        Write-Step 'instalando Git via winget para baixar ESP-IDF...'
+        & $winget.Source install --id Git.Git -e --accept-package-agreements --accept-source-agreements --silent
+        $git = Get-Command git -ErrorAction SilentlyContinue
+        if (-not $git) { $git = Get-Command "$env:ProgramFiles\Git\cmd\git.exe" -ErrorAction SilentlyContinue }
+        if (-not $git) { throw 'git instalado mas nao encontrado no PATH' }
+    }
+
+    $idfDir = Join-Path $ToolsDir 'esp-idf'
+    $env:IDF_TOOLS_PATH = Join-Path $ToolsDir 'espressif'
+    New-Item -ItemType Directory -Force -Path $ToolsDir | Out-Null
+
+    if (-not (Test-Path (Join-Path $idfDir 'export.ps1'))) {
+        Write-Step "clonando ESP-IDF v5.4 em $idfDir..."
+        & $git.Source clone --branch v5.4 --depth 1 --recursive --shallow-submodules https://github.com/espressif/esp-idf.git $idfDir
+        if ($LASTEXITCODE -ne 0) { throw "git clone esp-idf falhou (exit $LASTEXITCODE)" }
+    }
+
+    $env:IDF_PATH = $idfDir
+    Write-Step 'instalando toolchain ESP-IDF para esp32s3 (install.ps1 esp32s3)...'
+    & (Join-Path $idfDir 'install.ps1') esp32s3
+    if ($LASTEXITCODE -ne 0) { throw "esp-idf install.ps1 falhou (exit $LASTEXITCODE)" }
+
+    Write-Step "carregando ambiente ESP-IDF de $idfDir"
+    . (Join-Path $idfDir 'export.ps1')
+    if (-not (Get-Command idf.py -ErrorAction SilentlyContinue)) {
+        throw 'ESP-IDF instalado mas idf.py nao ficou disponivel apos export.ps1'
+    }
+}
+
 function Invoke-EspFlash {
     if (-not (Test-Path (Join-Path $FirmwareDir 'CMakeLists.txt'))) {
         throw "firmware/CMakeLists.txt ausente em $FirmwareDir"
     }
-    $idfCmd = Get-Command idf.py -ErrorAction SilentlyContinue
-    if (-not $idfCmd -and $env:IDF_PATH -and (Test-Path (Join-Path $env:IDF_PATH 'export.ps1'))) {
-        Write-Step "carregando ambiente ESP-IDF de $env:IDF_PATH"
-        . (Join-Path $env:IDF_PATH 'export.ps1')
-        $idfCmd = Get-Command idf.py -ErrorAction SilentlyContinue
-    }
-    if (-not $idfCmd) {
-        throw 'ESP-IDF (idf.py) nao encontrado. Abra o ESP-IDF PowerShell ou defina $env:IDF_PATH.'
-    }
+    Ensure-EspIdf
 
     $ports = @(Get-EspSerialPorts)
     if ($ports.Count -eq 0) {
@@ -251,6 +425,115 @@ function Invoke-EspFlash {
     }
 }
 
+function Ensure-EdgeAiVenv {
+    if (-not (Test-Path $PythonExe)) {
+        $basePy = Find-PythonBase
+        Write-Step "criando venv edge-ai ($basePy)..."
+        & $basePy -m venv (Join-Path $EdgeAiDir '.venv')
+        if ($LASTEXITCODE -ne 0 -or -not (Test-Path $PythonExe)) {
+            throw "falha ao criar venv em $EdgeAiDir\.venv"
+        }
+    }
+
+    $wheelsDir = Join-Path $EdgeAiDir 'wheels'
+    $reqFile = Join-Path $EdgeAiDir 'requirements.txt'
+    $prevEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    try {
+        & $PythonExe -c "import edgespace_ai, onnxruntime, sklearn, skl2onnx, pytest" 2>$null
+        if ($LASTEXITCODE -eq 0) { return }
+
+        if ((Test-Path $wheelsDir) -and (Test-Path $reqFile)) {
+            Write-Step 'instalando deps edge-ai offline (wheels)...'
+            & $PythonExe -m pip install --no-index --find-links $wheelsDir -r $reqFile
+            if ($LASTEXITCODE -ne 0) { throw 'falha ao configurar edge-ai/.venv offline' }
+            & $PythonExe -m pip install --no-deps --no-build-isolation -e $EdgeAiDir 2>$null
+            return
+        }
+
+        Write-Step 'instalando deps edge-ai (pip install -e "edge-ai[dev,slm]")...'
+        & $PythonExe -m pip install --disable-pip-version-check --prefer-binary `
+            --extra-index-url 'https://abetlen.github.io/llama-cpp-python/whl/cpu' `
+            -e "${EdgeAiDir}[dev,slm]"
+        if ($LASTEXITCODE -ne 0) {
+            Write-Warn 'pip install -e edge-ai[dev,slm] falhou; tentando sem [slm] (-e edge-ai[dev])...'
+            & $PythonExe -m pip install --disable-pip-version-check --prefer-binary -e "${EdgeAiDir}[dev]"
+            if ($LASTEXITCODE -ne 0) { throw "pip install -e edge-ai[dev] falhou (exit $LASTEXITCODE)" }
+        }
+    } finally {
+        $ErrorActionPreference = $prevEap
+    }
+}
+
+function Find-Pnpm {
+    $cmd = Get-Command pnpm -ErrorAction SilentlyContinue
+    if ($cmd) { return $cmd.Source }
+    $localPnpmDir = Join-Path $ToolsDir 'pnpm'
+    $candidates = @(
+        (Join-Path $localPnpmDir 'node_modules\.bin\pnpm.cmd'),
+        (Join-Path $env:LOCALAPPDATA 'pnpm\pnpm.cmd'),
+        (Join-Path $env:APPDATA 'npm\pnpm.cmd')
+    )
+    foreach ($c in $candidates) {
+        if ($c -and (Test-Path $c)) {
+            $binDir = Split-Path $c
+            if ($env:PATH -notlike "*$binDir*") { $env:PATH = "$binDir;$env:PATH" }
+            return $c
+        }
+    }
+    $npm = Get-Command npm -ErrorAction SilentlyContinue
+    if (-not $npm) { return $null }
+
+    Write-Step "instalando pnpm localmente em $localPnpmDir..."
+    New-Item -ItemType Directory -Force -Path $localPnpmDir | Out-Null
+    $prevEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    try {
+        & $npm.Source install --prefix $localPnpmDir --no-save --no-audit --no-fund pnpm | Out-Null
+    } finally {
+        $ErrorActionPreference = $prevEap
+    }
+    $installed = Join-Path $localPnpmDir 'node_modules\.bin\pnpm.cmd'
+    if (Test-Path $installed) {
+        $binDir = Split-Path $installed
+        if ($env:PATH -notlike "*$binDir*") { $env:PATH = "$binDir;$env:PATH" }
+        return $installed
+    }
+    return $null
+}
+
+function Ensure-FrontendDeps {
+    if (-not (Test-Path (Join-Path $FrontendDir 'package.json'))) { return $false }
+    $viteJs = Join-Path $FrontendDir 'node_modules\vite\bin\vite.js'
+    if (Test-Path $viteJs) { return $true }
+    if (-not (Get-Command node -ErrorAction SilentlyContinue)) {
+        Write-Warn 'node.exe ausente; pulando setup de frontend.'
+        return $false
+    }
+
+    $pnpmExe = Find-Pnpm
+    $npmCmd = Get-Command npm -ErrorAction SilentlyContinue
+    Push-Location $FrontendDir
+    $prevEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
+    try {
+        if ($pnpmExe) {
+            & $pnpmExe install --offline --frozen-lockfile 2>$null
+            if ($LASTEXITCODE -ne 0) {
+                Write-Step 'instalando deps do frontend (pnpm install --frozen-lockfile)...'
+                & $pnpmExe install --frozen-lockfile
+            }
+            if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $FrontendDir 'node_modules'))) { return $true }
+        }
+        if ($npmCmd) {
+            Write-Step 'instalando deps do frontend (npm)...'
+            & $npmCmd.Source install --no-package-lock --no-audit --no-fund
+            if ($LASTEXITCODE -eq 0 -and (Test-Path (Join-Path $FrontendDir 'node_modules'))) { return $true }
+        }
+    } finally {
+        $ErrorActionPreference = $prevEap
+        Pop-Location
+    }
+    return $false
+}
+
 function Sync-Frontend {
     $pkg = Join-Path $FrontendDir 'package.json'
     $uiIndex = Join-Path $UiTargetDir 'index.html'
@@ -258,7 +541,8 @@ function Sync-Frontend {
         Write-Warn 'frontend/package.json ausente; mantendo UI embarcada atual.'
         return
     }
-    $pnpm = Get-Command pnpm -ErrorAction SilentlyContinue
+    $null = Ensure-FrontendDeps
+    $pnpmExe = Find-Pnpm
     $npm  = Get-Command npm  -ErrorAction SilentlyContinue
     $nodeModules = Join-Path $FrontendDir 'node_modules'
 
@@ -266,16 +550,10 @@ function Sync-Frontend {
     Push-Location $FrontendDir
     try {
         $prevEap = $ErrorActionPreference; $ErrorActionPreference = 'Continue'
-        if ($pnpm) {
-            if (-not (Test-Path $nodeModules)) {
-                Write-Step 'instalando deps do frontend offline (pnpm install --offline --frozen-lockfile)'
-                & $pnpm.Source install --offline --frozen-lockfile 2>&1 | Out-Null
-            }
-            if ((Test-Path $nodeModules) -or $LASTEXITCODE -eq 0) {
-                Write-Step 'compilando frontend (pnpm run build)'
-                & $pnpm.Source run build
-                if ($LASTEXITCODE -eq 0) { $built = $true }
-            }
+        if ($pnpmExe -and (Test-Path $nodeModules)) {
+            Write-Step 'compilando frontend (pnpm run build)'
+            & $pnpmExe run build
+            if ($LASTEXITCODE -eq 0) { $built = $true }
         } elseif ($npm -and (Test-Path $nodeModules)) {
             Write-Step 'compilando frontend (npm run build)'
             & $npm.Source run build
@@ -309,14 +587,15 @@ function Write-Fail([string]$msg) { Write-Host "[demo] $msg" -ForegroundColor Re
 $aiProc = $null
 $centralProc = $null
 $viteProc = $null
+$pushedRoot = $false
 $exitCode = 0
 
 try {
-    Set-Location $Root
+    Push-Location $Root
+    $pushedRoot = $true
 
     if ($Flash -or $FlashOnly) {
         Invoke-EspFlash
-        if ($FlashOnly) { exit 0 }
     }
 
     $modeDesc = if ($Mode -eq 'real') { "HARDWARE REAL (UDP $UdpAddr, mock-cluster=false)" } else { 'MOCK (5x ESP32-S3 em memoria, mock-cluster=inproc)' }
@@ -332,19 +611,7 @@ try {
     Clear-Port $VitePort 'TCP'
 
     # 2. Venv Python Edge AI
-    if (-not (Test-Path $PythonExe)) {
-        $wheelsDir = Join-Path $EdgeAiDir 'wheels'
-        $reqFile = Join-Path $EdgeAiDir 'requirements.txt'
-        if ((Test-Path $wheelsDir) -and (Test-Path $reqFile)) {
-            $basePy = Find-PythonBase
-            Write-Step 'criando venv edge-ai offline...'
-            & $basePy -m venv (Join-Path $EdgeAiDir '.venv')
-            & $PythonExe -m pip install --no-index --find-links $wheelsDir -r $reqFile
-            if ($LASTEXITCODE -ne 0) { throw 'falha ao configurar edge-ai/.venv offline' }
-        } else {
-            throw "venv ausente: $PythonExe (rode setup de edge-ai antes)"
-        }
-    }
+    Ensure-EdgeAiVenv
 
     # 3. Migracao SQLite (antes do worker IA abrir em mode=ro)
     New-Item -ItemType Directory -Force -Path $VarDir | Out-Null
@@ -398,8 +665,12 @@ try {
         }
     }
 
-    # 5. Central Go (build + frontend estatico apenas se -StaticUi)
-    if (-not $NoBuild -and $StaticUi) { Sync-Frontend }
+    # 5. Frontend deps + Central Go (build + frontend estatico apenas se -StaticUi)
+    if ($StaticUi) {
+        if (-not $NoBuild) { Sync-Frontend }
+    } else {
+        $null = Ensure-FrontendDeps
+    }
     $goExe = Find-Go
     $useGoRun = $false
     if ($NoBuild -and (Test-Path $CentralExe)) {
@@ -491,21 +762,7 @@ try {
         $nodeCmd = Get-Command node -ErrorAction SilentlyContinue
         if ($nodeCmd) {
             $viteJs = Join-Path $FrontendDir 'node_modules\vite\bin\vite.js'
-            if (-not (Test-Path $viteJs)) {
-                $pnpmCmd = Get-Command pnpm -ErrorAction SilentlyContinue
-                $npmCmd  = Get-Command npm  -ErrorAction SilentlyContinue
-                Push-Location $FrontendDir
-                try {
-                    if ($pnpmCmd) {
-                        Write-Step 'instalando deps do frontend (pnpm)...'
-                        & $pnpmCmd.Source install --offline --frozen-lockfile 2>$null
-                        if ($LASTEXITCODE -ne 0) { & $pnpmCmd.Source install --frozen-lockfile }
-                    } elseif ($npmCmd) {
-                        Write-Step 'instalando deps do frontend (npm)...'
-                        & $npmCmd.Source install --no-package-lock --no-audit --no-fund
-                    }
-                } finally { Pop-Location }
-            }
+            if (-not (Test-Path $viteJs)) { $null = Ensure-FrontendDeps }
             if (Test-Path $viteJs) {
                 Write-Step "subindo Frontend Vite em :$VitePort (EDGE_CENTRAL=$CentralUrl)..."
                 $env:EDGE_CENTRAL = $CentralUrl
@@ -605,7 +862,7 @@ try {
     }
 }
 catch {
-    Write-Fail "erro: $($_.Exception.Message)"
+    Write-Fail "erro: $($_.Exception.Message) (linha $($_.InvocationInfo.ScriptLineNumber))"
     $exitCode = 1
 }
 finally {
@@ -630,6 +887,7 @@ finally {
     Remove-Item Env:PYTHONPATH -ErrorAction SilentlyContinue
     Remove-Item Env:EDGESPACE_DISABLE_SLM -ErrorAction SilentlyContinue
     Remove-Item Env:EDGE_CENTRAL -ErrorAction SilentlyContinue
+    if ($pushedRoot) { Pop-Location }
     Write-Step "portas $UdpPort, $IpcPort, $HttpPort e $VitePort livres. Fim."
 }
 exit $exitCode

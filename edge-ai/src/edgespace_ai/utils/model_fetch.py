@@ -18,10 +18,12 @@ Environment overrides:
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import hashlib
 import os
 import shutil
 import sys
+import threading
 import time
 import urllib.error
 import urllib.request
@@ -41,6 +43,8 @@ DEFAULT_MODEL_SIZE = 1_117_320_736
 DEFAULT_MODEL_SHA256 = "6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e"
 
 _CHUNK = 1024 * 1024
+_PARALLEL_WORKERS = 8
+_PART_CHUNK_BYTES = 16 * 1024 * 1024
 _READ_TIMEOUT_S = 60.0
 _MAX_ATTEMPTS = 5
 _FALSE_VALUES = {"0", "false", "no", "off"}
@@ -180,23 +184,32 @@ def download_model(
             )
 
     logger.info("downloading SLM GGUF model", extra={"url": spec.url, "dest": str(final_path)})
+    urls = [spec.url]
+    if not os.environ.get("EDGESPACE_SLM_URL", "").strip() and "huggingface.co/" in spec.url:
+        urls.append(spec.url.replace("https://huggingface.co/", "https://hf-mirror.com/", 1))
+
     last_err: Optional[BaseException] = None
-    for attempt in range(1, max_attempts + 1):
-        try:
-            _download_once(spec, part_path, progress)
-            last_err = None
+    for url in urls:
+        cur_spec = ModelSpec(spec.filename, url, spec.size, spec.sha256)
+        for attempt in range(1, max_attempts + 1):
+            try:
+                if not _download_parallel(cur_spec, part_path, progress):
+                    _download_once(cur_spec, part_path, progress)
+                last_err = None
+                break
+            except (urllib.error.URLError, OSError, _IncompleteError) as exc:
+                last_err = exc
+                if isinstance(exc, urllib.error.HTTPError) and exc.code in (401, 403, 404):
+                    break  # permanent error: try next mirror or fail
+                wait_s = min(30.0, retry_wait_s * (2 ** (attempt - 1)))
+                logger.warning(
+                    "SLM download attempt failed; retrying",
+                    extra={"url": url, "attempt": attempt, "max_attempts": max_attempts, "err": str(exc), "retry_in_s": wait_s},
+                )
+                if attempt < max_attempts:
+                    time.sleep(wait_s)
+        if last_err is None:
             break
-        except (urllib.error.URLError, OSError, _IncompleteError) as exc:
-            last_err = exc
-            if isinstance(exc, urllib.error.HTTPError) and exc.code in (401, 403, 404):
-                break  # permanent error: retrying will not help
-            wait_s = min(30.0, retry_wait_s * (2 ** (attempt - 1)))
-            logger.warning(
-                "SLM download attempt failed; retrying",
-                extra={"attempt": attempt, "max_attempts": max_attempts, "err": str(exc), "retry_in_s": wait_s},
-            )
-            if attempt < max_attempts:
-                time.sleep(wait_s)
     if last_err is not None:
         raise RuntimeError(f"falha ao baixar {spec.url}: {last_err}") from last_err
 
@@ -212,6 +225,67 @@ def download_model(
     logger.info("SLM GGUF model ready", extra={"path": str(final_path), "bytes": final_path.stat().st_size})
     return final_path
 
+
+
+def _probe_range(url: str, fallback_size: Optional[int]) -> Optional[int]:
+    req = urllib.request.Request(
+        url,
+        headers={"User-Agent": "edgespace-ai/0.1 (+model_fetch)", "Range": "bytes=0-0"},
+    )
+    with urllib.request.urlopen(req, timeout=_READ_TIMEOUT_S) as resp:
+        if getattr(resp, "status", 200) != 206:
+            return None
+        cr = resp.headers.get("Content-Range", "")
+        if "/" in cr:
+            total_str = cr.rsplit("/", 1)[-1].strip()
+            if total_str.isdigit():
+                return int(total_str)
+    return fallback_size
+
+
+def _download_parallel(spec: ModelSpec, part_path: Path, progress: Optional[ProgressCallback]) -> bool:
+    total = _probe_range(spec.url, spec.size)
+    if not total or total < _PART_CHUNK_BYTES:
+        return False
+
+    if not part_path.exists() or part_path.stat().st_size != total:
+        with part_path.open("wb") as fh:
+            fh.truncate(total)
+
+    ranges = [(s, min(s + _PART_CHUNK_BYTES - 1, total - 1)) for s in range(0, total, _PART_CHUNK_BYTES)]
+    lock = threading.Lock()
+    done = 0
+
+    def _fetch_chunk(start: int, end: int) -> None:
+        nonlocal done
+        req = urllib.request.Request(
+            spec.url,
+            headers={"User-Agent": "edgespace-ai/0.1 (+model_fetch)", "Range": f"bytes={start}-{end}"},
+        )
+        with urllib.request.urlopen(req, timeout=_READ_TIMEOUT_S) as resp:
+            if getattr(resp, "status", 200) != 206:
+                raise _IncompleteError(f"esperado HTTP 206 para range {start}-{end}")
+            pos = start
+            with part_path.open("r+b") as fh:
+                fh.seek(pos)
+                while True:
+                    buf = resp.read(_CHUNK)
+                    if not buf:
+                        break
+                    fh.write(buf)
+                    pos += len(buf)
+                    with lock:
+                        done += len(buf)
+                        if progress is not None:
+                            progress(done, total)
+        if pos != end + 1:
+            raise _IncompleteError(f"chunk {start}-{end} incompleto ({pos - start} bytes)")
+
+    with ThreadPoolExecutor(max_workers=_PARALLEL_WORKERS) as pool:
+        futures = [pool.submit(_fetch_chunk, s, e) for s, e in ranges]
+        for fut in as_completed(futures):
+            fut.result()
+    return True
 
 
 def _download_once(spec: ModelSpec, part_path: Path, progress: Optional[ProgressCallback]) -> None:
