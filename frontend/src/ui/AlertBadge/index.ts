@@ -1,1 +1,0 @@
-export { AlertBadge } from './AlertBadge'
