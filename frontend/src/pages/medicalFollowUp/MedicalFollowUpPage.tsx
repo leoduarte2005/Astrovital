@@ -1,5 +1,4 @@
 import { useLayoutEffect, useMemo, useState } from 'react'
-import { ASTRONAUT_PATH, sectionPath } from '@/features/astronaut'
 import { ChatLog } from '@/features/chat'
 import { CrewContextPanel, PrivacyIndicator, ShelterOverlay } from '@/features/crew'
 import { TwinCanvas, type TwinAnchorId } from '@/features/twin3d'
@@ -10,7 +9,7 @@ import { crewStateStore, useCrewState } from '@/lib/data/crewState'
 import { useSession } from '@/lib/data/session'
 import { useCrewContext } from '@/lib/data/useCrewContext'
 import { useI18n } from '@/lib/i18n'
-import { navigate, previousRoute, useHashRoute } from '@/lib/utils/hashRoute'
+import { navigate } from '@/lib/utils/hashRoute'
 import { leadScope, leadTarget } from '@/lib/utils/lead'
 import { Button } from '@/ui/Button'
 import styles from './MedicalFollowUpPage.module.css'
@@ -32,10 +31,6 @@ export default function MedicalFollowUpPage() {
   const switchFailed = useCrewState((state) => state.switchFailed)
   // Selected twin marker: its chart group (features/vitals/organGroups.ts) shows on the right.
   const [selected, setSelected] = useState<TwinAnchorId | null>(null)
-  // The suit-fragmentation intro plays only when coming from `#/astronaut` to its medical tab; any other way in (reload,
-  // another tab, the home) shows the twin at once. Decided once, when the page mounts.
-  const path = useHashRoute()
-  const [intro] = useState(() => path === sectionPath('medical') && previousRoute() === ASTRONAUT_PATH)
 
   // The crew member's own baseline by vital id, for the side panel and the dashed line of the charts.
   const baselines = useMemo<Partial<Record<string, number>>>(
@@ -87,7 +82,6 @@ export default function MedicalFollowUpPage() {
             skinTone={crew.skinTone}
             heightM={statureM(crew.nationality)}
             onSelect={setSelected}
-            intro={intro}
             leadLines
           />
         ) : switchFailed ? (
