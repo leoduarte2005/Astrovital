@@ -1,0 +1,178 @@
+.root {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: var(--border-thin) solid var(--line);
+}
+
+.heading,
+.sectionTitle {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+.note {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 0 var(--space-2);
+  border: var(--border-thin) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+}
+
+/* Category tabs: five icon buttons across the column, the chosen one filled with the accent. */
+.tabs {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--space-1);
+  padding: var(--space-2) var(--space-4);
+  border-bottom: var(--border-frame) solid var(--line-strong);
+}
+
+.tab {
+  display: grid;
+  place-items: center;
+  min-height: var(--touch-min);
+  border: var(--border-thin) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font-size: var(--text-body);
+  cursor: pointer;
+}
+
+.tab[aria-selected='true'] {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+@media (hover: hover) {
+  .tab[aria-selected='false']:hover {
+    border-color: var(--accent);
+    background: var(--accent-tint);
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.panelHead {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+/* Small cards: as many columns as fit the column, never narrower than 8.5 rem. */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  min-width: 0;
+  padding: var(--space-2) var(--space-3);
+  border: var(--border-thin) solid var(--ink);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0;
+  font-size: var(--text-xs);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-3);
+}
+
+.name {
+  margin: 0;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
+  line-height: var(--leading-tight);
+  overflow-wrap: anywhere;
+}
+
+.detail {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-2);
+}
+
+/* The action sits at the bottom of the card, full width. */
+.action {
+  display: flex;
+  margin-top: auto;
+  padding-top: var(--space-2);
+}
+
+.action > * {
+  flex: 1;
+}
+
+/* Suggested by the assistant, not on board: muted, no action. */
+.suggested {
+  border-color: var(--line-strong);
+  background: transparent;
+}
+
+.suggested .name {
+  font-weight: var(--weight-regular);
+  color: var(--ink-3);
+}
+
+.ask {
+  min-height: var(--touch-min);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-thin) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+
+@media (hover: hover) {
+  .ask:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-tint);
+  }
+}

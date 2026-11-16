@@ -95,7 +95,7 @@ export function useFeedPlot<S>(config: FeedPlotConfig<S>) {
       const { options, toData, format, height } = current
       plot = new UPlot(
         {
-          ...options(UPlot, readTheme(current.variant, current.seriesToken), format),
+          ...options(UPlot, readTheme(current.seriesToken), format),
           width: el.clientWidth,
           height,
         },

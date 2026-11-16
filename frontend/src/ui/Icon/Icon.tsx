@@ -2,6 +2,8 @@ import styles from './Icon.module.css'
 
 const PATHS = {
   lock: 'M7 11V8a5 5 0 0 1 10 0v3M5 11h14v9H5z',
+  music: 'M9 18V5l11-2v13M9 18a3 3 0 1 1-6 0 3 3 0 0 1 6 0zM20 16a3 3 0 1 1-6 0 3 3 0 0 1 6 0z',
+  film: 'M4 5h16v14H4zM8 5v14M16 5v14M4 9h4M4 15h4M16 9h4M16 15h4',
   chart: 'M4 20V4M4 20h16M8 16l4-5 3 3 5-7',
   diagnosis: 'M3 12h4l2-6 4 12 2-6h6',
   book: 'M5 4h14v16H7a2 2 0 0 1-2-2zM5 18a2 2 0 0 1 2-2h12',

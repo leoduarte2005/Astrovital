@@ -1,4 +1,5 @@
 import type { Severity, Subsystem, TelemetryFramePayload } from '@/lib/model/live'
+import { CREW_LORE, type CrewLore } from './crewLore'
 
 /**
  * Simulated `TELEMETRY_FRAME` payload, shaped like the central's (guide §3). Used by the mock source while the
@@ -17,13 +18,35 @@ const SUBSYSTEMS: Subsystem[] = [
 
 const POSTURES = ['standing', 'sitting', 'prone'] as const
 
-/** Resting heart rate and SpO2 per crew member (mock values, not measurements). */
-const BASELINE: Record<string, { heartRate: number; spo2: number }> = {
-  crew_001: { heartRate: 62, spo2: 98.2 },
-  crew_002: { heartRate: 70, spo2: 97.6 },
-  crew_003: { heartRate: 68, spo2: 98.8 },
+interface FrameBase {
+  heartRate: number
+  hrv: number
+  resp: number
+  spo2: number
 }
-const DEFAULT_BASELINE = { heartRate: 66, spo2: 98 }
+
+/** SpO2 is not in the crew context: mock values, not measurements. */
+const SPO2: Record<string, number> = { crew_001: 98.2, crew_002: 97.6, crew_003: 98.8 }
+const DEFAULT_BASE: FrameBase = { heartRate: 66, hrv: 55, resp: 15, spo2: 98 }
+
+/**
+ * In flight the readings sit a little off the pre-flight baseline (heart rate up, HRV down, breathing slightly
+ * faster), so the assistant has a calm, real-looking difference to explain. Mock factors, not physiology data.
+ */
+const IN_FLIGHT = { heartRate: 1.08, hrv: 0.9, resp: 1.05 }
+
+/** Centre of the live frames: the crew context's baseline (crewLore), shifted for flight. */
+function frameBase(crewId: string): FrameBase {
+  const lore = (CREW_LORE as Record<string, CrewLore | undefined>)[crewId]
+  if (!lore) return DEFAULT_BASE
+  const m = lore.medical
+  return {
+    heartRate: m.baseline_hr_bpm * IN_FLIGHT.heartRate,
+    hrv: m.baseline_hrv_ms * IN_FLIGHT.hrv,
+    resp: m.baseline_resp_bpm * IN_FLIGHT.resp,
+    spo2: SPO2[crewId] ?? DEFAULT_BASE.spo2,
+  }
+}
 
 /** FNV-1a: a stable number for a text, used as a seed. */
 function hash(text: string): number {
@@ -50,7 +73,7 @@ function random(seed: number): () => number {
 const round = (value: number, decimals: number) => Math.round(value * 10 ** decimals) / 10 ** decimals
 
 export function simulateFrame(crewId: string, nowMs: number): TelemetryFramePayload {
-  const base = BASELINE[crewId] ?? DEFAULT_BASELINE
+  const base = frameBase(crewId)
   const seed = hash(crewId)
   const noise = random(seed + Math.floor(nowMs / 500))
   const t = nowMs / 1000
@@ -62,8 +85,8 @@ export function simulateFrame(crewId: string, nowMs: number): TelemetryFramePayl
   return {
     vitals: {
       heart_rate_bpm: round(base.heartRate + wave(60, 3) + (noise() - 0.5) * 2, 2),
-      hrv_ms: round(55 + wave(90, 6) + (noise() - 0.5) * 4, 2),
-      resp_rate_bpm: round(15 + wave(30, 1.5) + (noise() - 0.5), 2),
+      hrv_ms: round(base.hrv + wave(90, 4) + (noise() - 0.5) * 3, 2),
+      resp_rate_bpm: round(base.resp + wave(30, 1) + (noise() - 0.5) * 0.6, 2),
       spo2_pct: round(Math.min(100, Math.max(90, base.spo2 + (noise() - 0.5) * 0.6)), 2),
       posture,
       confidence_score: round(0.88 + (noise() - 0.5) * 0.06, 2),

@@ -30,11 +30,14 @@ interface Params {
 const p = (base: number, sd: number, annual: number, drift: number): Params => ({ base, sd, annual, drift })
 type CrewParams = Record<BaselineMetricId, Params>
 
-/** Opposite profiles on purpose (rules/crew.md): a low resting heart rate and high HRV, and the reverse. */
+/**
+ * Heart rate, HRV and respiration start at the crew context's baseline (`crewLore`, `medical.baseline_*`), so the
+ * charts, the live frames and the assistant's evidence agree. Spread, swing and drift are the mock's own.
+ */
 const CREW_PARAMS: Record<string, CrewParams> = {
-  crew_001: { heartRate: p(58, 2.2, 1.2, 0.14), hrv: p(74, 6, 3, -0.3), respRate: p(14.5, 0.6, 0.2, 0.02), spo2: p(98.4, 0.35, 0.1, -0.01), sleep: p(91, 3, 1, -0.1) },
-  crew_002: { heartRate: p(66, 2.2, 1, 0.03), hrv: p(58, 5, 2.5, -0.05), respRate: p(15.5, 0.6, 0.2, 0), spo2: p(97.8, 0.4, 0.1, 0), sleep: p(88, 3, 1, -0.03) },
-  crew_003: { heartRate: p(70, 2.4, 1.2, 0.05), hrv: p(52, 5, 2.5, -0.1), respRate: p(16, 0.7, 0.2, 0.03), spo2: p(98.1, 0.4, 0.1, -0.02), sleep: p(85, 3.5, 1.2, -0.15) },
+  crew_001: { heartRate: p(54, 2.2, 1.2, 0.14), hrv: p(62, 6, 3, -0.3), respRate: p(13, 0.6, 0.2, 0.02), spo2: p(98.4, 0.35, 0.1, -0.01), sleep: p(91, 3, 1, -0.1) },
+  crew_002: { heartRate: p(62, 2.2, 1, 0.03), hrv: p(48, 5, 2.5, -0.05), respRate: p(14, 0.6, 0.2, 0), spo2: p(97.8, 0.4, 0.1, 0), sleep: p(88, 3, 1, -0.03) },
+  crew_003: { heartRate: p(58, 2.4, 1.2, 0.05), hrv: p(70, 5, 2.5, -0.1), respRate: p(12, 0.7, 0.2, 0.03), spo2: p(98.1, 0.4, 0.1, -0.02), sleep: p(85, 3.5, 1.2, -0.15) },
 }
 const DEFAULT_PARAMS: CrewParams = {
   heartRate: p(66, 2.2, 1, 0.03),

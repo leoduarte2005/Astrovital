@@ -59,7 +59,7 @@ function emitStationModel(): Plugin {
   }
 }
 
-const CENTRAL_DEFAULT = 'http://192.168.0.25:8000'
+const CENTRAL_DEFAULT = 'http://localhost:8000'
 const CENTRAL_PORT = '8000'
 
 function centralTarget(raw: string | undefined): string {

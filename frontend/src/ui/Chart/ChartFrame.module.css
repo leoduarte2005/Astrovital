@@ -1,4 +1,4 @@
-/* Live metric card: a bright, quiet surface that stays legible over the dark twin scene. */
+/* Live metric card: a panel of the dark grid, never a white block. */
 .root {
   display: flex;
   flex-direction: column;
@@ -6,11 +6,10 @@
   padding: var(--space-2) var(--space-3);
   aspect-ratio: 5 / 3;
   overflow: hidden;
-  border: var(--border-thin) solid var(--line-on-light);
-  border-radius: var(--radius-lg);
-  background: var(--ink);
-  color: var(--bg);
-  box-shadow: var(--shadow-card);
+  border: var(--border-thin) solid var(--ink);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  color: var(--ink);
 }
 
 /* Expanded view sits inside the dark modal: no surface of its own. */
@@ -38,7 +37,8 @@
   margin: 0;
   font-size: var(--text-xs);
   font-weight: var(--weight-bold);
-  letter-spacing: normal;
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
   color: inherit;
 }
 

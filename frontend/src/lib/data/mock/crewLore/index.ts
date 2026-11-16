@@ -18,11 +18,11 @@ export function getLore(crewId: CrewId): CrewLore {
 
 export function getMonth(crewId: CrewId, month: TrainingMonth): MonthEntry {
   const entry = CREW_LORE[crewId].timeline.find((m) => m.month === month)
-  if (!entry) throw new Error(`Mês ${month} ausente na lore de ${crewId}`)
+  if (!entry) throw new Error(`Month ${month} missing from the lore of ${crewId}`)
   return entry
 }
 
-/** Payload no formato do Contrato 1 (CONTEXT_SWITCH) para o worker de IA. */
+/** Payload in the Contract 1 shape (CONTEXT_SWITCH) for the AI worker. */
 export function toContextSwitch(crewId: CrewId) {
   const lore = CREW_LORE[crewId]
   const m = lore.medical
@@ -40,7 +40,7 @@ export function toContextSwitch(crewId: CrewId) {
   }
 }
 
-/** Linhas para `crew_ai_memory`, uma por nota mensal. */
+/** Rows for `crew_ai_memory`, one per monthly note. */
 export function toAiMemory(crewId: CrewId) {
   return CREW_LORE[crewId].timeline.flatMap((m) =>
     m.aiNotes.map((fact) => ({
@@ -53,8 +53,8 @@ export function toAiMemory(crewId: CrewId) {
 }
 
 /**
- * Visão segura para a UI: remove o que não tem consentimento.
- * Orientação sexual e estado civil nunca saem daqui; entes queridos só se a polaroid foi autorizada.
+ * Safe view for the UI: removes what has no consent.
+ * Sexual orientation and relationship status never leave this file; loved ones only if the polaroid was authorised.
  */
 export function toUiProfile(crewId: CrewId) {
   const lore = CREW_LORE[crewId]
@@ -74,7 +74,7 @@ export function toUiProfile(crewId: CrewId) {
   }
 }
 
-/** Sorteia uma zona do galpão conforme o peso do mês; `rand` deve vir do PRNG com seed do mock. */
+/** Picks a hangar zone by the month's weights; `rand` must come from the mock's seeded PRNG. */
 export function pickZone(crewId: CrewId, month: TrainingMonth, rand: () => number): HangarZone {
   const zones = Object.entries(getMonth(crewId, month).zones) as [HangarZone, number][]
   const total = zones.reduce((s, [, w]) => s + w, 0)
@@ -84,6 +84,6 @@ export function pickZone(crewId: CrewId, month: TrainingMonth, rand: () => numbe
     if (r <= 0) return zone
   }
   const last = zones[zones.length - 1]
-  if (!last) throw new Error(`Mês ${month} sem zonas na lore de ${crewId}`)
+  if (!last) throw new Error(`Month ${month} has no zones in the lore of ${crewId}`)
   return last[0]
 }

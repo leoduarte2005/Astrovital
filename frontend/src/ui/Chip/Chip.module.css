@@ -5,7 +5,7 @@
   padding: var(--space-1) var(--space-4);
   border: 1px solid var(--line-strong);
   max-width: 100%;
-  border-radius: var(--radius-pill);
+  border-radius: var(--radius-sm);
   background: var(--surface);
   color: var(--ink-2);
   font-size: var(--text-sm);
@@ -13,10 +13,10 @@
   text-align: center;
 }
 
+/* Filled: a raised surface, never a white block on the dark page. */
 .solid {
-  border-color: transparent;
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--surface-2);
+  color: var(--ink);
 }
 
 .dot {

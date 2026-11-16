@@ -6,6 +6,11 @@ export interface GameEntry {
   path: string
   titleKey: MessageKey
   descriptionKey: MessageKey
+  /**
+   * Word starts that describe the game, compared with the game genres of the crew profile (in English, lower case),
+   * so the personal space can say which taste a game matches.
+   */
+  tags: string[]
 }
 
 export const GAMES: GameEntry[] = [
@@ -14,12 +19,14 @@ export const GAMES: GameEntry[] = [
     path: '/game/landing',
     titleKey: 'games.landing.title',
     descriptionKey: 'games.landing.description',
+    tags: ['simulat', 'flight', 'precision', 'platform'],
   },
   {
     id: 'asteroids',
     path: '/game/asteroids',
     titleKey: 'games.asteroids.title',
     descriptionKey: 'games.asteroids.description',
+    tags: ['explor', 'arcade', 'spacecraft'],
   },
 ]
 

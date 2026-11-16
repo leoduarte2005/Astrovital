@@ -1,4 +1,4 @@
-/* Solid light card with dark text, as the other minimised charts (ChartFrame). */
+/* Dark panel card, as the other minimised charts (ChartFrame). */
 .root {
   --fg: var(--ink);
   --panel-surface: var(--surface);

@@ -1,6 +1,7 @@
 import { t, useI18n, type MessageKey } from '@/lib/i18n'
 import { SmoothLineChart, StatusChart } from '@/ui/Chart'
 import { ORGAN_GROUPS } from './organGroups'
+import { SEVERITY } from './vitalSpecs'
 import { vitalFeed } from './vitalFeed'
 import { useStatusMessage } from './vitalStatus'
 import styles from './OrganCharts.module.css'
@@ -29,15 +30,48 @@ export function hasOrganCharts(organ: string): boolean {
   return organ in ORGAN_GROUPS
 }
 
+const SUBSYSTEM_SPECS = Object.values(SEVERITY)
+
+/** The six subsystems as the central classifies them, one compact status each. Shown when no organ is selected. */
+export function SubsystemCharts() {
+  const { t: translate, locale } = useI18n()
+  const message = useStatusMessage(translate, locale)
+  return (
+    <div className={styles.stack}>
+      {SUBSYSTEM_SPECS.map((spec) => (
+        <StatusChart
+          key={spec.id}
+          title={translate(spec.labelKey)}
+          feed={vitalFeed.lineFeed(spec.id)}
+          message={message}
+          valueFormat={severityLabel}
+          kind="severity"
+        />
+      ))}
+    </div>
+  )
+}
+
+interface OrganChartsProps {
+  organ: string
+  /** The crew member's own baseline by vital id (e.g. `heartRate`), from the crew context. */
+  baselines?: Partial<Record<string, number>>
+}
+
 /**
  * The chart group of the selected marker. Charts exist only while their marker is selected, and each reads
- * only the confirmed crew member's data from the shared feed.
+ * only the confirmed crew member's data from the shared feed. A vital with a baseline draws it as a dashed line.
  */
-export function OrganCharts({ organ }: { organ: string }) {
+export function OrganCharts({ organ, baselines }: OrganChartsProps) {
   const { t: translate, locale } = useI18n()
   const message = useStatusMessage(translate, locale)
   const group = ORGAN_GROUPS[organ]
   if (!group) return null
+
+  const baselineLabel = (value: number, decimals: number) =>
+    translate('chart.baseline', {
+      value: new Intl.NumberFormat(locale, { maximumFractionDigits: decimals }).format(value),
+    })
 
   return (
     <div className={styles.stack}>
@@ -52,8 +86,9 @@ export function OrganCharts({ organ }: { organ: string }) {
             kind={labels}
           />
         ) : (
+          // The baseline is read at mount: the key remounts the chart when the crew context arrives.
           <SmoothLineChart
-            key={spec.id}
+            key={`${spec.id}:${baselines?.[spec.id] ?? '-'}`}
             title={translate(spec.labelKey)}
             feed={vitalFeed.lineFeed(spec.id)}
             unit={spec.unit}
@@ -62,6 +97,10 @@ export function OrganCharts({ organ }: { organ: string }) {
             message={message}
             seriesToken={group.seriesToken}
             curve={curve}
+            baseline={baselines?.[spec.id]}
+            baselineLabel={
+              baselines?.[spec.id] === undefined ? undefined : baselineLabel(baselines[spec.id] ?? 0, spec.decimals)
+            }
           />
         )
       ))}

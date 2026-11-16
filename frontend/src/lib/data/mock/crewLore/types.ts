@@ -1,42 +1,41 @@
 /**
- * Astro Vital — lore dos tripulantes (MOCK, FICTÍCIO).
+ * Astro Vital — crew lore (MOCK, FICTIONAL). Written in English, the assistant's default language.
  *
- * Tudo aqui é inventado para a fase de mock. Nenhum dado corresponde a pessoa real.
- * A lore alimenta três consumidores:
- *   1. a simulação do galpão de treino (avatares nos 24 meses antes do lançamento);
- *   2. o contexto individual da IA a bordo (Contrato 1, campo `particularities`);
- *   3. a personalização da UI (polaroid, filtros de conteúdo, sugestões no chat).
+ * Everything here is invented for the mock phase. No data belongs to a real person.
+ * The lore feeds three consumers:
+ *   1. the training hangar simulation (avatars over the 24 months before launch);
+ *   2. the on-board AI's individual context (Contract 1, `particularities` field);
+ *   3. the UI's personalisation (polaroid, content filters, chat suggestions, personal space).
  *
- * Privacidade (rules/offline-and-privacy.md): campos marcados como `Private<T>` só podem ser
- * exibidos com consentimento explícito do tripulante (ver `consent`). Orientação sexual
- * e notas de saúde NUNCA mudam limiares clínicos nem aparecem fora do perfil do próprio
- * tripulante.
+ * Privacy (rules/offline-and-privacy.md): fields typed `Private<T>` may only be shown with the
+ * crew member's explicit consent (`visibleInUi`). Sexual orientation and health notes NEVER
+ * change clinical thresholds nor appear outside the crew member's own profile.
  */
 
 export type CrewId = 'crew_001' | 'crew_002' | 'crew_003'
 
-/** Período de treino: M01 = 2024-10 … M24 = 2026-09. Lançamento em 2026-10-05 (dia de missão 1). */
+/** Training period: M01 = 2024-10 … M24 = 2026-09. Launch on 2026-10-05 (mission day 1). */
 export type TrainingMonth =
   | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12
   | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24
 
-/** Zonas do galpão de treino usadas pela simulação de avatares. */
+/** Training hangar zones used by the avatar simulation. */
 export type HangarZone =
-  | 'gym'            // academia ASCR (força, remo, esteira)
-  | 'pool_nbl'       // piscina de flutuabilidade neutra (EVA)
-  | 'centrifuge'     // centrífuga (perfis de lançamento e reentrada)
-  | 'sim_cockpit'    // simulador da cabine
-  | 'robotics_bay'   // estação do braço robótico
-  | 'classroom'      // aulas de sistemas
-  | 'medbay'         // treino médico cruzado
-  | 'garden_lab'     // laboratório de cultivo
-  | 'mess'           // refeitório
-  | 'lounge'         // sala de convivência
-  | 'comms_desk'     // mesa de rádio e comunicação com atraso
-  | 'workshop'       // oficina e bancada
-  | 'quarters'       // alojamento
+  | 'gym'            // ASCR gym (strength, rowing, treadmill)
+  | 'pool_nbl'       // neutral buoyancy pool (EVA)
+  | 'centrifuge'     // centrifuge (launch and re-entry profiles)
+  | 'sim_cockpit'    // cabin simulator
+  | 'robotics_bay'   // robotic arm station
+  | 'classroom'      // systems classes
+  | 'medbay'         // medical cross-training
+  | 'garden_lab'     // plant-growth lab
+  | 'mess'           // mess
+  | 'lounge'         // lounge
+  | 'comms_desk'     // radio desk and delayed communication
+  | 'workshop'       // workshop and bench
+  | 'quarters'       // quarters
 
-/** Dado sensível: só aparece na UI se `visibleInUi` for true por consentimento. */
+/** Sensitive data: shown in the UI only when `visibleInUi` is true by consent. */
 export interface Private<T> {
   value: T
   visibleInUi: boolean
@@ -53,19 +52,19 @@ export interface LovedOne {
   age?: number
   location: string
   note: string
-  /** Pode aparecer na polaroid ou em lembretes, se o consentimento permitir. */
+  /** May appear on the polaroid or in reminders, if consent allows. */
   featurable: boolean
 }
 
 export interface Identity {
   givenName: string
   familyName: string
-  displayName: string        // igual ao `fullName` da API
+  displayName: string        // same as the API's `fullName`
   pronouns: string
   birthDate: string          // ISO
   ageAtLaunch: number
   birthplace: string
-  nationality: string        // ISO 3166-1 alfa-2, igual à API
+  nationality: string        // ISO 3166-1 alpha-2, same as the API
   languages: string[]
   sexualOrientation: Private<string>
   relationshipStatus: Private<string>
@@ -93,9 +92,9 @@ export interface Tastes {
   games: string[]
   gameGenres: string[]
   food: string[]
-  /** Atividades possíveis a bordo que combinam com o tripulante. */
+  /** Activities possible on board that suit the crew member. */
   spaceActivities: string[]
-  /** Temas que a IA não deve puxar por conta própria. */
+  /** Topics the AI must not raise on its own. */
   avoidTopics: string[]
 }
 
@@ -110,7 +109,7 @@ export interface TrainingProfile {
   stressResponse: string
 }
 
-/** Base clínica individual, no formato do Contrato 1 (CONTEXT_SWITCH). */
+/** Individual clinical baseline, in the Contract 1 shape (CONTEXT_SWITCH). */
 export interface MedicalBaseline {
   baseline_hr_bpm: number
   baseline_hrv_ms: number
@@ -120,16 +119,16 @@ export interface MedicalBaseline {
   baseline_sleep_h: number
   blood_type: string
   particularities: string[]
-  /** Como o tripulante tende a relatar sintomas; orienta a IA, não o diagnóstico. */
+  /** How the crew member tends to report symptoms; guides the AI, not the diagnosis. */
   reportingStyle: string
   watchlist: string[]
 }
 
 export interface AvatarBehavior {
   preferredZones: HangarZone[]
-  /** 0 = sempre sozinho, 1 = sempre em grupo. */
+  /** 0 = always alone, 1 = always in a group. */
   sociability: number
-  /** Distância de conversa preferida, em metros. */
+  /** Preferred conversation distance, in metres. */
   personalSpaceM: number
   walkSpeed: 'slow' | 'normal' | 'brisk'
   idleBehaviors: string[]
@@ -141,7 +140,7 @@ export interface AvatarBehavior {
 export interface UiAdaptation {
   polaroid: {
     enabled: boolean
-    /** Caminho servido em /media/ (fora do build). No mock, placeholder anônimo. */
+    /** Path served under /media/ (outside the build). In the mock, an anonymous placeholder. */
     imageRef: string
     caption: string
     clip: 'top-left' | 'top-right'
@@ -172,16 +171,16 @@ export interface Interaction {
 
 export interface MonthEntry {
   month: TrainingMonth
-  period: string            // AAAA-MM
+  period: string            // YYYY-MM
   title: string
   narrative: string
   interactions: Interaction[]
-  /** 0–100; ausente quando a atividade não foi avaliada no mês. */
+  /** 0–100; absent when the activity was not assessed that month. */
   performance: Partial<Record<'gym' | 'centrifuge' | 'pool' | 'simulations' | 'social', number>>
   wellbeing: { mood: Rating; sleepH: number; stress: number }
-  /** Peso relativo de tempo por zona no mês (soma ≈ 1), para a simulação. */
+  /** Relative share of time per zone in the month (sum ≈ 1), for the simulation. */
   zones: Partial<Record<HangarZone, number>>
-  /** O que a IA aprendeu no mês. Vira `crew_ai_memory` no mock. */
+  /** What the AI learned that month. Becomes `crew_ai_memory` in the mock. */
   aiNotes: string[]
 }
 

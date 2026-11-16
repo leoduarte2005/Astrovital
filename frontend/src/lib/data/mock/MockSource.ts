@@ -2,10 +2,12 @@ import type { ChatReplyPayload, CrewStatePayload, Envelope } from '@/lib/model/l
 import { connectionStore } from '../connection'
 import { crewStateStore } from '../crewState'
 import type { DataSource } from '../source'
-import { pickMockReply } from './chatReplies'
+import { mockReply } from './chatReplies'
 import type { BaselineMetricId, BaselineProfile, HistorySeries, HistoryWindow } from '@/lib/model/baseline'
 import { baselineProfile, historySeries } from './baseline'
 import { suggestBooks, type Book } from './bookCatalog'
+import type { CrewContext } from '@/lib/model/crewContext'
+import { buildCrewContext } from './crewContext'
 import { CREW_LORE, type CrewLore } from './crewLore'
 import { MOCK_CREW } from './crew'
 import { simulateFrame } from './telemetry'
@@ -94,27 +96,33 @@ export class MockSource implements DataSource {
     this.emit({ v: 1, type: 'CREW_STATE', ts_us: Date.now() * 1000, crew_id: crewId, payload })
   }
 
-  /** Answers after a short delay with a scripted reply, in the same shape as the central's. */
-  sendChat(text: string): Promise<ChatReplyPayload> {
+  /**
+   * Answers after a short delay, in the same shape as the central's: a reply built from the crew member's
+   * context and the frame of that moment (`chatReplies.ts`).
+   */
+  sendChat(text: string, crewId: string): Promise<ChatReplyPayload> {
     if (text.trim() === '') return Promise.reject(new Error('empty chat text'))
+    let context: CrewContext
+    try {
+      context = buildCrewContext(crewId)
+    } catch (error) {
+      return Promise.reject(error instanceof Error ? error : new Error(String(error)))
+    }
     return new Promise((resolve) => {
-      window.setTimeout(
-        () =>
-          resolve({
-            text: pickMockReply(),
-            evidence: [],
-            countermeasures: [],
-            source_ids: [],
-            escalation: 'LOCAL',
-            disclaimer: 'Resposta simulada; não substitui avaliação médica.',
-          }),
-        CHAT_DELAY_MS,
-      )
+      window.setTimeout(() => resolve(mockReply(text, context, simulateFrame(crewId, Date.now()))), CHAT_DELAY_MS)
     })
   }
 
   listCrewLore(): Promise<CrewLore[]> {
     return Promise.resolve(Object.values(CREW_LORE))
+  }
+
+  getCrewContext(crewId: string): Promise<CrewContext> {
+    try {
+      return Promise.resolve(buildCrewContext(crewId))
+    } catch (error) {
+      return Promise.reject(error instanceof Error ? error : new Error(String(error)))
+    }
   }
 
   listBookSuggestions(crewId: string): Promise<Book[]> {

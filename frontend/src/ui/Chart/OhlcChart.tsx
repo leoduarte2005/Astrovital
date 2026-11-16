@@ -95,7 +95,7 @@ function CandleCard({
   const container = useFeedPlot<OhlcSnapshot>({
     feed,
     height: expanded ? EXPANDED_HEIGHT : CARD_HEIGHT,
-    variant: expanded ? 'dark' : 'light',
+    variant: expanded ? 'expanded' : 'card',
     seriesToken,
     format,
     options: (_lib, theme, fmt) => {

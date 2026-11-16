@@ -22,9 +22,9 @@
   border-inline-start: 0;
 }
 
-/* Chosen: the kit's selection inversion. */
+/* Chosen: the accent fill, the kit's selected state. */
 .option[aria-pressed='true'] {
-  background: var(--ink);
-  color: var(--bg);
+  background: var(--accent);
+  color: var(--accent-ink);
   font-weight: var(--weight-bold);
 }

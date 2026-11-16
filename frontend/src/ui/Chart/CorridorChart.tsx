@@ -34,7 +34,7 @@ export interface CorridorChartProps {
 
 /**
  * A measure against the crew member's own corridor: the corridor is shaded, the real line is on top. Solid
- * light card, like the other minimised charts. The text summary is the main reading; the plot is the detail.
+ * dark panel card, like the other minimised charts. The text summary is the main reading; the plot is the detail.
  */
 export const CorridorChart = memo(function CorridorChart({
   title,
@@ -58,7 +58,7 @@ export const CorridorChart = memo(function CorridorChart({
 
   const container = useStaticPlot({
     height: expanded ? PLOT_HEIGHT_EXPANDED : PLOT_HEIGHT,
-    variant: expanded ? 'dark' : 'light',
+    variant: expanded ? 'expanded' : 'card',
     data,
     options: (_lib, theme) => {
       // The two edge series only draw the shaded band between them; the line is the real data.

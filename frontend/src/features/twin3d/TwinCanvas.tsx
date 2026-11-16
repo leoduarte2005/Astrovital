@@ -3,6 +3,7 @@ import { useI18n } from '@/lib/i18n'
 import { Marker } from '@/ui/Marker'
 import styles from './TwinCanvas.module.css'
 import { TWIN_ANCHORS, type TwinAnchorId } from './anchors'
+import { drawLeadLines } from './leadLines'
 import type { TwinRenderer } from './renderer'
 
 type Status = 'loading' | 'ready' | 'error'
@@ -14,11 +15,16 @@ interface TwinCanvasProps {
   onSelect?: (id: TwinAnchorId | null) => void
   /** Plays the suit-fragmentation intro when the twin mounts. Read once, at mount: changing it later does not replay. */
   intro?: boolean
+  /** Draws lead lines from every `data-lead` element on the page to its anchor (see leadLines.ts). Read at mount. */
+  leadLines?: boolean
 }
 
-export function TwinCanvas({ skinTone, heightM, onSelect, intro = false }: TwinCanvasProps) {
+export function TwinCanvas({ skinTone, heightM, onSelect, intro = false, leadLines = false }: TwinCanvasProps) {
   const { t } = useI18n()
   const introRef = useRef(intro)
+  const leadLinesRef = useRef(leadLines)
+  const linePathRef = useRef<SVGPathElement>(null)
+  const dotPathRef = useRef<SVGPathElement>(null)
   // Kept in a ref so a new callback does not remount the renderer.
   const onSelectRef = useRef(onSelect)
   useEffect(() => {
@@ -50,6 +56,13 @@ export function TwinCanvas({ skinTone, heightM, onSelect, intro = false }: TwinC
           markers,
           intro: introRef.current,
           onSelect: (id) => onSelectRef.current?.(id),
+          onProject: leadLinesRef.current
+            ? (points) => {
+                const lines = linePathRef.current
+                const dots = dotPathRef.current
+                if (lines && dots) drawLeadLines(lines, dots, points)
+              }
+            : undefined,
         }),
       )
       .then((renderer) => {
@@ -75,6 +88,12 @@ export function TwinCanvas({ skinTone, heightM, onSelect, intro = false }: TwinC
   return (
     <div className={styles.root}>
       <canvas ref={canvasRef} className={styles.canvas} aria-hidden="true" />
+      {leadLines && (
+        <svg className={styles.leads} aria-hidden="true">
+          <path ref={linePathRef} className={styles.leadLine} />
+          <path ref={dotPathRef} className={styles.leadDot} />
+        </svg>
+      )}
       {TWIN_ANCHORS.map((anchor) => (
         <Marker
           key={anchor.id}

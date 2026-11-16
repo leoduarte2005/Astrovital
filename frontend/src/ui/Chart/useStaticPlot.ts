@@ -39,7 +39,7 @@ export function useStaticPlot(config: StaticPlotConfig) {
       const UPlot = module.default
       const current = configRef.current
       const plot = new UPlot(
-        { ...current.options(UPlot, readTheme(current.variant, current.seriesToken)), width: el.clientWidth, height: current.height },
+        { ...current.options(UPlot, readTheme(current.seriesToken)), width: el.clientWidth, height: current.height },
         current.data,
         el,
       )

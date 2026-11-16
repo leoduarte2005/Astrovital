@@ -1,5 +1,5 @@
-import { AstronautTabs } from '@/features/astronaut'
-import { CrewSummary } from '@/features/crew'
+import { ASTRONAUT_PATH, AstronautTabs, sectionPath } from '@/features/astronaut'
+import { CrewSummary, PrivacyIndicator } from '@/features/crew'
 import { ChatDrawer } from '@/features/chat'
 import { HomeMenu } from '@/features/navigation'
 import { loadConfig } from '@/lib/config'
@@ -50,11 +50,16 @@ export function App() {
   const showMenu = SHOW_HOME_MENU && path !== CREW_PATH && !path.startsWith('/game/')
   // The section tabs: on every page but the crew selection and the game tabs (full-page games, no crew member).
   const showTabs = path !== CREW_PATH && !path.startsWith('/game/')
+  // Pages that show the assistant inline, in their right column: the medical cockpit and the personal space.
+  // They have no corner card and no chat drawer.
+  const chatInline = path === '/' || path === sectionPath('medical') || path === sectionPath('personal')
+  // The overview shows the crew member and the privacy statement in its left column: no corner card either.
+  const showCorner = showTabs && !chatInline && path !== ASTRONAUT_PATH
   return (
     <>
       <Suspense fallback={null}>{Page ? <Page /> : <p>{t('common.notFound')}</p>}</Suspense>
       {showTabs && <AstronautTabs />}
-      {showTabs && (
+      {showCorner && (
         <div className={styles.corner}>
           {activeCrew && (
             <div className={styles.crewSummaryRow}>
@@ -62,6 +67,7 @@ export function App() {
               <IconButton icon="swap" label={t('home.switchCrew')} onClick={() => navigate(CREW_PATH)} />
             </div>
           )}
+          <PrivacyIndicator variant="compact" />
           <div id={CORNER_SLOT_ID} />
         </div>
       )}
@@ -70,7 +76,7 @@ export function App() {
           <HomeMenu />
         </div>
       )}
-      {activeCrew && path !== CREW_PATH && <ChatDrawer />}
+      {activeCrew && path !== CREW_PATH && !chatInline && <ChatDrawer />}
     </>
   )
 }

@@ -1,20 +1,44 @@
+/*
+ * Telemetry cockpit: three contiguous columns, divided by 2 px rules, no floating cards. The twin keeps the
+ * centre; the side columns are panels of the grid. The section tabs float over the top of the centre.
+ */
 .root {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-  height: 100%;
+  display: grid;
+  grid-template-columns: minmax(15rem, 21vw) minmax(0, 1fr) minmax(18rem, 27vw);
+  height: 100vh;
+  height: 100dvh;
   background: var(--bg);
   color: var(--ink);
-  /* padding: var(--space-4) calc(var(--touch-min) + var(--space-3)) var(--space-4) var(--space-4); */
 }
 
+.side {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  background: var(--surface);
+}
+
+.left {
+  overflow-y: auto;
+  border-inline-end: var(--border-frame) solid var(--line-strong);
+  scrollbar-width: thin;
+  scrollbar-color: var(--ink) transparent;
+}
+
+.right {
+  border-inline-start: var(--border-frame) solid var(--line-strong);
+}
+
+/* Pushes the privacy statement to the bottom of the left column when there is room. */
+.fill {
+  flex: 1;
+}
 
 .stage {
   position: relative;
-  flex: 1;
   display: flex;
+  min-width: 0;
   min-height: 0;
-  height: 100dvh;
 }
 
 .status {
@@ -24,6 +48,7 @@
   align-items: center;
   justify-content: center;
   gap: var(--space-3);
+  margin: 0;
 }
 
 .statusText {
@@ -32,31 +57,78 @@
   color: var(--ink-2);
 }
 
-/* Stacked vital charts on the right, like the crew card on the left. Stops short of the chat tab. */
-.charts {
-  position: absolute;
-  top: calc(var(--touch-min) + var(--space-5));
-  right: 0;
-  bottom: 0;
-  z-index: var(--z-drawer);
-  width: min(320px, 40%);
-  overflow-y: auto;
+.heading {
+  margin: 0;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-regular);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--ink-2);
 }
 
+/* Organ charts, or the six subsystems: the upper part of the right column, scrolling on its own. */
 .charts {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 52%;
+  padding: var(--space-3) var(--space-4);
+  overflow-y: auto;
+  border-bottom: var(--border-frame) solid var(--line-strong);
   scrollbar-width: thin;
   scrollbar-color: var(--ink) transparent;
 }
 
+.hint {
+  margin: 0;
+  font-size: var(--text-xs);
+  color: var(--ink-3);
+}
+
+/* The assistant fills the rest of the right column. */
+.assistant {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+}
+
+.left::-webkit-scrollbar,
 .charts::-webkit-scrollbar {
   width: var(--scrollbar-size);
 }
 
-.charts::-webkit-scrollbar-track {
-  background: transparent;
+.left::-webkit-scrollbar-thumb,
+.charts::-webkit-scrollbar-thumb {
+  background: var(--ink);
 }
 
-.charts::-webkit-scrollbar-thumb {
-  border-radius: var(--radius-sm);
-  background: var(--ink);
+/* Narrow screens: the columns stack, the twin first. Lead lines still point at the rows that are in view. */
+@media (max-width: 900px) {
+  .root {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: 60vh auto auto;
+    height: auto;
+    min-height: 100vh;
+  }
+
+  .stage {
+    grid-row: 1;
+  }
+
+  .left,
+  .right {
+    border: 0;
+    border-top: var(--border-frame) solid var(--line-strong);
+  }
+
+  .charts {
+    max-height: none;
+  }
+
+  .assistant {
+    min-height: 60vh;
+  }
 }

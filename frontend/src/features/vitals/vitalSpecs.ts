@@ -73,6 +73,36 @@ export const CO2: VitalSpec = {
   read: (f) => f.environment.co2_ppm,
 }
 
+/** Cabin temperature (BME280). */
+export const TEMP: VitalSpec = {
+  id: 'temp',
+  labelKey: 'vital.temp',
+  unit: '°C',
+  decimals: 1,
+  kind: 'line',
+  read: (f) => f.environment.temp_c,
+}
+
+/** Cabin relative humidity (BME280). */
+export const HUMIDITY: VitalSpec = {
+  id: 'humidity',
+  labelKey: 'vital.humidity',
+  unit: '%',
+  decimals: 0,
+  kind: 'line',
+  read: (f) => f.environment.humidity_pct,
+}
+
+/** Cabin pressure (BME280). */
+export const PRESSURE: VitalSpec = {
+  id: 'pressure',
+  labelKey: 'vital.pressure',
+  unit: 'hPa',
+  decimals: 0,
+  kind: 'line',
+  read: (f) => f.environment.pressure_hpa,
+}
+
 /** Posture is a text from the central ("" while the AI is not ready, which is a gap). Shown as steps. */
 export const POSTURE: VitalSpec = {
   id: 'posture',
@@ -117,8 +147,16 @@ export const SEVERITY: Record<Subsystem, VitalSpec> = {
   NEUROBEHAVIORAL_RADIATION: severitySpec('NEUROBEHAVIORAL_RADIATION'),
 }
 
-/**
- * Everything the feed records each frame. Only what some marker shows is here: temperature, humidity
- * and pressure are not, until a cabin panel needs them.
- */
-export const VITAL_SPECS: VitalSpec[] = [HEART_RATE, HRV, SPO2, RESP_RATE, CO2, POSTURE, ...Object.values(SEVERITY)]
+/** Everything the feed records each frame: what the markers and the side panels of the medical page show. */
+export const VITAL_SPECS: VitalSpec[] = [
+  HEART_RATE,
+  HRV,
+  SPO2,
+  RESP_RATE,
+  CO2,
+  TEMP,
+  HUMIDITY,
+  PRESSURE,
+  POSTURE,
+  ...Object.values(SEVERITY),
+]

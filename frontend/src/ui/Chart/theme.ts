@@ -1,5 +1,5 @@
-/** Light: minimised card (solid --ink, dark text). Dark: expanded view on the page background. */
-export type ChartVariant = 'dark' | 'light'
+/** Card: minimised chart on a panel. Expanded: the larger view in the modal. Both sit on --surface. */
+export type ChartVariant = 'card' | 'expanded'
 
 /** Chart colours read from the design tokens at mount (uPlot draws on canvas: no CSS variables there). */
 export interface ChartTheme {
@@ -7,27 +7,28 @@ export interface ChartTheme {
   text: string
   /** Grid lines and tick marks. */
   grid: string
-  /** Fill of hollow candles (close above open). */
+  /** Fill of hollow candles (close above open): the surface behind the plot. */
   surface: string
   /** Series colour: the organ group colour, or the text colour when there is none. */
   series: string
+  /** Fill under a line series. */
+  fill: string
+  /** The crew member's own baseline: a quiet dashed line. */
+  baseline: string
+  /** Font family for labels drawn on the canvas. */
+  font: string
 }
 
-export function readTheme(variant: ChartVariant, seriesToken?: string): ChartTheme {
+export function readTheme(seriesToken?: string): ChartTheme {
   const style = getComputedStyle(document.documentElement)
   const token = (name: string) => style.getPropertyValue(name).trim()
-  if (variant === 'light') {
-    return {
-      text: token('--bg'),
-      grid: token('--line-on-light'),
-      surface: token('--ink'),
-      series: token(seriesToken ?? '--bg'),
-    }
-  }
   return {
     text: token('--ink-3'),
     grid: token('--line'),
-    surface: token('--bg'),
+    surface: token('--surface'),
     series: token(seriesToken ?? '--ink'),
+    fill: token('--accent-tint'),
+    baseline: token('--line-strong'),
+    font: token('--font-mono'),
   }
 }

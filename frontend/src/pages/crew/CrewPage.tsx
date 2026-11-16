@@ -47,7 +47,7 @@ export default function CrewPage() {
   }
 
   return (
-    <main className={styles.root} data-theme="dark">
+    <main className={styles.root}>
       <GridBackdrop grid={!focused}>
         <StationCanvas onFocusChange={setFocused} />
         <CornerPanel corner="top-left" hidden={focused}>

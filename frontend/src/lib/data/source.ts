@@ -1,4 +1,5 @@
 import type { CrewMember } from '@/lib/model/crew'
+import type { CrewContext } from '@/lib/model/crewContext'
 import type { ChatReplyPayload, Envelope } from '@/lib/model/live'
 import type { BaselineMetricId, BaselineProfile, HistorySeries, HistoryWindow } from '@/lib/model/baseline'
 import type { Book } from './mock/bookCatalog'
@@ -25,6 +26,11 @@ export interface DataSource {
    * 24 months before the mission. Mock until the central provides it. Private fields stay inside; see crewLore.
    */
   listCrewLore(): Promise<CrewLore[]>
+  /**
+   * Everything known about one crew member (baseline, what the AI learned, wellbeing, preferences), already
+   * filtered by consent. Rejects for an unknown crew member. Mock until the central serves profiles (Leva 2).
+   */
+  getCrewContext(crewId: string): Promise<CrewContext>
   /** Books suggested for the crew member (leisure). The central does not provide them yet: mock data for now. */
   listBookSuggestions(crewId: string): Promise<Book[]>
   /** The crew member's baseline, learned from the 24 months before the mission. Mock until the central provides it (Leva 2). */

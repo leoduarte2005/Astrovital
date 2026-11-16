@@ -102,6 +102,11 @@ export interface TwinOptions {
   markers: Partial<Record<TwinAnchorId, HTMLElement>>
   /** Called when a marker becomes the selection (its id) or the selection is cleared (null). */
   onSelect?: (id: TwinAnchorId | null) => void
+  /**
+   * Called on every drawn frame with the viewport position (CSS pixels, as `getBoundingClientRect`) of each
+   * visible anchor. Hidden anchors (intro, another marker selected) are left out. Used by the lead lines.
+   */
+  onProject?: (points: AnchorPoints) => void
   /** Plays the intro: the astronaut suit covers the body, breaks into fragments and reveals it. Skipped with reduced motion. */
   intro?: boolean
 }
@@ -109,6 +114,9 @@ export interface TwinOptions {
 export interface TwinRenderer {
   dispose(): void
 }
+
+/** Viewport position of each visible anchor. */
+export type AnchorPoints = Partial<Record<TwinAnchorId, { x: number; y: number }>>
 
 // Duck-typed checks (`isMesh`, `isTexture`...): they keep working even if the bundler ends up
 // with two copies of three, where `instanceof` would silently fail.
@@ -475,7 +483,10 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
       const height = canvas.clientHeight
       if (width === 0 || height === 0) return
       camera.updateMatrixWorld()
-      for (const { object, element } of anchors) {
+      const onProject = options.onProject
+      const rect = onProject ? canvas.getBoundingClientRect() : null
+      const points: AnchorPoints = {}
+      for (const { id, object, element } of anchors) {
         // Once zoomed in, only the selected marker stays; the others are hidden and stop receiving pointer events.
         // During the intro none shows: the suit is still covering the body.
         if (introActive || (zoomAnchor && object !== zoomAnchor)) {
@@ -484,8 +495,12 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
         }
         object.getWorldPosition(anchorWorld)
         anchorNdc.copy(anchorWorld).project(camera)
-        placeMarker(element, ((anchorNdc.x + 1) / 2) * width, ((1 - anchorNdc.y) / 2) * height)
+        const x = ((anchorNdc.x + 1) / 2) * width
+        const y = ((1 - anchorNdc.y) / 2) * height
+        placeMarker(element, x, y)
+        if (rect) points[id] = { x: rect.left + x, y: rect.top + y }
       }
+      onProject?.(points)
     }
 
     const draw = () => {
