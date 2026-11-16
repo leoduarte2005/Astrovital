@@ -13,14 +13,19 @@ const MODEL_TYPES: Record<string, string> = {
   '.glb': 'model/gltf-binary',
   '.json': 'application/json',
 }
+const BOOKS_DIR = fileURLToPath(new URL('./data/books', import.meta.url))
+const BOOK_TYPES: Record<string, string> = { '.pdf': 'application/pdf' }
 
-/** Serves `data/models` at `/models` (dev and preview only; the central serves it in production). */
-function serveModels(): Plugin {
+/**
+ * Serves a folder of the repo under a URL prefix (dev and preview only; the central serves them in production).
+ * Only the listed file types are served, and nothing outside the folder.
+ */
+function serveFolder(name: string, prefix: string, dir: string, types: Record<string, string>): Plugin {
   const handler = (req: IncomingMessage, res: ServerResponse, next: () => void) => {
     const pathname = decodeURIComponent((req.url ?? '/').split('?')[0] ?? '/')
-    const file = resolve(MODELS_DIR, `.${pathname}`)
-    const inside = relative(MODELS_DIR, file)
-    const type = MODEL_TYPES[extname(file)]
+    const file = resolve(dir, `.${pathname}`)
+    const inside = relative(dir, file)
+    const type = types[extname(file)]
     if (!type || inside.startsWith('..') || isAbsolute(inside)) return next()
     try {
       const stats = statSync(file)
@@ -33,9 +38,9 @@ function serveModels(): Plugin {
     }
   }
   return {
-    name: 'serve-models',
-    configureServer: (server) => void server.middlewares.use('/models', handler),
-    configurePreviewServer: (server) => void server.middlewares.use('/models', handler),
+    name,
+    configureServer: (server) => void server.middlewares.use(prefix, handler),
+    configurePreviewServer: (server) => void server.middlewares.use(prefix, handler),
   }
 }
 
@@ -76,7 +81,12 @@ const centralProxy = { '/ws': { target: CENTRAL, ws: true }, '/api': { target: C
 
 export default defineConfig({
   base: './',
-  plugins: [react(), serveModels(), emitStationModel()],
+  plugins: [
+    react(),
+    serveFolder('serve-models', '/models', MODELS_DIR, MODEL_TYPES),
+    serveFolder('serve-books', '/books', BOOKS_DIR, BOOK_TYPES),
+    emitStationModel(),
+  ],
   server: { proxy: centralProxy },
   preview: { proxy: centralProxy },
   resolve: {

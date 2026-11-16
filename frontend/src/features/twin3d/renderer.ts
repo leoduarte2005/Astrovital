@@ -23,8 +23,7 @@ import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js'
 import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js'
 import { placeMarker } from '@/ui/Marker/placeMarker'
 import { setMarkerActive } from '@/ui/Marker/setMarkerActive'
-import { loadSuitShell, type SuitShell } from '@/lib/model/astronaut/suitShell'
-import { ASTRONAUT_CAMERA_LIFT, ASTRONAUT_SCREEN_FRACTION, STUDIO_LIGHT } from '@/lib/model/astronaut/view'
+import { STUDIO_LIGHT } from '@/lib/model/astronaut/view'
 import { DEFAULT_TWIN_LAYERS, TWIN_ANCHORS, TWIN_LAYER_IDS, type TwinAnchorId, type TwinLayerId } from './anchors'
 
 /** Relative paths: the central (or the dev middleware) serves `data/models` under `/models`. */
@@ -53,13 +52,6 @@ async function loadGltf(url: string): Promise<GLTF> {
     draco.dispose()
   }
 }
-
-/** The astronaut suit that covers the body in the intro (see astronaut.md). */
-const SUIT_URL = './models/astronaut/Astronaut.glb'
-const INTRO_ZOOM_MS = 1000 // first the camera zooms from the astronaut page's view to the twin's framing
-const INTRO_ARMS_MS = 900 // then the suit's arms come down to rest, as the skin model
-const INTRO_SPLIT_MS = 1500 // then the suit is cut at the waist and the halves part, linearly
-const INTRO_BODY_FROM = 0.1 // the body is drawn from this progress of the split, once the halves have started to part
 
 const FRAME_MS = 1000 / 30 // fixed 30 fps target (see performance.md)
 const MAX_PIXEL_RATIO = 2
@@ -104,11 +96,9 @@ export interface TwinOptions {
   onSelect?: (id: TwinAnchorId | null) => void
   /**
    * Called on every drawn frame with the viewport position (CSS pixels, as `getBoundingClientRect`) of each
-   * visible anchor. Hidden anchors (intro, another marker selected) are left out. Used by the lead lines.
+   * visible anchor. Hidden anchors (another marker selected) are left out. Used by the lead lines.
    */
   onProject?: (points: AnchorPoints) => void
-  /** Plays the intro: the astronaut suit covers the body, breaks into fragments and reveals it. Skipped with reduced motion. */
-  intro?: boolean
 }
 
 export interface TwinRenderer {
@@ -193,18 +183,9 @@ function applySkinTone(root: Object3D, skinTone: string): void {
  * Resolves once the default layers are loaded and framed; the caller owns `dispose()`.
  */
 export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Promise<TwinRenderer> {
-  // The suit is optional: if it cannot load, the twin still shows, without the intro.
-  const wantsIntro = options.intro === true && !window.matchMedia('(prefers-reduced-motion: reduce)').matches
-  const suitLoad: Promise<SuitShell | null> = wantsIntro
-    ? loadSuitShell(SUIT_URL).catch((error: unknown) => {
-        console.warn('Astronaut suit failed to load', error)
-        return null
-      })
-    : Promise.resolve(null)
-  const [skinGltf, eyesGltf, suit] = await Promise.all([
+  const [skinGltf, eyesGltf] = await Promise.all([
     new GLTFLoader().loadAsync(LAYER_URLS.skin),
     loadGltf(LAYER_URLS.eyes),
-    suitLoad,
   ])
   // Every layer is a child of `body`: they share one coordinate space, transform and centring.
   const body = new Group()
@@ -213,7 +194,6 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
   let disposed = false
   if (options.signal.aborted) {
     disposeObject(body)
-    suit?.dispose()
     throw new DOMException('Twin mount aborted', 'AbortError')
   }
 
@@ -258,23 +238,6 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
 
     const pivot = new Group()
     pivot.add(body)
-    // Intro: the suit covers the body, scaled to its height and centred like it. The body stays hidden until the
-    // pieces start to leave; markers stay hidden until the suit is gone. `introStart` is set just before the first frame.
-    let introActive = suit !== null
-    let introStart = 0
-    let introZoom = 0 // 0 = the camera is where the astronaut page has it, 1 = at the twin's framing
-    if (suit) {
-      suit.group.scale.setScalar(options.heightM / suit.height)
-      pivot.add(suit.group)
-      body.visible = false
-    }
-    const finishIntro = () => {
-      if (!suit || !introActive) return
-      introActive = false
-      pivot.remove(suit.group)
-      suit.dispose()
-      body.visible = true
-    }
     const scene = new Scene()
     scene.add(pivot)
     scene.add(new HemisphereLight(LIGHT_PAPER, LIGHT_GROUND, STUDIO_LIGHT.hemisphere))
@@ -462,16 +425,8 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
       }
       if (viewAnchor) viewAnchor.getWorldPosition(zoomTarget).multiplyScalar(t) // lerp from the GLB middle to the anchor
       else zoomTarget.set(0, 0, 0)
-      let distance = framedDistance * (1 - (1 - ZOOM_DISTANCE) * t)
-      let lift = 0
-      if (introActive) {
-        // Intro: start where `#/astronaut` has the camera (the figure takes ASTRONAUT_SCREEN_FRACTION of the height,
-        // seen from slightly above), and ease to the framed view, so the suit is at the twin's distance before it breaks.
-        const startDistance = size.y / (2 * Math.tan(halfFov) * ASTRONAUT_SCREEN_FRACTION)
-        distance *= 1 + (startDistance / framedDistance - 1) * (1 - introZoom)
-        lift = distance * ASTRONAUT_CAMERA_LIFT * (1 - introZoom)
-      }
-      camera.position.set(zoomTarget.x, zoomTarget.y + lift, zoomTarget.z + distance)
+      const distance = framedDistance * (1 - (1 - ZOOM_DISTANCE) * t)
+      camera.position.set(zoomTarget.x, zoomTarget.y, zoomTarget.z + distance)
       camera.lookAt(zoomTarget)
     }
 
@@ -488,8 +443,7 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
       const points: AnchorPoints = {}
       for (const { id, object, element } of anchors) {
         // Once zoomed in, only the selected marker stays; the others are hidden and stop receiving pointer events.
-        // During the intro none shows: the suit is still covering the body.
-        if (introActive || (zoomAnchor && object !== zoomAnchor)) {
+        if (zoomAnchor && object !== zoomAnchor) {
           element.style.visibility = 'hidden'
           continue
         }
@@ -528,19 +482,8 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
       const elapsed = now - last
       if (elapsed < FRAME_MS - 1) return
       last = now
-      if (introActive && suit) {
-        const elapsedIntro = now - introStart
-        const zoom = Math.min(1, elapsedIntro / INTRO_ZOOM_MS)
-        introZoom = 1 - (1 - zoom) ** 3 // ease-out cubic
-        const afterZoom = Math.max(0, elapsedIntro - INTRO_ZOOM_MS)
-        const arms = Math.min(1, afterZoom / INTRO_ARMS_MS)
-        const split = Math.min(1, Math.max(0, afterZoom - INTRO_ARMS_MS) / INTRO_SPLIT_MS)
-        suit.update(arms, split)
-        if (split >= INTRO_BODY_FROM) body.visible = true
-        if (split >= 1) finishIntro()
-      }
-      // The turntable stops once a marker has been zoomed into (see twin3d.md), and holds still during the intro.
-      if (!zoomAnchor && !introActive) pivot.rotation.y += SPIN_RAD_PER_SECOND * (Math.min(elapsed, 100) / 1000)
+      // The turntable stops once a marker has been zoomed into (see twin3d.md), .
+      if (!zoomAnchor) pivot.rotation.y += SPIN_RAD_PER_SECOND * (Math.min(elapsed, 100) / 1000)
       draw()
     }
     const start = () => {
@@ -574,7 +517,6 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
     document.addEventListener('visibilitychange', sync)
     reducedMotion.addEventListener('change', sync)
     resize()
-    introStart = performance.now()
     sync()
 
     return {
@@ -593,7 +535,6 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
         document.removeEventListener('visibilitychange', sync)
         reducedMotion.removeEventListener('change', sync)
         disposeObject(body)
-        if (introActive) suit?.dispose()
         // No forceContextLoss(): React StrictMode remounts reuse this canvas, and a lost context is permanent.
         webgl.dispose()
       },
@@ -601,7 +542,6 @@ export async function mount(canvas: HTMLCanvasElement, options: TwinOptions): Pr
   } catch (error) {
     disposed = true
     disposeObject(body)
-    suit?.dispose()
     renderer?.dispose()
     throw error
   }

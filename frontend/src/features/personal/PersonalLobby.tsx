@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { getDataSource } from '@/lib/data'
 import { useChat } from '@/lib/data/chat'
-import type { Book } from '@/lib/data/mock/bookCatalog'
+import { bookFileUrl, type Book } from '@/lib/data/mock/bookCatalog'
 import { useI18n, type MessageKey } from '@/lib/i18n'
 import type { CrewContext } from '@/lib/model/crewContext'
-import { AlertBadge } from '@/ui/AlertBadge'
 import { Button } from '@/ui/Button'
 import { Icon, type IconName } from '@/ui/Icon'
 import styles from './PersonalLobby.module.css'
@@ -86,7 +85,6 @@ export function PersonalLobby({ context, games }: PersonalLobbyProps) {
   const awaiting = useChat((state) => state.pendingId !== null)
   const [category, setCategory] = useState<Category>('games')
   const [books, setBooks] = useState<{ crewId: string; list: Book[] } | null>(null)
-  const [notice, setNotice] = useState<string | null>(null)
   const { tastes } = context
 
   useEffect(() => {
@@ -101,8 +99,6 @@ export function PersonalLobby({ context, games }: PersonalLobbyProps) {
       active = false
     }
   }, [context.crewId])
-
-  const dismiss = useCallback(() => setNotice(null), [])
 
   // Games that match a taste of the profile come first, with the taste they match.
   const playable = games
@@ -167,9 +163,10 @@ export function PersonalLobby({ context, games }: PersonalLobbyProps) {
             detail={`${book.author} · ${t(`genre.${book.genre}` as MessageKey)}`}
             meta={t('personal.status.available')}
             action={
-              <Button icon="download" onClick={() => setNotice(t('leisure.download.notice', { title: book.title }))}>
-                {t('personal.read')}
-              </Button>
+              <a className={styles.download} href={bookFileUrl(book)} download>
+                <Icon name="download" />
+                {t('personal.download')}
+              </a>
             }
           />
         ))}
@@ -241,7 +238,6 @@ export function PersonalLobby({ context, games }: PersonalLobbyProps) {
         <ul className={styles.grid}>{cards[category]}</ul>
       </section>
 
-      {notice !== null && <AlertBadge message={notice} onDismiss={dismiss} />}
     </div>
   )
 }

@@ -170,7 +170,23 @@
   cursor: pointer;
 }
 
+/* Download: a link that looks like the button beside it. */
+.download {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  min-height: var(--touch-min);
+  padding: var(--space-1) var(--space-2);
+  border: var(--border-thin) solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: var(--text-xs);
+  text-decoration: none;
+}
+
 @media (hover: hover) {
+  .download:hover,
   .ask:hover:not(:disabled) {
     border-color: var(--accent);
     background: var(--accent-tint);

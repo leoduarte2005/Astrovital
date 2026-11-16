@@ -13,15 +13,12 @@ interface TwinCanvasProps {
   skinTone: string
   heightM: number
   onSelect?: (id: TwinAnchorId | null) => void
-  /** Plays the suit-fragmentation intro when the twin mounts. Read once, at mount: changing it later does not replay. */
-  intro?: boolean
   /** Draws lead lines from every `data-lead` element on the page to its anchor (see leadLines.ts). Read at mount. */
   leadLines?: boolean
 }
 
-export function TwinCanvas({ skinTone, heightM, onSelect, intro = false, leadLines = false }: TwinCanvasProps) {
+export function TwinCanvas({ skinTone, heightM, onSelect, leadLines = false }: TwinCanvasProps) {
   const { t } = useI18n()
-  const introRef = useRef(intro)
   const leadLinesRef = useRef(leadLines)
   const linePathRef = useRef<SVGPathElement>(null)
   const dotPathRef = useRef<SVGPathElement>(null)
@@ -54,7 +51,6 @@ export function TwinCanvas({ skinTone, heightM, onSelect, intro = false, leadLin
           heightM,
           signal: controller.signal,
           markers,
-          intro: introRef.current,
           onSelect: (id) => onSelectRef.current?.(id),
           onProject: leadLinesRef.current
             ? (points) => {

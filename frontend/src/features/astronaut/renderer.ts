@@ -27,7 +27,7 @@ const DRACO_DECODER_PATH = './draco/'
 
 const MAX_PIXEL_RATIO = 2
 const FOV_DEG = 35
-/** The model fills the viewer's height with a small margin; the grid floor sits under the feet. Shared with the twin's intro. */
+/** The model fills the viewer's height with a small margin; the grid floor sits under the feet. */
 const FIT_MARGIN = ASTRONAUT_FIT_MARGIN
 const CAMERA_LIFT = ASTRONAUT_CAMERA_LIFT
 const FLOOR_OPACITY = 0.16
@@ -56,7 +56,7 @@ export async function mountAstronaut(host: HTMLElement): Promise<() => void> {
 
   const scene = new Scene()
   scene.add(model)
-  // The studio light of the twin (lib/model/astronaut/view.ts): the suit looks the same in the intro.
+  // The studio light shared with the twin (lib/model/astronaut/view.ts), so the suit looks the same in both.
   scene.add(new HemisphereLight(STUDIO_LIGHT.paper, STUDIO_LIGHT.ground, STUDIO_LIGHT.hemisphere))
   const key = new DirectionalLight(STUDIO_LIGHT.paper, STUDIO_LIGHT.key)
   key.position.set(...STUDIO_LIGHT.keyFrom)
