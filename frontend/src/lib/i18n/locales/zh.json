@@ -259,5 +259,13 @@
   "personal.activity.ask": "我想休息一下：{activity}",
   "personal.tabs.label": "分类",
   "personal.count": "舱内 {onBoard} · 推荐 {suggested}",
-  "personal.download": "下载"
+  "personal.download": "下载",
+  "training.about.label": "关于本页",
+  "training.about.title": "训练模拟器",
+  "training.about.badge": "模拟数据",
+  "training.about.what": "模拟器展示乘组在赴国际空间站任务前训练 24 个月（2024 年 10 月至 2026 年 9 月）期间，人工智能学到了什么。数据根据每位乘组成员的档案模拟，并非真实训练记录。",
+  "training.about.controlsTitle": "时间控制",
+  "training.about.controls": "箭头和滑块切换月份（1 至 24）。播放会加速各天：一个模拟日持续 4 分钟（真实时间），每月只模拟第 1、11、21、31 天。时钟显示模拟的日期和时间。",
+  "training.about.notesTitle": "按月笔记",
+  "training.about.notes": "左上角的“本月”笔记概述该月镜头所跟随的乘组成员发生的事。若要跟随其他人，请在起始页选择他。"
 }

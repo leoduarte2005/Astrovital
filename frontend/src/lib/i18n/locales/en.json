@@ -259,5 +259,13 @@
   "personal.activity.ask": "I'd like a break: {activity}",
   "personal.tabs.label": "Categories",
   "personal.count": "{onBoard} on board · {suggested} suggested",
-  "personal.download": "Download"
+  "personal.download": "Download",
+  "training.about.label": "About this page",
+  "training.about.title": "Training simulator",
+  "training.about.badge": "Simulated data",
+  "training.about.what": "A simulator of what the AI learned while the crew trained for 24 months (October 2024 to September 2026), before the mission to the ISS. The data is simulated from each crew member's profile; it is not a record of real training.",
+  "training.about.controlsTitle": "Time controls",
+  "training.about.controls": "The arrows and the slider change the month (1 to 24). Play runs the days: one simulated day lasts 4 real minutes, and only days 1, 11, 21 and 31 of each month are simulated. The clock shows the simulated date and time.",
+  "training.about.notesTitle": "Notes by month",
+  "training.about.notes": "The note \"This month\", at the top left, summarises what happened that month to the crew member the camera follows. Choose another crew member on the start screen to follow them."
 }

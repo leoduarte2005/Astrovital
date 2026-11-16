@@ -259,5 +259,13 @@
   "personal.activity.ask": "Quiero una pausa: {activity}",
   "personal.tabs.label": "Categorías",
   "personal.count": "{onBoard} a bordo · {suggested} sugeridos",
-  "personal.download": "Descargar"
+  "personal.download": "Descargar",
+  "training.about.label": "Sobre esta página",
+  "training.about.title": "Simulador de entrenamiento",
+  "training.about.badge": "Datos simulados",
+  "training.about.what": "Simulador de lo que aprendió la IA mientras la tripulación entrenó durante 24 meses (octubre de 2024 a septiembre de 2026), antes de la misión a la ISS. Los datos son simulados a partir del perfil de cada tripulante; no son un registro de entrenamiento real.",
+  "training.about.controlsTitle": "Controles de tiempo",
+  "training.about.controls": "Las flechas y el selector cambian el mes (1 a 24). Play acelera los días: un día simulado dura 4 minutos reales, y solo se simulan los días 1, 11, 21 y 31 de cada mes. El reloj muestra la fecha y la hora simuladas.",
+  "training.about.notesTitle": "Notas por mes",
+  "training.about.notes": "La nota \"Este mes\", arriba a la izquierda, resume lo que pasó ese mes con el tripulante que sigue la cámara. Para seguir a otro, elígalo en la pantalla inicial."
 }
