@@ -52,7 +52,6 @@
   "landing.control.left": "Turn left",
   "landing.control.right": "Turn right",
   "landing.control.thrust": "Thrust",
-  "leisure.download.notice": "The download of {title} will start.",
   "genre.literaturaBrasileira": "Brazilian literature",
   "genre.literaturaEstrangeira": "Foreign literature",
   "genre.filosofiaEEstrategia": "Philosophy and strategy",
@@ -256,9 +255,9 @@
   "personal.status.suggested": "Suggested by the AI · not on board yet",
   "personal.match": "Matches your taste: {genre}",
   "personal.play": "Play",
-  "personal.read": "Read",
   "personal.activity.button": "Plan a break",
   "personal.activity.ask": "I'd like a break: {activity}",
   "personal.tabs.label": "Categories",
-  "personal.count": "{onBoard} on board · {suggested} suggested"
+  "personal.count": "{onBoard} on board · {suggested} suggested",
+  "personal.download": "Download"
 }

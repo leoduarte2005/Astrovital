@@ -14,8 +14,6 @@ export interface AstronautSource {
   visor: RawMesh | null
   bodyMaterial: Material
   visorMaterial: Material | null
-  /** Shoulder fillers (`ShoulderFill*` in the GLB): closed spheres at the shoulder joints, in world space. */
-  shoulders: RawMesh[]
 }
 
 const vertexCount = (mesh: Mesh) => mesh.geometry.getAttribute('position')?.count ?? 0
@@ -62,8 +60,7 @@ export async function loadAstronautSource(url: string): Promise<AstronautSource>
     gltf.scene.traverse((node) => {
       if ((node as Mesh).isMesh) meshes.push(node as Mesh)
     })
-    const shoulderMeshes = meshes.filter((mesh) => mesh.name.startsWith('ShoulderFill'))
-    const suitMeshes = meshes.filter((mesh) => !mesh.name.startsWith('ShoulderFill'))
+    const suitMeshes = [...meshes]
     suitMeshes.sort((a, b) => vertexCount(b) - vertexCount(a))
     const body = suitMeshes[0]
     if (!body) throw new Error('astronaut: the GLB has no mesh')
@@ -73,7 +70,6 @@ export async function loadAstronautSource(url: string): Promise<AstronautSource>
       visor: visor ? toWorld(visor.geometry, visor.matrixWorld) : null,
       bodyMaterial: body.material as Material,
       visorMaterial: visor ? (visor.material as Material) : null,
-      shoulders: shoulderMeshes.map((mesh) => toWorld(mesh.geometry, mesh.matrixWorld)),
     }
   } finally {
     draco.dispose()

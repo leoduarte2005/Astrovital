@@ -52,7 +52,6 @@
   "landing.control.left": "左转",
   "landing.control.right": "右转",
   "landing.control.thrust": "推进",
-  "leisure.download.notice": "{title} 的下载即将开始。",
   "genre.literaturaBrasileira": "巴西文学",
   "genre.literaturaEstrangeira": "外国文学",
   "genre.filosofiaEEstrategia": "哲学与战略",
@@ -256,9 +255,9 @@
   "personal.status.suggested": "AI 推荐 · 尚未上舱",
   "personal.match": "符合你的喜好：{genre}",
   "personal.play": "开始",
-  "personal.read": "阅读",
   "personal.activity.button": "安排休息",
   "personal.activity.ask": "我想休息一下：{activity}",
   "personal.tabs.label": "分类",
-  "personal.count": "舱内 {onBoard} · 推荐 {suggested}"
+  "personal.count": "舱内 {onBoard} · 推荐 {suggested}",
+  "personal.download": "下载"
 }

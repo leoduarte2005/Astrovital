@@ -45,3 +45,9 @@ export function suggestBooks(crewId: string): Book[] {
   const genres = PREFERENCES[crewId] ?? [...BOOK_GENRES]
   return BOOK_CATALOG.filter((book) => genres.includes(book.genre))
 }
+
+/**
+ * Where a book's PDF is served from: the `books` folder next to the app (the `data/books` folder, served by the dev
+ * and preview servers; see vite.config.ts). Relative, so it works under any host and the `./` base.
+ */
+export const bookFileUrl = (book: Book): string => `./books/${book.file}`

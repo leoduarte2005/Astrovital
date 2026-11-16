@@ -1,6 +1,5 @@
 /**
- * How the astronaut is framed on `#/astronaut`. The twin's intro starts from this same view and zooms to its own framing,
- * so the two screens connect. Shared here because `features/astronaut` and `features/twin3d` cannot import each other.
+ * How the astronaut is framed on `#/astronaut`. Shared here because `features/astronaut` and `features/twin3d` cannot import each other.
  */
 
 /** Height of the model box on that page, as a fraction of the screen (`pages/astronaut` CSS: 50%). */
@@ -9,8 +8,6 @@ export const ASTRONAUT_BOX_FRACTION = 0.5
 export const ASTRONAUT_FIT_MARGIN = 1.1
 /** Camera height above the floor, as a fraction of the framed distance: the grid reads as a floor. */
 export const ASTRONAUT_CAMERA_LIFT = 0.22
-/** Fraction of the screen height the figure occupies on that page. */
-export const ASTRONAUT_SCREEN_FRACTION = ASTRONAUT_BOX_FRACTION / ASTRONAUT_FIT_MARGIN
 
 /**
  * The studio light of the astronaut and the twin, the same in both scenes: the suit must look the same before and

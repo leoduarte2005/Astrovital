@@ -52,7 +52,6 @@
   "landing.control.left": "Girar para a esquerda",
   "landing.control.right": "Girar para a direita",
   "landing.control.thrust": "Propulsão",
-  "leisure.download.notice": "O download de {title} será iniciado.",
   "genre.literaturaBrasileira": "Literatura brasileira",
   "genre.literaturaEstrangeira": "Literatura estrangeira",
   "genre.filosofiaEEstrategia": "Filosofia e estratégia",
@@ -256,9 +255,9 @@
   "personal.status.suggested": "Sugerido pela IA · ainda não a bordo",
   "personal.match": "Combina com você: {genre}",
   "personal.play": "Jogar",
-  "personal.read": "Ler",
   "personal.activity.button": "Planejar pausa",
   "personal.activity.ask": "Quero uma pausa: {activity}",
   "personal.tabs.label": "Categorias",
-  "personal.count": "{onBoard} a bordo · {suggested} sugeridos"
+  "personal.count": "{onBoard} a bordo · {suggested} sugeridos",
+  "personal.download": "Baixar"
 }
