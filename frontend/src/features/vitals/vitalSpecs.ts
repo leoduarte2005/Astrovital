@@ -7,8 +7,6 @@ export interface VitalSpec {
   /** Symbol from the central's contract. Not translated (rules/i18n.md). */
   unit: string
   decimals: number
-  /** `line`: one point per frame. `ohlc`: open/high/low/close per bucket. */
-  kind: 'line' | 'ohlc'
   /** Fixed y scale. Omit to auto-fit, so values outside a "normal" band are never clipped. */
   range?: [number, number]
   /**
@@ -32,7 +30,6 @@ export const HEART_RATE: VitalSpec = {
   labelKey: 'vital.heartRate',
   unit: 'bpm',
   decimals: 0,
-  kind: 'line',
   read: (f) => f.vitals.heart_rate_bpm,
 }
 
@@ -41,7 +38,6 @@ export const HRV: VitalSpec = {
   labelKey: 'vital.hrv',
   unit: 'ms',
   decimals: 0,
-  kind: 'line',
   read: (f) => needsAi(f, f.vitals.hrv_ms),
 }
 
@@ -50,7 +46,6 @@ export const SPO2: VitalSpec = {
   labelKey: 'vital.spo2',
   unit: '%',
   decimals: 1,
-  kind: 'line',
   read: (f) => f.vitals.spo2_pct,
 }
 
@@ -59,7 +54,6 @@ export const RESP_RATE: VitalSpec = {
   labelKey: 'vital.respRate',
   unit: 'rpm',
   decimals: 1,
-  kind: 'line',
   read: (f) => needsAi(f, f.vitals.resp_rate_bpm),
 }
 
@@ -69,7 +63,6 @@ export const CO2: VitalSpec = {
   labelKey: 'vital.co2',
   unit: 'ppm',
   decimals: 0,
-  kind: 'line',
   read: (f) => f.environment.co2_ppm,
 }
 
@@ -79,7 +72,6 @@ export const TEMP: VitalSpec = {
   labelKey: 'vital.temp',
   unit: '°C',
   decimals: 1,
-  kind: 'line',
   read: (f) => f.environment.temp_c,
 }
 
@@ -89,7 +81,6 @@ export const HUMIDITY: VitalSpec = {
   labelKey: 'vital.humidity',
   unit: '%',
   decimals: 0,
-  kind: 'line',
   read: (f) => f.environment.humidity_pct,
 }
 
@@ -99,7 +90,6 @@ export const PRESSURE: VitalSpec = {
   labelKey: 'vital.pressure',
   unit: 'hPa',
   decimals: 0,
-  kind: 'line',
   read: (f) => f.environment.pressure_hpa,
 }
 
@@ -109,7 +99,6 @@ export const POSTURE: VitalSpec = {
   labelKey: 'vital.posture',
   unit: '',
   decimals: 0,
-  kind: 'line',
   read: (f) => f.vitals.posture,
 }
 
@@ -129,7 +118,6 @@ function severitySpec(subsystem: Subsystem): VitalSpec {
     labelKey: SUBSYSTEM_LABEL[subsystem],
     unit: '',
     decimals: 0,
-    kind: 'line',
     range: [0, 2],
     read: (f) => {
       const entry = f.subsystems.find((s) => s.subsystem === subsystem)

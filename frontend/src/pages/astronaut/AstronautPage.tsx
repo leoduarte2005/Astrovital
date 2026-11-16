@@ -31,7 +31,7 @@ export default function AstronautPage() {
   const context = useCrewContext()
   const personal = section === 'personal'
   const overview = section === null
-  // The games built on board, for the personal space. Each opens in its own tab, as on `#/games`.
+  // The games built on board, for the personal space. Each opens in its own tab.
   const games = useMemo<PlayableGame[]>(
     () =>
       GAMES.map((game) => ({

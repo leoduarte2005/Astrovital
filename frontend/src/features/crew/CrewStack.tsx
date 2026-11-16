@@ -28,15 +28,55 @@ interface CrewStackCardProps {
   onSelect: (member: CrewMember) => void
 }
 
+/** Without a reading for this long, the card shows the placeholder instead of an old value. */
+const STALE_MS = 5000
+/** How often the card checks whether its last reading has gone stale. */
+const STALE_CHECK_MS = 1000
+/** The placeholder shown while there is no current reading (the same one as `Readout` before a value). */
+const PLACEHOLDER = '--'
+
 function CrewStackCard({ member, onSelect }: CrewStackCardProps) {
   const { t } = useI18n()
   const valueRef = useRef<HTMLSpanElement>(null)
 
-  // Heart rate at telemetry rate: written straight to the DOM, not through React state (see performance.md).
+  // The heart-rate link of this member lives only while the card is on screen and the tab is visible: it opens
+  // with the first reading wanted, closes when the page is left or hidden, and reopens when it is shown again.
+  // Readings are written straight to the DOM, not through React state (see performance.md).
   useEffect(() => {
-    return getDataSource().watchHeartRate(member.crewId, (bpm) => {
+    const source = getDataSource()
+    let unwatch: (() => void) | null = null
+    let lastAt = 0
+
+    const show = (bpm: number) => {
+      lastAt = Date.now()
       if (valueRef.current) valueRef.current.textContent = String(Math.round(bpm))
-    })
+    }
+    const start = () => {
+      if (!unwatch) unwatch = source.watchHeartRate(member.crewId, show)
+    }
+    const stop = () => {
+      unwatch?.()
+      unwatch = null
+      lastAt = 0
+      if (valueRef.current) valueRef.current.textContent = PLACEHOLDER
+    }
+    const onVisibility = () => (document.visibilityState === 'visible' ? start() : stop())
+
+    onVisibility()
+    document.addEventListener('visibilitychange', onVisibility)
+
+    // A reading older than STALE_MS is not shown: the card falls back to the placeholder, with no alarm.
+    const staleCheck = window.setInterval(() => {
+      if (!valueRef.current || lastAt === 0 || Date.now() - lastAt <= STALE_MS) return
+      lastAt = 0
+      valueRef.current.textContent = PLACEHOLDER
+    }, STALE_CHECK_MS)
+
+    return () => {
+      window.clearInterval(staleCheck)
+      document.removeEventListener('visibilitychange', onVisibility)
+      stop()
+    }
   }, [member.crewId])
 
   return (

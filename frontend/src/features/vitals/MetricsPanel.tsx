@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useBaseline, useHistory } from '@/lib/data/useBaseline'
 import { useI18n } from '@/lib/i18n'
-import { navigate } from '@/lib/utils/hashRoute'
 import {
   BASELINE_METRICS,
   corridorState,
@@ -10,7 +9,6 @@ import {
   type Corridor,
   type CorridorState,
 } from '@/lib/model/baseline'
-import { Button } from '@/ui/Button'
 import { ExpandableChart } from '@/ui/Chart'
 import { Icon } from '@/ui/Icon'
 import { IconButton } from '@/ui/IconButton'
@@ -20,7 +18,7 @@ import styles from './MetricsPanel.module.css'
 /** The sleep metric has no live feed: its value is the last night of the week window. */
 const LIVE_METRICS = new Set(['heartRate', 'hrv', 'respRate', 'spo2'])
 
-/** Minimised card of the home: the five baseline metrics at a glance. Expands to a near full-screen view. */
+/** The five baseline metrics as small cards, each with its value, its corridor status and its baseline. */
 export function MetricsPanel() {
   const { t } = useI18n()
   const baseline = useBaseline()
@@ -37,9 +35,9 @@ export function MetricsPanel() {
               {onExpand && <IconButton icon="expand" label={t('chart.expand')} onClick={onExpand} size="sm" iconSize="sm" />}
             </header>
           )}
-          <ul className={styles.list}>
+          <ul className={styles.grid}>
             {BASELINE_METRICS.map((spec) => (
-              <MetricRow key={spec.id} spec={spec} corridor={baseline?.corridors[spec.id] ?? null} sleepLast={sleepLast} />
+              <MetricCard key={spec.id} spec={spec} corridor={baseline?.corridors[spec.id] ?? null} sleepLast={sleepLast} />
             ))}
           </ul>
           {expanded && baseline && <TrainingNote baseline={baseline} />}
@@ -58,22 +56,21 @@ function TrainingNote({ baseline }: { baseline: BaselineProfile }) {
       <p>{t('charts.baseline.period', { from: date.format(training.trainedFrom), to: date.format(training.trainedTo) })}</p>
       <p>{t('charts.baseline.days', { days: training.days, expected: training.expectedDays })}</p>
       <p>{t('charts.baseline.note')}</p>
-      <Button onClick={() => navigate('/charts')}>{t('metrics.openCharts')}</Button>
     </div>
   )
 }
 
-interface RowProps {
+interface CardProps {
   spec: BaselineMetricSpec
   corridor: Corridor | null
-  /** Last night's sleep, for the sleep row (no live feed). */
+  /** Last night's sleep, for the sleep card (no live feed). */
   sleepLast: number | null
 }
 
-function MetricRow({ spec, corridor, sleepLast: night }: RowProps) {
+function MetricCard({ spec, corridor, sleepLast }: CardProps) {
   const { t, locale } = useI18n()
   const valueRef = useRef<HTMLSpanElement>(null)
-  const chipRef = useRef<HTMLSpanElement>(null)
+  const statusRef = useRef<HTMLSpanElement>(null)
   const live = LIVE_METRICS.has(spec.id)
 
   const number = useMemo(
@@ -89,23 +86,24 @@ function MetricRow({ spec, corridor, sleepLast: night }: RowProps) {
       const { y } = feed.read()
       const last = y.at(-1) ?? null
       if (valueRef.current) valueRef.current.textContent = last === null ? '—' : number.format(last)
-      if (chipRef.current) chipRef.current.dataset.state = last === null || !corridor ? 'none' : corridorState(last, corridor)
+      if (statusRef.current) statusRef.current.dataset.state = last === null || !corridor ? 'none' : corridorState(last, corridor)
     }
     apply()
     return feed.subscribe(apply)
   }, [live, spec.id, corridor, number])
 
-  const sleepLast = spec.id === 'sleep' ? night : null
-  const staticState: CorridorState | 'none' = sleepLast !== null && corridor ? corridorState(sleepLast, corridor) : 'none'
+  const sleep = spec.id === 'sleep' ? sleepLast : null
+  const staticState: CorridorState | 'none' = sleep !== null && corridor ? corridorState(sleep, corridor) : 'none'
 
   return (
-    <li className={styles.row}>
+    <li className={styles.card}>
       <span className={styles.label}>{t(spec.labelKey)}</span>
       <span className={styles.value}>
-        <span ref={valueRef}>{live ? '—' : sleepLast === null ? '—' : number.format(sleepLast)}</span>
+        <span ref={valueRef}>{live ? '—' : sleep === null ? '—' : number.format(sleep)}</span>
         <span className={styles.unit}>{spec.unit}</span>
       </span>
-      <span ref={chipRef} className={styles.chip} data-state={live ? 'none' : staticState}>
+      {/* The status is a word and an icon, never colour alone. Hidden while there is no value to compare. */}
+      <span ref={statusRef} className={styles.status} data-state={live ? 'none' : staticState}>
         <span className={styles.alert}>
           <Icon name="alert" />
         </span>
@@ -115,7 +113,8 @@ function MetricRow({ spec, corridor, sleepLast: night }: RowProps) {
       </span>
       {corridor && (
         <span className={styles.base}>
-          {t('metrics.base', { value: number.format(corridor.mean) })} ·{' '}
+          {t('metrics.base', { value: number.format(corridor.mean) })}
+          <br />
           {t('metrics.corridor', { low: number.format(corridor.low), high: number.format(corridor.high) })}
           {spec.id === 'sleep' ? ` · ${t('metrics.sleepNight')}` : ''}
         </span>

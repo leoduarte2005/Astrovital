@@ -14,20 +14,12 @@ export interface LineSnapshot {
   y: (number | null)[]
 }
 
-export interface OhlcSnapshot {
-  x: number[]
-  open: (number | null)[]
-  high: (number | null)[]
-  low: (number | null)[]
-  close: (number | null)[]
-}
-
 /** Minimised cards show only the last readings; the expanded view shows the whole window. */
 export const CARD_READINGS = 8
 
 /** The telemetry arrives at 2 Hz: the card's last readings span this many seconds. */
 export const CARD_WINDOW_SECONDS = CARD_READINGS / 2
-/** The expanded view's window, in seconds. */
+
 /** The expanded view keeps this many readings; older ones are discarded. */
 export const EXPANDED_READINGS = 20
 /** The expanded window, in seconds (readings at 2 Hz). */

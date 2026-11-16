@@ -1,11 +1,3 @@
-/* Floating menu: fixed top right on every page (the chat sidebar is fixed on its edge the same way). */
-.menu {
-  position: fixed;
-  top: var(--space-4);
-  right: var(--space-4);
-  z-index: var(--z-drawer);
-}
-
 /* Top left column, like the section tabs (same pages): the active crew member's card, then page extras (training log). */
 .corner {
   position: fixed;

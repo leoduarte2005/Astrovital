@@ -7,11 +7,7 @@ export function sectionPath(section: AstronautSection): string {
   return `${ASTRONAUT_PATH}/${section}`
 }
 
-/**
- * The section a route belongs to, or null when none is chosen. The home (`#/`) is the medical follow-up page,
- * so it counts as that section.
- */
+/** The section a route belongs to, or null when none is chosen (the overview, `#/astronaut`). */
 export function sectionOfPath(path: string): AstronautSection | null {
-  if (path === '/') return 'medical'
   return ASTRONAUT_SECTIONS.find((section) => path === sectionPath(section)) ?? null
 }

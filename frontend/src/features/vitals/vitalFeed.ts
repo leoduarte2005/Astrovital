@@ -1,27 +1,15 @@
 import type { DataSource } from '@/lib/data'
 import { crewStateStore } from '@/lib/data/crewState'
 import type { Envelope, TelemetryFramePayload } from '@/lib/model/live'
-import type { ChartFeed, LineSnapshot, OhlcSnapshot } from '@/ui/Chart'
+import type { ChartFeed, LineSnapshot } from '@/ui/Chart'
 import { VITAL_SPECS, type VitalSpec } from './vitalSpecs'
 
 /** Line samples kept per vital: the expanded view's 20 readings. Older ones are discarded. */
 const LINE_POINTS = 20
-/** Bucket width of the candles, in seconds. */
-export const OHLC_BUCKET_SECONDS = 5
-/** 5 min of candles. */
-const OHLC_BUCKETS = 60
 
 interface Point {
   x: number
   y: number | null
-}
-
-interface Bucket {
-  t: number
-  open: number
-  high: number
-  low: number
-  close: number
 }
 
 /**
@@ -32,7 +20,6 @@ export class VitalFeed {
   private unsubscribe: (() => void) | null = null
   private readonly listeners = new Set<() => void>()
   private readonly lines = new Map<string, Point[]>()
-  private readonly buckets = new Map<string, Bucket[]>()
   private readonly feeds = new Map<string, ChartFeed<unknown>>()
   private readonly snapshots = new Map<string, { version: number; value: unknown }>()
   /** Texts seen per categorical vital (posture), in order of appearance. A text's index is its y value. */
@@ -65,10 +52,6 @@ export class VitalFeed {
     return this.feed(id, () => this.lineSnapshot(id))
   }
 
-  ohlcFeed(id: string): ChartFeed<OhlcSnapshot> {
-    return this.feed(id, () => this.ohlcSnapshot(id))
-  }
-
   private feed<S>(id: string, build: () => S): ChartFeed<S> {
     const existing = this.feeds.get(id)
     if (existing) return existing as ChartFeed<S>
@@ -99,11 +82,7 @@ export class VitalFeed {
     const frame = envelope.payload
     if (!frame?.vitals || !frame.environment) return
     const seconds = envelope.ts_us / 1e6
-    for (const spec of VITAL_SPECS) {
-      const value = this.valueOf(spec, frame)
-      if (spec.kind === 'line') this.appendPoint(spec.id, seconds, value)
-      else if (value !== null) this.addToBucket(spec.id, seconds, value)
-    }
+    for (const spec of VITAL_SPECS) this.appendPoint(spec.id, seconds, this.valueOf(spec, frame))
     this.frameAt = Date.now()
     this.bump()
   }
@@ -135,40 +114,13 @@ export class VitalFeed {
     this.lines.set(id, points)
   }
 
-  private addToBucket(id: string, seconds: number, value: number): void {
-    const t = Math.floor(seconds / OHLC_BUCKET_SECONDS) * OHLC_BUCKET_SECONDS
-    const list = this.buckets.get(id) ?? []
-    const last = list[list.length - 1]
-    if (last && last.t === t) {
-      last.high = Math.max(last.high, value)
-      last.low = Math.min(last.low, value)
-      last.close = value
-    } else {
-      list.push({ t, open: value, high: value, low: value, close: value })
-      if (list.length > OHLC_BUCKETS) list.splice(0, list.length - OHLC_BUCKETS)
-    }
-    this.buckets.set(id, list)
-  }
-
   private lineSnapshot(id: string): LineSnapshot {
     const points = this.lines.get(id) ?? []
     return { x: points.map((p) => p.x), y: points.map((p) => p.y) }
   }
 
-  private ohlcSnapshot(id: string): OhlcSnapshot {
-    const list = this.buckets.get(id) ?? []
-    return {
-      x: list.map((b) => b.t),
-      open: list.map((b) => b.open),
-      high: list.map((b) => b.high),
-      low: list.map((b) => b.low),
-      close: list.map((b) => b.close),
-    }
-  }
-
   private clear(): void {
     this.lines.clear()
-    this.buckets.clear()
     this.categories.clear()
     this.frameAt = null
     this.bump()
